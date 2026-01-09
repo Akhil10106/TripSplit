@@ -28,34 +28,57 @@
         .stat-tile-5 { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
         .stat-tile-default { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
-        /* Classy Member Selector Chips */
+        /* Chips */
         .member-chip {
-            background: #ffffff;
-            border: 2px solid #f1f5f9;
-            color: #64748b;
-            padding: 10px 18px;
-            border-radius: 1rem;
-            font-weight: 700;
-            font-size: 0.85rem;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            background: #ffffff; border: 2px solid #f1f5f9; color: #64748b;
+            padding: 10px 18px; border-radius: 1rem; font-weight: 700; font-size: 0.85rem;
+            transition: all 0.2s ease; display: flex; align-items: center; gap: 8px;
         }
-        
-        /* Active States for Chips (Matching their unique color profile) */
         .chip-active-0 { border-color: #6366f1; background: #eef2ff; color: #4338ca; }
         .chip-active-1 { border-color: #ec4899; background: #fdf2f8; color: #be185d; }
         .chip-active-2 { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
         .chip-active-3 { border-color: #10b981; background: #f0fdf4; color: #047857; }
-        .chip-active-4 { border-color: #06b6d4; background: #f0f9ff; color: #0369a1; }
-        .chip-active-5 { border-color: #8b5cf6; background: #f5f3ff; color: #6d28d9; }
+
+        /* Modal Layout */
+        #member-modal { display: none; }
+        .modal-animate { animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes modalPop { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .member-chip i { font-size: 14px; opacity: 0; transition: opacity 0.2s; }
-        .active-chip i { opacity: 1; }
+        .hidden-history { display: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
 <body class="p-4 md:p-10">
+
+    <div id="member-modal" class="fixed inset-0 z-[200] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="silk-card max-w-sm w-full modal-animate relative overflow-hidden flex flex-col max-h-[85vh]">
+            <button onclick="closeMemberModal()" class="absolute top-6 right-6 z-10 text-slate-300 hover:text-slate-500">
+                <i class="fa-solid fa-circle-xmark text-2xl"></i>
+            </button>
+            
+            <div class="p-8 pb-6 text-center">
+                <img id="modal-img" src="" class="w-24 h-24 rounded-3xl mx-auto border-4 border-white shadow-xl mb-4 object-cover">
+                <h2 id="modal-name" class="text-2xl font-black text-slate-900 leading-none mb-4">...</h2>
+                
+                <div class="bg-slate-50 p-5 rounded-2xl mb-6">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Share</p>
+                    <p id="modal-balance" class="text-3xl font-black text-indigo-600">₹0</p>
+                </div>
+
+                <button id="toggle-history-btn" onclick="toggleMemberHistory()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all">
+                    View Transaction History
+                </button>
+            </div>
+
+            <div id="modal-history-pane" class="hidden-history px-8 pb-8 flex-1 flex flex-col overflow-hidden">
+                <div class="w-full h-[1px] bg-slate-100 mb-6"></div>
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Personal Timeline</p>
+                <div id="modal-history-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
+                    </div>
+            </div>
+        </div>
+    </div>
 
     <div id="auth-screen" class="fixed inset-0 z-[100] bg-white flex items-center justify-center p-6">
         <div class="text-center max-w-sm">
@@ -71,7 +94,7 @@
     <div id="unauthorized-screen" class="fixed inset-0 z-[90] bg-slate-50 flex items-center justify-center p-6">
         <div class="silk-card p-10 text-center max-w-md">
             <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
-                <i class="fa-solid fa-user-clock"></i>
+                <i class="fa-solid fa-user-lock"></i>
             </div>
             <h2 class="text-2xl font-black text-slate-900 mb-2">Pending Access</h2>
             <p class="text-slate-500 font-medium mb-8">Gmail: <span id="pending-email" class="text-indigo-600 font-bold"></span><br>Ask the Admin to add you to the trip.</p>
@@ -82,54 +105,38 @@
     <div id="app-content" class="max-w-6xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
             <div class="flex items-center gap-4 cursor-pointer group" onclick="showView('profile-page')">
-                <img id="user-photo" src="" class="w-14 h-14 rounded-2xl border-2 border-white shadow-xl transition-transform group-hover:scale-105">
+                <img id="user-photo" src="" class="w-14 h-14 rounded-2xl border-2 border-white shadow-xl">
                 <div>
                     <h2 class="text-xl font-extrabold text-slate-900 leading-none">Hello, <span id="user-name">...</span></h2>
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">● Trip Member</p>
                 </div>
             </div>
             <div class="flex gap-3">
-                <button onclick="showView('main-dashboard')" class="bg-white px-8 py-3 rounded-2xl text-sm font-bold shadow-sm border border-slate-100 hover:bg-slate-50 transition-all">Home</button>
-                <button onclick="showView('settings-page')" class="bg-slate-900 text-white px-5 py-3 rounded-2xl text-sm font-bold shadow-lg hover:bg-slate-800 transition-all"><i class="fa-solid fa-sliders"></i></button>
+                <button onclick="showView('main-dashboard')" class="bg-white px-8 py-3 rounded-2xl text-sm font-bold shadow-sm border border-slate-100">Home</button>
+                <button onclick="showView('settings-page')" class="bg-slate-900 text-white px-5 py-3 rounded-2xl text-sm font-bold shadow-lg"><i class="fa-solid fa-sliders"></i></button>
             </div>
         </header>
 
         <div id="main-dashboard" class="view-pane active-view">
             <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"></div>
-
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
                 <div class="lg:col-span-5">
-                    <div class="silk-card p-8 sticky top-10 border-slate-100">
-                        <h3 class="text-lg font-black mb-8 text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-plus-circle text-indigo-500"></i> Log Expense
-                        </h3>
+                    <div class="silk-card p-8 sticky top-10">
+                        <h3 class="text-lg font-black mb-8 text-slate-800">Log Expense</h3>
                         <div class="space-y-6">
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Title</label>
-                                <input type="text" id="bill-title" placeholder="What did you pay for?" class="w-full bg-slate-50 rounded-2xl p-4 border-none outline-none focus:ring-2 ring-indigo-500/10 font-bold text-slate-700">
+                            <input type="text" id="bill-title" placeholder="Description" class="w-full bg-slate-50 rounded-2xl p-4 border-none font-bold">
+                            <div class="relative">
+                                <span class="absolute left-4 top-4 text-slate-400 font-black">₹</span>
+                                <input type="number" id="bill-amount" placeholder="0.00" class="w-full bg-slate-50 rounded-2xl p-4 pl-10 text-2xl font-black border-none">
                             </div>
-
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Amount</label>
-                                <div class="relative">
-                                    <span class="absolute left-4 top-4 text-slate-400 font-black">₹</span>
-                                    <input type="number" id="bill-amount" placeholder="0.00" class="w-full bg-slate-50 rounded-2xl p-4 pl-10 text-2xl font-black border-none outline-none focus:ring-2 ring-indigo-500/10 text-slate-800">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block ml-1">Split Between</label>
-                                <div id="split-selectors" class="flex flex-wrap gap-2"></div>
-                            </div>
-                            
-                            <button onclick="logExpense()" class="w-full btn-premium py-5 rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl mt-4 active:scale-95 transition-all">Publish</button>
+                            <div id="split-selectors" class="flex flex-wrap gap-2"></div>
+                            <button onclick="logExpense()" class="w-full btn-premium py-5 rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl mt-4">Publish</button>
                         </div>
                     </div>
                 </div>
-
                 <div class="lg:col-span-7">
                     <div class="silk-card p-8 min-h-[500px]">
-                        <div class="flex justify-between items-center mb-10 pb-4 border-b border-slate-50">
+                        <div class="flex justify-between items-center mb-10 pb-4 border-b">
                             <h3 class="text-xl font-black text-slate-800">History</h3>
                             <div id="grand-total" class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-black text-sm"></div>
                         </div>
@@ -142,27 +149,24 @@
         <div id="profile-page" class="view-pane max-w-md mx-auto">
             <div class="silk-card p-10 text-center">
                 <img id="profile-img-large" class="w-28 h-28 rounded-3xl mx-auto mb-6 border-4 border-white shadow-2xl">
-                <h2 id="profile-name-large" class="text-3xl font-black text-slate-900"></h2>
+                <h2 id="profile-name-large" class="text-3xl font-black"></h2>
                 <p id="profile-email-large" class="text-slate-400 font-medium mb-10"></p>
-                <button onclick="logoutUser()" class="w-full bg-red-50 text-red-500 font-black py-4 rounded-2xl hover:bg-red-100 transition-all">Sign Out Account</button>
+                <button onclick="logoutUser()" class="w-full bg-red-50 text-red-500 font-black py-4 rounded-2xl">Sign Out</button>
             </div>
         </div>
 
         <div id="settings-page" class="view-pane max-w-2xl mx-auto">
             <div class="silk-card p-8">
-                <h3 class="text-2xl font-black mb-8 text-slate-900">Manage Trip</h3>
-                <div class="mb-10">
-                    <div id="member-settings-list" class="space-y-3 mb-8"></div>
-                    <div class="p-6 bg-slate-50 rounded-3xl space-y-4">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Register New User</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <input type="text" id="new-member-name" placeholder="Name" class="bg-white p-4 rounded-xl font-bold border-none shadow-sm">
-                            <input type="email" id="new-member-email" placeholder="Gmail" class="bg-white p-4 rounded-xl font-bold border-none shadow-sm">
-                        </div>
-                        <button onclick="addNewMember()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg shadow-indigo-200">Add to Trip</button>
+                <h3 class="text-2xl font-black mb-8">Manage Trip</h3>
+                <div id="member-settings-list" class="space-y-3 mb-8"></div>
+                <div class="p-6 bg-slate-50 rounded-3xl space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input type="text" id="new-member-name" placeholder="Name" class="bg-white p-4 rounded-xl font-bold border-none">
+                        <input type="email" id="new-member-email" placeholder="Gmail" class="bg-white p-4 rounded-xl font-bold border-none">
                     </div>
+                    <button onclick="addNewMember()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl">Add to Trip</button>
                 </div>
-                <div class="pt-8 border-t border-slate-100 flex gap-4">
+                <div class="pt-8 border-t flex gap-4 mt-8">
                     <button onclick="logoutUser()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-4 rounded-2xl">Logout</button>
                     <button onclick="clearAllExpenses()" class="flex-1 border-2 border-red-50 text-red-500 font-bold py-4 rounded-2xl">Reset Data</button>
                 </div>
@@ -187,44 +191,72 @@
         const db = getDatabase(app);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
+        
         let groupMembers = [];
+        let globalExpenses = [];
 
         window.showView = (id) => {
             document.querySelectorAll('.view-pane').forEach(v => v.classList.remove('active-view'));
             document.getElementById(id).classList.add('active-view');
         };
 
+        window.openMemberModal = (name, amount) => {
+            document.getElementById('modal-name').innerText = name;
+            document.getElementById('modal-balance').innerText = `₹${amount.toFixed(0)}`;
+            document.getElementById('modal-img').src = `https://ui-avatars.com/api/?name=${name}&background=6366f1&color=fff&size=200&bold=true`;
+            
+            // Prepare history but don't show yet
+            const historyList = document.getElementById('modal-history-list');
+            const memberHistory = globalExpenses.filter(exp => exp.involved.includes(name));
+            historyList.innerHTML = memberHistory.length > 0 ? memberHistory.map(exp => `
+                <div class="p-4 bg-white border border-slate-50 rounded-xl shadow-sm flex justify-between items-center">
+                    <div><p class="font-bold text-slate-800 text-xs mb-1">${exp.title}</p><p class="text-[8px] font-black text-slate-300 uppercase">${exp.time}</p></div>
+                    <p class="text-xs font-black text-indigo-600">₹${(exp.amount / exp.involved.length).toFixed(0)}</p>
+                </div>
+            `).join('') : `<div class="text-center py-10 text-slate-300 text-xs font-bold italic">No history</div>`;
+            
+            // Reset modal state
+            document.getElementById('modal-history-pane').classList.add('hidden-history');
+            document.getElementById('toggle-history-btn').innerText = "View Transaction History";
+            document.getElementById('member-modal').style.display = 'flex';
+        };
+
+        window.toggleMemberHistory = () => {
+            const pane = document.getElementById('modal-history-pane');
+            const btn = document.getElementById('toggle-history-btn');
+            const isHidden = pane.classList.contains('hidden-history');
+            
+            pane.classList.toggle('hidden-history');
+            btn.innerText = isHidden ? "Hide Transaction History" : "View Transaction History";
+        };
+
+        window.closeMemberModal = () => document.getElementById('member-modal').style.display = 'none';
+
         document.getElementById('google-login').onclick = () => signInWithPopup(auth, provider);
         window.logoutUser = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                checkAccess(user);
+                onValue(ref(db, 'trip_open/members'), (snapshot) => {
+                    groupMembers = snapshot.val() || [];
+                    const hasAccess = groupMembers.some(m => m.email.toLowerCase() === user.email.toLowerCase());
+                    if (hasAccess || groupMembers.length === 0) {
+                        document.getElementById('auth-screen').style.display = 'none';
+                        document.getElementById('unauthorized-screen').style.display = 'none';
+                        document.getElementById('app-content').style.display = 'block';
+                        setupUserData(user);
+                        initDashboard();
+                    } else {
+                        document.getElementById('auth-screen').style.display = 'none';
+                        document.getElementById('unauthorized-screen').style.display = 'flex';
+                        document.getElementById('pending-email').innerText = user.email;
+                    }
+                });
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('app-content').style.display = 'none';
             }
         });
-
-        function checkAccess(user) {
-            onValue(ref(db, 'trip_open/members'), (snapshot) => {
-                groupMembers = snapshot.val() || [];
-                const userEmail = user.email.toLowerCase();
-                const hasAccess = groupMembers.some(m => m.email.toLowerCase() === userEmail);
-
-                if (hasAccess || groupMembers.length === 0) {
-                    document.getElementById('auth-screen').style.display = 'none';
-                    document.getElementById('unauthorized-screen').style.display = 'none';
-                    document.getElementById('app-content').style.display = 'block';
-                    setupUserData(user);
-                    initDashboard();
-                } else {
-                    document.getElementById('auth-screen').style.display = 'none';
-                    document.getElementById('unauthorized-screen').style.display = 'flex';
-                    document.getElementById('pending-email').innerText = user.email;
-                }
-            });
-        }
 
         function setupUserData(user) {
             document.getElementById('user-name').innerText = user.displayName.split(' ')[0];
@@ -237,7 +269,9 @@
         function initDashboard() {
             renderSettings();
             onValue(ref(db, 'trip_open/expenses'), (snap) => {
-                renderUI(snap.val() || {});
+                const data = snap.val() || {};
+                globalExpenses = Object.values(data).reverse();
+                renderUI(data);
             });
         }
 
@@ -308,16 +342,15 @@
             const feed = document.getElementById('activity-feed');
             feed.innerHTML = '';
 
-            Object.values(expenses).reverse().forEach(exp => {
+            globalExpenses.forEach(exp => {
                 totalTrip += exp.amount;
                 const split = exp.amount / exp.involved.length;
                 exp.involved.forEach(n => { if(balances.hasOwnProperty(n)) balances[n] += split; });
                 feed.innerHTML += `
-                    <div class="flex justify-between items-center p-6 bg-slate-50 border border-slate-100 rounded-[1.5rem] hover:bg-white transition-all group">
+                    <div class="flex justify-between items-center p-6 bg-slate-50 border border-slate-100 rounded-[1.5rem]">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-2">
                                 <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">${exp.time}</span>
-                                <div class="h-1 w-1 rounded-full bg-slate-200"></div>
                                 <h4 class="font-extrabold text-slate-800">${exp.title}</h4>
                             </div>
                             <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">By ${exp.by} ● With ${exp.involved.join(', ')}</p>
@@ -331,15 +364,17 @@
 
             document.getElementById('stats-grid').innerHTML = groupMembers.map((m, index) => {
                 const colorClass = index < 6 ? `stat-tile-${index}` : 'stat-tile-default';
+                const bal = balances[m.name] || 0;
                 return `
-                <div class="silk-card p-6 border-none shadow-sm ${colorClass} transition-transform hover:scale-105">
+                <div onclick="openMemberModal('${m.name}', ${bal})" class="silk-card p-6 border-none shadow-sm ${colorClass} transition-transform hover:scale-105 cursor-pointer">
                     <p class="text-[10px] font-black uppercase tracking-widest mb-1 opacity-70">${m.name}</p>
-                    <p class="text-2xl font-black">₹${balances[m.name].toFixed(0)}</p>
+                    <p class="text-2xl font-black">₹${bal.toFixed(0)}</p>
                 </div>
             `}).join('');
             
             document.getElementById('grand-total').innerText = `Total ₹${totalTrip.toLocaleString()}`;
         }
+        window.toggleChip = toggleChip;
     </script>
 </body>
 </html>
