@@ -12,23 +12,47 @@
         :root { --primary: #4f46e5; --bg: #f8fafc; }
         body { background: var(--bg); color: #1e293b; font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; }
         .silk-card { background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1); border-radius: 2rem; }
-        .btn-premium { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; transition: all 0.3s ease; }
-        .is-selected { background: #4f46e5 !important; color: white !important; }
+        .btn-premium { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; transition: all 0.3s ease; }
         .google-btn { background: white; border: 1px solid #dadce0; color: #3c4043; transition: all 0.2s; }
-        .google-btn:hover { background: #f8f9fa; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         #app-content { display: none; }
         .view-pane { display: none; }
         .active-view { display: block; }
         #unauthorized-screen { display: none; }
 
-        /* Premium Color Tiles for Balances */
-        .stat-tile-0 { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; }
-        .stat-tile-1 { background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%); color: white; }
-        .stat-tile-2 { background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); color: white; }
-        .stat-tile-3 { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
-        .stat-tile-4 { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; }
-        .stat-tile-5 { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; }
-        .stat-tile-default { background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; }
+        /* Premium Balance Tiles */
+        .stat-tile-0 { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+        .stat-tile-1 { background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; }
+        .stat-tile-2 { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .stat-tile-3 { background: #d1fae5; color: #047857; border: 1px solid #a7f3d0; }
+        .stat-tile-4 { background: #cfeffb; color: #0369a1; border: 1px solid #bae6fd; }
+        .stat-tile-5 { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
+        .stat-tile-default { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+        /* Classy Member Selector Chips */
+        .member-chip {
+            background: #ffffff;
+            border: 2px solid #f1f5f9;
+            color: #64748b;
+            padding: 10px 18px;
+            border-radius: 1rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Active States for Chips (Matching their unique color profile) */
+        .chip-active-0 { border-color: #6366f1; background: #eef2ff; color: #4338ca; }
+        .chip-active-1 { border-color: #ec4899; background: #fdf2f8; color: #be185d; }
+        .chip-active-2 { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
+        .chip-active-3 { border-color: #10b981; background: #f0fdf4; color: #047857; }
+        .chip-active-4 { border-color: #06b6d4; background: #f0f9ff; color: #0369a1; }
+        .chip-active-5 { border-color: #8b5cf6; background: #f5f3ff; color: #6d28d9; }
+        
+        .member-chip i { font-size: 14px; opacity: 0; transition: opacity 0.2s; }
+        .active-chip i { opacity: 1; }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -36,68 +60,80 @@
     <div id="auth-screen" class="fixed inset-0 z-[100] bg-white flex items-center justify-center p-6">
         <div class="text-center max-w-sm">
             <h1 class="text-4xl font-black tracking-tighter text-slate-900 mb-2">TRIP<span class="text-indigo-600">SPLIT</span></h1>
-            <p class="text-slate-500 mb-8 font-medium">Sign in to join your group trip.</p>
+            <p class="text-slate-500 mb-8 font-medium">Classy expense sharing for travelers.</p>
             <button id="google-login" class="google-btn flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold text-lg">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
-                Sign in with Google
+                Continue with Google
             </button>
         </div>
     </div>
 
     <div id="unauthorized-screen" class="fixed inset-0 z-[90] bg-slate-50 flex items-center justify-center p-6">
         <div class="silk-card p-10 text-center max-w-md">
-            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
-                <i class="fa-solid fa-lock"></i>
+            <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
+                <i class="fa-solid fa-user-clock"></i>
             </div>
-            <h2 class="text-2xl font-black text-slate-900 mb-2">Access Restricted</h2>
-            <p class="text-slate-500 font-medium mb-8">Your Gmail (<span id="pending-email" class="text-indigo-600 font-bold"></span>) is not registered yet.</p>
+            <h2 class="text-2xl font-black text-slate-900 mb-2">Pending Access</h2>
+            <p class="text-slate-500 font-medium mb-8">Gmail: <span id="pending-email" class="text-indigo-600 font-bold"></span><br>Ask the Admin to add you to the trip.</p>
             <button onclick="logoutUser()" class="w-full bg-slate-900 text-white font-black py-4 rounded-xl">Switch Account</button>
         </div>
     </div>
 
     <div id="app-content" class="max-w-6xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-            <div class="flex items-center gap-4 cursor-pointer" onclick="showView('profile-page')">
-                <img id="user-photo" src="" class="w-12 h-12 rounded-full border-2 border-indigo-500 p-0.5">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+            <div class="flex items-center gap-4 cursor-pointer group" onclick="showView('profile-page')">
+                <img id="user-photo" src="" class="w-14 h-14 rounded-2xl border-2 border-white shadow-xl transition-transform group-hover:scale-105">
                 <div>
-                    <h2 class="text-xl font-extrabold text-slate-900 leading-none">Hello, <span id="user-name">Traveler</span></h2>
-                    <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">● Verified Member</p>
+                    <h2 class="text-xl font-extrabold text-slate-900 leading-none">Hello, <span id="user-name">...</span></h2>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">● Trip Member</p>
                 </div>
             </div>
             <div class="flex gap-3">
-                <button onclick="showView('main-dashboard')" class="bg-white px-6 py-3 rounded-2xl text-sm font-bold shadow-sm border border-slate-200 hover:bg-slate-50">Home</button>
-                <button onclick="showView('settings-page')" class="bg-slate-900 text-white px-6 py-3 rounded-2xl text-sm font-bold shadow-sm hover:bg-slate-800"><i class="fa-solid fa-gear"></i></button>
+                <button onclick="showView('main-dashboard')" class="bg-white px-8 py-3 rounded-2xl text-sm font-bold shadow-sm border border-slate-100 hover:bg-slate-50 transition-all">Home</button>
+                <button onclick="showView('settings-page')" class="bg-slate-900 text-white px-5 py-3 rounded-2xl text-sm font-bold shadow-lg hover:bg-slate-800 transition-all"><i class="fa-solid fa-sliders"></i></button>
             </div>
         </header>
 
         <div id="main-dashboard" class="view-pane active-view">
-            <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10"></div>
+            <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"></div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                <div class="lg:col-span-4">
-                    <div class="silk-card p-8 sticky top-10">
-                        <h3 class="text-lg font-extrabold mb-6 text-slate-800">Add New Expense</h3>
-                        <div class="space-y-4">
-                            <input type="text" id="bill-title" placeholder="Description" class="w-full bg-slate-50 rounded-xl p-4 border-none outline-none focus:ring-2 ring-indigo-500/20 font-semibold">
-                            <div class="relative">
-                                <span class="absolute left-4 top-4 text-slate-400 font-black">₹</span>
-                                <input type="number" id="bill-amount" placeholder="Amount" class="w-full bg-slate-50 rounded-xl p-4 pl-10 text-xl font-black border-none outline-none focus:ring-2 ring-indigo-500/20">
+                <div class="lg:col-span-5">
+                    <div class="silk-card p-8 sticky top-10 border-slate-100">
+                        <h3 class="text-lg font-black mb-8 text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-plus-circle text-indigo-500"></i> Log Expense
+                        </h3>
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Title</label>
+                                <input type="text" id="bill-title" placeholder="What did you pay for?" class="w-full bg-slate-50 rounded-2xl p-4 border-none outline-none focus:ring-2 ring-indigo-500/10 font-bold text-slate-700">
                             </div>
+
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Amount</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-4 text-slate-400 font-black">₹</span>
+                                    <input type="number" id="bill-amount" placeholder="0.00" class="w-full bg-slate-50 rounded-2xl p-4 pl-10 text-2xl font-black border-none outline-none focus:ring-2 ring-indigo-500/10 text-slate-800">
+                                </div>
+                            </div>
+
                             <div>
-                                <p class="text-[10px] font-black text-slate-400 uppercase mb-3 ml-1">Included Members</p>
-                                <div id="split-selectors" class="grid grid-cols-2 gap-2"></div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block ml-1">Split Between</label>
+                                <div id="split-selectors" class="flex flex-wrap gap-2"></div>
                             </div>
-                            <button onclick="logExpense()" class="w-full btn-premium py-5 rounded-2xl font-black uppercase tracking-widest mt-4">Post Expense</button>
+                            
+                            <button onclick="logExpense()" class="w-full btn-premium py-5 rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl mt-4 active:scale-95 transition-all">Publish</button>
                         </div>
                     </div>
                 </div>
-                <div class="lg:col-span-8">
+
+                <div class="lg:col-span-7">
                     <div class="silk-card p-8 min-h-[500px]">
-                        <div class="flex justify-between items-center mb-8 pb-4 border-b border-slate-100">
-                            <h3 class="text-xl font-extrabold text-slate-800">Global Timeline</h3>
-                            <div id="grand-total" class="text-indigo-600 font-black text-lg"></div>
+                        <div class="flex justify-between items-center mb-10 pb-4 border-b border-slate-50">
+                            <h3 class="text-xl font-black text-slate-800">History</h3>
+                            <div id="grand-total" class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-black text-sm"></div>
                         </div>
-                        <div id="activity-feed" class="space-y-4"></div>
+                        <div id="activity-feed" class="space-y-5"></div>
                     </div>
                 </div>
             </div>
@@ -105,27 +141,30 @@
 
         <div id="profile-page" class="view-pane max-w-md mx-auto">
             <div class="silk-card p-10 text-center">
-                <img id="profile-img-large" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-indigo-500">
-                <h2 id="profile-name-large" class="text-2xl font-black"></h2>
-                <p id="profile-email-large" class="text-slate-400 text-sm mb-8"></p>
-                <button onclick="logoutUser()" class="mt-8 text-slate-400 hover:text-red-500 text-[10px] font-black uppercase tracking-widest">Logout Account</button>
+                <img id="profile-img-large" class="w-28 h-28 rounded-3xl mx-auto mb-6 border-4 border-white shadow-2xl">
+                <h2 id="profile-name-large" class="text-3xl font-black text-slate-900"></h2>
+                <p id="profile-email-large" class="text-slate-400 font-medium mb-10"></p>
+                <button onclick="logoutUser()" class="w-full bg-red-50 text-red-500 font-black py-4 rounded-2xl hover:bg-red-100 transition-all">Sign Out Account</button>
             </div>
         </div>
 
         <div id="settings-page" class="view-pane max-w-2xl mx-auto">
             <div class="silk-card p-8">
-                <h3 class="text-xl font-black mb-6">Cloud Settings</h3>
+                <h3 class="text-2xl font-black mb-8 text-slate-900">Manage Trip</h3>
                 <div class="mb-10">
-                    <div id="member-settings-list" class="space-y-3 mb-6"></div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <input type="text" id="new-member-name" placeholder="Name" class="bg-slate-50 p-4 rounded-xl outline-none font-bold">
-                        <input type="email" id="new-member-email" placeholder="Gmail Address" class="bg-slate-50 p-4 rounded-xl outline-none font-bold">
+                    <div id="member-settings-list" class="space-y-3 mb-8"></div>
+                    <div class="p-6 bg-slate-50 rounded-3xl space-y-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Register New User</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input type="text" id="new-member-name" placeholder="Name" class="bg-white p-4 rounded-xl font-bold border-none shadow-sm">
+                            <input type="email" id="new-member-email" placeholder="Gmail" class="bg-white p-4 rounded-xl font-bold border-none shadow-sm">
+                        </div>
+                        <button onclick="addNewMember()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg shadow-indigo-200">Add to Trip</button>
                     </div>
-                    <button onclick="addNewMember()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl mt-3">Add Member</button>
                 </div>
-                <div class="pt-8 border-t border-slate-100">
-                    <button onclick="logoutUser()" class="w-full bg-slate-100 text-slate-700 font-black py-4 rounded-xl mb-3">Logout</button>
-                    <button onclick="clearAllExpenses()" class="w-full border-2 border-red-100 text-red-500 font-black py-4 rounded-xl">Reset Trip Data</button>
+                <div class="pt-8 border-t border-slate-100 flex gap-4">
+                    <button onclick="logoutUser()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-4 rounded-2xl">Logout</button>
+                    <button onclick="clearAllExpenses()" class="flex-1 border-2 border-red-50 text-red-500 font-bold py-4 rounded-2xl">Reset Data</button>
                 </div>
             </div>
         </div>
@@ -220,7 +259,7 @@
         }
 
         window.clearAllExpenses = () => {
-            if(confirm("Delete all data?")) {
+            if(confirm("Delete all history?")) {
                 remove(ref(db, 'trip_open/expenses')).then(() => showView('main-dashboard'));
             }
         };
@@ -228,9 +267,9 @@
         function renderSettings() {
             const list = document.getElementById('member-settings-list');
             list.innerHTML = groupMembers.map((m, i) => `
-                <div class="flex justify-between items-center p-4 bg-slate-50 rounded-xl border">
-                    <div><p class="font-bold">${m.name}</p><p class="text-[10px] text-slate-400">${m.email}</p></div>
-                    <button onclick="removeMember(${i})" class="text-red-400"><i class="fa-solid fa-trash"></i></button>
+                <div class="flex justify-between items-center p-5 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                    <div><p class="font-bold text-slate-800">${m.name}</p><p class="text-[10px] text-slate-400 font-medium">${m.email}</p></div>
+                    <button onclick="removeMember(${i})" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-circle-minus"></i></button>
                 </div>
             `).join('');
         }
@@ -238,8 +277,8 @@
         window.logExpense = () => {
             const title = document.getElementById('bill-title').value;
             const amount = parseFloat(document.getElementById('bill-amount').value);
-            const selected = Array.from(document.querySelectorAll('#split-selectors .is-selected')).map(b => b.dataset.name);
-            if (!title || !amount || selected.length === 0) return alert("Fill details");
+            const selected = Array.from(document.querySelectorAll('#split-selectors .active-chip')).map(b => b.dataset.name);
+            if (!title || !amount || selected.length === 0) return alert("Enter details and select members");
 
             push(ref(db, 'trip_open/expenses'), {
                 title, amount, involved: selected, by: auth.currentUser.displayName,
@@ -249,9 +288,19 @@
             document.getElementById('bill-amount').value = '';
         };
 
+        window.toggleChip = (el, index) => {
+            const activeClass = index < 6 ? `chip-active-${index}` : 'stat-tile-default';
+            el.classList.toggle('active-chip');
+            el.classList.toggle(activeClass);
+        };
+
         function renderUI(expenses) {
             const sel = document.getElementById('split-selectors');
-            sel.innerHTML = groupMembers.map(m => `<button onclick="this.classList.toggle('is-selected')" data-name="${m.name}" class="is-selected bg-slate-100 p-3 rounded-xl text-xs font-bold transition-all">${m.name}</button>`).join('');
+            sel.innerHTML = groupMembers.map((m, i) => `
+                <button onclick="toggleChip(this, ${i})" data-name="${m.name}" class="member-chip active-chip chip-active-${i < 6 ? i : 'default'}">
+                    <i class="fa-solid fa-check"></i> ${m.name}
+                </button>
+            `).join('');
 
             let totalTrip = 0;
             let balances = {};
@@ -264,32 +313,32 @@
                 const split = exp.amount / exp.involved.length;
                 exp.involved.forEach(n => { if(balances.hasOwnProperty(n)) balances[n] += split; });
                 feed.innerHTML += `
-                    <div class="flex justify-between items-center p-5 bg-slate-50 border border-slate-100 rounded-3xl">
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="text-[8px] font-black bg-white border px-2 py-1 rounded text-slate-400">${exp.time}</span>
-                                <h4 class="font-bold text-slate-800">${exp.title}</h4>
+                    <div class="flex justify-between items-center p-6 bg-slate-50 border border-slate-100 rounded-[1.5rem] hover:bg-white transition-all group">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">${exp.time}</span>
+                                <div class="h-1 w-1 rounded-full bg-slate-200"></div>
+                                <h4 class="font-extrabold text-slate-800">${exp.title}</h4>
                             </div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">BY: ${exp.by} • WITH: ${exp.involved.join(', ')}</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">By ${exp.by} ● With ${exp.involved.join(', ')}</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-lg font-black text-slate-900">₹${exp.amount.toLocaleString()}</p>
-                            <p class="text-[10px] text-indigo-600 font-bold">₹${split.toFixed(0)} ea</p>
+                            <p class="text-xl font-black text-slate-900 leading-none">₹${exp.amount.toLocaleString()}</p>
+                            <p class="text-[10px] text-indigo-600 font-bold mt-2 tracking-widest">₹${split.toFixed(0)} PER HEAD</p>
                         </div>
                     </div>`;
             });
 
-            // RENDER COLORED TILES
             document.getElementById('stats-grid').innerHTML = groupMembers.map((m, index) => {
                 const colorClass = index < 6 ? `stat-tile-${index}` : 'stat-tile-default';
                 return `
-                <div class="silk-card p-6 border-none shadow-lg ${colorClass} transition-transform hover:scale-105">
-                    <p class="text-[10px] font-black uppercase tracking-widest mb-1 opacity-80">${m.name}</p>
-                    <p class="text-xl font-black">₹${balances[m.name].toFixed(0)}</p>
+                <div class="silk-card p-6 border-none shadow-sm ${colorClass} transition-transform hover:scale-105">
+                    <p class="text-[10px] font-black uppercase tracking-widest mb-1 opacity-70">${m.name}</p>
+                    <p class="text-2xl font-black">₹${balances[m.name].toFixed(0)}</p>
                 </div>
             `}).join('');
             
-            document.getElementById('grand-total').innerText = `Total: ₹${totalTrip.toLocaleString()}`;
+            document.getElementById('grand-total').innerText = `Total ₹${totalTrip.toLocaleString()}`;
         }
     </script>
 </body>
