@@ -20,6 +20,15 @@
         .view-pane { display: none; }
         .active-view { display: block; }
         #unauthorized-screen { display: none; }
+
+        /* Premium Color Tiles for Balances */
+        .stat-tile-0 { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; }
+        .stat-tile-1 { background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%); color: white; }
+        .stat-tile-2 { background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); color: white; }
+        .stat-tile-3 { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .stat-tile-4 { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; }
+        .stat-tile-5 { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; }
+        .stat-tile-default { background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -27,7 +36,7 @@
     <div id="auth-screen" class="fixed inset-0 z-[100] bg-white flex items-center justify-center p-6">
         <div class="text-center max-w-sm">
             <h1 class="text-4xl font-black tracking-tighter text-slate-900 mb-2">TRIP<span class="text-indigo-600">SPLIT</span></h1>
-            <p class="text-slate-500 mb-8 font-medium">Sign in to join your group trip and start splitting expenses in real-time.</p>
+            <p class="text-slate-500 mb-8 font-medium">Sign in to join your group trip.</p>
             <button id="google-login" class="google-btn flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold text-lg">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
                 Sign in with Google
@@ -41,7 +50,7 @@
                 <i class="fa-solid fa-lock"></i>
             </div>
             <h2 class="text-2xl font-black text-slate-900 mb-2">Access Restricted</h2>
-            <p class="text-slate-500 font-medium mb-8">Your Gmail (<span id="pending-email" class="text-indigo-600 font-bold"></span>) is not registered in this trip group yet. Please ask the admin to add you in Settings.</p>
+            <p class="text-slate-500 font-medium mb-8">Your Gmail (<span id="pending-email" class="text-indigo-600 font-bold"></span>) is not registered yet.</p>
             <button onclick="logoutUser()" class="w-full bg-slate-900 text-white font-black py-4 rounded-xl">Switch Account</button>
         </div>
     </div>
@@ -63,12 +72,13 @@
 
         <div id="main-dashboard" class="view-pane active-view">
             <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10"></div>
+
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
                 <div class="lg:col-span-4">
                     <div class="silk-card p-8 sticky top-10">
                         <h3 class="text-lg font-extrabold mb-6 text-slate-800">Add New Expense</h3>
                         <div class="space-y-4">
-                            <input type="text" id="bill-title" placeholder="Description" class="w-full bg-slate-50 rounded-xl p-4 border-none outline-none focus:ring-2 ring-indigo-500/20">
+                            <input type="text" id="bill-title" placeholder="Description" class="w-full bg-slate-50 rounded-xl p-4 border-none outline-none focus:ring-2 ring-indigo-500/20 font-semibold">
                             <div class="relative">
                                 <span class="absolute left-4 top-4 text-slate-400 font-black">₹</span>
                                 <input type="number" id="bill-amount" placeholder="Amount" class="w-full bg-slate-50 rounded-xl p-4 pl-10 text-xl font-black border-none outline-none focus:ring-2 ring-indigo-500/20">
@@ -106,7 +116,6 @@
             <div class="silk-card p-8">
                 <h3 class="text-xl font-black mb-6">Cloud Settings</h3>
                 <div class="mb-10">
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Manage Members & Access</p>
                     <div id="member-settings-list" class="space-y-3 mb-6"></div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <input type="text" id="new-member-name" placeholder="Name" class="bg-slate-50 p-4 rounded-xl outline-none font-bold">
@@ -115,12 +124,8 @@
                     <button onclick="addNewMember()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl mt-3">Add Member</button>
                 </div>
                 <div class="pt-8 border-t border-slate-100">
-                    <button onclick="logoutUser()" class="w-full bg-slate-100 text-slate-700 font-black py-4 rounded-xl mb-3 flex items-center justify-center">
-                        <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
-                    </button>
-                    <button onclick="clearAllExpenses()" class="w-full border-2 border-red-100 text-red-500 font-black py-4 rounded-xl flex items-center justify-center">
-                        <i class="fa-solid fa-trash-can mr-2"></i> Reset Trip Data
-                    </button>
+                    <button onclick="logoutUser()" class="w-full bg-slate-100 text-slate-700 font-black py-4 rounded-xl mb-3">Logout</button>
+                    <button onclick="clearAllExpenses()" class="w-full border-2 border-red-100 text-red-500 font-black py-4 rounded-xl">Reset Trip Data</button>
                 </div>
             </div>
         </div>
@@ -151,7 +156,6 @@
         };
 
         document.getElementById('google-login').onclick = () => signInWithPopup(auth, provider);
-        
         window.logoutUser = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, (user) => {
@@ -167,12 +171,9 @@
             onValue(ref(db, 'trip_open/members'), (snapshot) => {
                 groupMembers = snapshot.val() || [];
                 const userEmail = user.email.toLowerCase();
-                
-                // Security Check: Is user email in the member list?
-                // Note: First user ever might need to be hardcoded or handled.
                 const hasAccess = groupMembers.some(m => m.email.toLowerCase() === userEmail);
 
-                if (hasAccess || groupMembers.length === 0) { // Allow first person to set up or if registered
+                if (hasAccess || groupMembers.length === 0) {
                     document.getElementById('auth-screen').style.display = 'none';
                     document.getElementById('unauthorized-screen').style.display = 'none';
                     document.getElementById('app-content').style.display = 'block';
@@ -212,14 +213,14 @@
         };
 
         window.removeMember = (idx) => {
-            if(confirm("Remove this member? They will lose access immediately.")) {
+            if(confirm("Remove member?")) {
                 groupMembers.splice(idx, 1);
                 set(ref(db, 'trip_open/members'), groupMembers);
             }
         }
 
         window.clearAllExpenses = () => {
-            if(confirm("Permanently delete all trip history?")) {
+            if(confirm("Delete all data?")) {
                 remove(ref(db, 'trip_open/expenses')).then(() => showView('main-dashboard'));
             }
         };
@@ -278,12 +279,16 @@
                     </div>`;
             });
 
-            document.getElementById('stats-grid').innerHTML = groupMembers.map(m => `
-                <div class="silk-card p-6 border-b-4 ${balances[m.name] > 0 ? 'border-b-indigo-500' : 'border-b-slate-300'}">
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">${m.name}</p>
-                    <p class="text-xl font-black text-slate-900">₹${balances[m.name].toFixed(0)}</p>
+            // RENDER COLORED TILES
+            document.getElementById('stats-grid').innerHTML = groupMembers.map((m, index) => {
+                const colorClass = index < 6 ? `stat-tile-${index}` : 'stat-tile-default';
+                return `
+                <div class="silk-card p-6 border-none shadow-lg ${colorClass} transition-transform hover:scale-105">
+                    <p class="text-[10px] font-black uppercase tracking-widest mb-1 opacity-80">${m.name}</p>
+                    <p class="text-xl font-black">₹${balances[m.name].toFixed(0)}</p>
                 </div>
-            `).join('');
+            `}).join('');
+            
             document.getElementById('grand-total').innerText = `Total: ₹${totalTrip.toLocaleString()}`;
         }
     </script>
