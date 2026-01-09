@@ -32,12 +32,10 @@
         .member-chip {
             background: #ffffff; border: 2px solid #f1f5f9; color: #64748b;
             padding: 10px 18px; border-radius: 1rem; font-weight: 700; font-size: 0.85rem;
-            transition: all 0.2s ease; display: flex; align-items: center; gap: 8px;
+            transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; cursor: pointer;
         }
-        .chip-active-0 { border-color: #6366f1; background: #eef2ff; color: #4338ca; }
-        .chip-active-1 { border-color: #ec4899; background: #fdf2f8; color: #be185d; }
-        .chip-active-2 { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
-        .chip-active-3 { border-color: #10b981; background: #f0fdf4; color: #047857; }
+        .active-chip i { opacity: 1 !important; }
+        .member-chip i { opacity: 0; }
 
         /* Modal Layout */
         #member-modal { display: none; }
@@ -47,6 +45,14 @@
         .hidden-history { display: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        /* Explicit Active Chip Colors */
+        .chip-active-0 { border-color: #6366f1 !important; background: #eef2ff !important; color: #4338ca !important; }
+        .chip-active-1 { border-color: #ec4899 !important; background: #fdf2f8 !important; color: #be185d !important; }
+        .chip-active-2 { border-color: #f59e0b !important; background: #fffbeb !important; color: #b45309 !important; }
+        .chip-active-3 { border-color: #10b981 !important; background: #f0fdf4 !important; color: #047857 !important; }
+        .chip-active-4 { border-color: #06b6d4 !important; background: #f0f9ff !important; color: #0369a1 !important; }
+        .chip-active-5 { border-color: #8b5cf6 !important; background: #f5f3ff !important; color: #6d28d9 !important; }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -74,8 +80,7 @@
             <div id="modal-history-pane" class="hidden-history px-8 pb-8 flex-1 flex flex-col overflow-hidden">
                 <div class="w-full h-[1px] bg-slate-100 mb-6"></div>
                 <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Personal Timeline</p>
-                <div id="modal-history-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
-                    </div>
+                <div id="modal-history-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2"></div>
             </div>
         </div>
     </div>
@@ -128,6 +133,9 @@
                             <div class="relative">
                                 <span class="absolute left-4 top-4 text-slate-400 font-black">₹</span>
                                 <input type="number" id="bill-amount" placeholder="0.00" class="w-full bg-slate-50 rounded-2xl p-4 pl-10 text-2xl font-black border-none">
+                            </div>
+                            <div class="flex justify-between items-center mb-[-10px]">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Split</label>
                             </div>
                             <div id="split-selectors" class="flex flex-wrap gap-2"></div>
                             <button onclick="logExpense()" class="w-full btn-premium py-5 rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl mt-4">Publish</button>
@@ -195,6 +203,13 @@
         let groupMembers = [];
         let globalExpenses = [];
 
+        // FIXED: Toggle Logic that works with dynamic elements
+        window.toggleChip = function(el, index) {
+            const activeClass = index < 6 ? `chip-active-${index}` : 'stat-tile-default';
+            el.classList.toggle('active-chip');
+            el.classList.toggle(activeClass);
+        };
+
         window.showView = (id) => {
             document.querySelectorAll('.view-pane').forEach(v => v.classList.remove('active-view'));
             document.getElementById(id).classList.add('active-view');
@@ -205,7 +220,6 @@
             document.getElementById('modal-balance').innerText = `₹${amount.toFixed(0)}`;
             document.getElementById('modal-img').src = `https://ui-avatars.com/api/?name=${name}&background=6366f1&color=fff&size=200&bold=true`;
             
-            // Prepare history but don't show yet
             const historyList = document.getElementById('modal-history-list');
             const memberHistory = globalExpenses.filter(exp => exp.involved.includes(name));
             historyList.innerHTML = memberHistory.length > 0 ? memberHistory.map(exp => `
@@ -215,7 +229,6 @@
                 </div>
             `).join('') : `<div class="text-center py-10 text-slate-300 text-xs font-bold italic">No history</div>`;
             
-            // Reset modal state
             document.getElementById('modal-history-pane').classList.add('hidden-history');
             document.getElementById('toggle-history-btn').innerText = "View Transaction History";
             document.getElementById('member-modal').style.display = 'flex';
@@ -225,7 +238,6 @@
             const pane = document.getElementById('modal-history-pane');
             const btn = document.getElementById('toggle-history-btn');
             const isHidden = pane.classList.contains('hidden-history');
-            
             pane.classList.toggle('hidden-history');
             btn.innerText = isHidden ? "Hide Transaction History" : "View Transaction History";
         };
@@ -290,7 +302,7 @@
                 groupMembers.splice(idx, 1);
                 set(ref(db, 'trip_open/members'), groupMembers);
             }
-        }
+        };
 
         window.clearAllExpenses = () => {
             if(confirm("Delete all history?")) {
@@ -322,19 +334,17 @@
             document.getElementById('bill-amount').value = '';
         };
 
-        window.toggleChip = (el, index) => {
-            const activeClass = index < 6 ? `chip-active-${index}` : 'stat-tile-default';
-            el.classList.toggle('active-chip');
-            el.classList.toggle(activeClass);
-        };
-
         function renderUI(expenses) {
+            // FIXED: Ensuring chips are clickable and set to active by default
             const sel = document.getElementById('split-selectors');
-            sel.innerHTML = groupMembers.map((m, i) => `
-                <button onclick="toggleChip(this, ${i})" data-name="${m.name}" class="member-chip active-chip chip-active-${i < 6 ? i : 'default'}">
-                    <i class="fa-solid fa-check"></i> ${m.name}
-                </button>
-            `).join('');
+            sel.innerHTML = groupMembers.map((m, i) => {
+                const activeClass = i < 6 ? `chip-active-${i}` : 'stat-tile-default';
+                return `
+                    <button onclick="toggleChip(this, ${i})" data-name="${m.name}" class="member-chip active-chip ${activeClass}">
+                        <i class="fa-solid fa-check"></i> ${m.name}
+                    </button>
+                `;
+            }).join('');
 
             let totalTrip = 0;
             let balances = {};
@@ -374,7 +384,6 @@
             
             document.getElementById('grand-total').innerText = `Total ₹${totalTrip.toLocaleString()}`;
         }
-        window.toggleChip = toggleChip;
     </script>
 </body>
 </html>
