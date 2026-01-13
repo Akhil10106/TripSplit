@@ -3,12 +3,12 @@
   "short_name": "TripSplit",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#f8fafc",
   "theme_color": "#8b5cf6",
   "description": "Premium group expense splitting app.",
   "icons": [
     {
-      "src": "15125.png",
+      "src": "icon.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
