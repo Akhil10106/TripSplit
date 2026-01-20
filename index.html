@@ -2,507 +2,1170 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TripSplit Pro | Premium Expense Cloud</title>
     
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <meta name="description" content="Elite expense tracking for professional travelers. Real-time cloud sync with Firebase.">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="manifest" href="manifest.json">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
     <style>
+        /* * --- TRIP SPLIT PRO: ELITE CSS FRAMEWORK ---
+         * Designed for high-end mobile and desktop experiences.
+         */
         :root {
-            --p-indigo: #4f46e5;
-            --p-dark: #0f172a;
-            --p-border: #0f172a; 
-            --p-surface: #ffffff;
-            --p-accent: #f8fafc;
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --accent: #f43f5e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg-canvas: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --glass: rgba(255, 255, 255, 0.75);
+            --border-light: rgba(226, 232, 240, 0.8);
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body {
-            background-color: #f1f5f9;
-            background-image: radial-gradient(#cbd5e1 0.5px, transparent 0.5px);
-            background-size: 24px 24px;
-            color: var(--p-dark);
             font-family: 'Plus Jakarta Sans', sans-serif;
-            letter-spacing: -0.01em;
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
         }
 
-        /* --- THE "NEXT LEVEL" DESIGN SYSTEM --- */
-        
-        .super-card {
-            background: var(--p-surface) !important;
-            border: 2px solid var(--p-dark) !important;
-            box-shadow: 8px 8px 0px 0px var(--p-dark);
-            border-radius: 24px;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            overflow: hidden;
+        /* Sophisticated UI Primitives */
+        .silk-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            border-radius: 2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .silk-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+        }
+
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Navigation Transitions */
+        .view-pane {
+            display: none;
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+        }
+
+        .view-pane.active-view {
             display: block;
+            animation: paneEntrance 0.7s forwards cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .super-card:hover {
-            transform: translate(-4px, -4px);
-            box-shadow: 12px 12px 0px 0px var(--p-indigo);
+        @keyframes paneEntrance {
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .premium-btn {
-            border: 2px solid var(--p-dark) !important;
-            border-radius: 16px !important;
-            font-weight: 800 !important;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 12px 24px !important;
-            transition: all 0.2s ease;
+        /* Custom Button Sets */
+        .btn-action {
             position: relative;
-            background: white !important;
-            color: var(--p-dark) !important;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none !important;
-        }
-
-        .premium-btn i {
-            color: inherit !important;
-        }
-
-        .premium-btn:hover {
-            background: var(--p-dark) !important;
-            color: white !important;
-            transform: translateY(-2px);
-        }
-
-        .btn-indigo {
-            background: var(--p-indigo) !important;
-            color: white !important;
-            border-color: var(--p-dark) !important;
-        }
-
-        /* --- LOGO & BRANDING --- */
-        .brand-heading {
-            font-weight: 900;
-            font-size: 2.5rem;
-            letter-spacing: -2px;
-            border-bottom: 4px solid var(--p-indigo);
-            display: inline-block;
-            margin-bottom: 1rem;
-            color: var(--p-dark);
-        }
-
-        /* --- BENTO GRID LAYOUT --- */
-        .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-        }
-
-        .stat-box {
-            padding: 24px;
-            border: 2px solid var(--p-dark) !important;
-            border-radius: 20px;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 4px 4px 0px 0px var(--p-dark);
-        }
-
-        .stat-label {
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: #475569 !important;
-            letter-spacing: 1.5px;
-            display: block;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 900;
-            margin-top: 8px;
-            color: var(--p-dark);
-            display: block;
-        }
-
-        /* --- INPUTS --- */
-        .luxury-input {
-            border: 2px solid var(--p-dark) !important;
-            border-radius: 16px !important;
-            padding: 16px !important;
-            font-weight: 600;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: 1.25rem;
+            padding: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
             transition: all 0.3s ease;
-            background: #ffffff !important;
-            color: var(--p-dark) !important;
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
         }
 
-        .luxury-input:focus {
-            border-color: var(--p-indigo) !important;
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        .btn-action:hover {
+            filter: brightness(1.15);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-action:active { transform: scale(0.96); }
+
+        .btn-outline {
+            border: 2px solid #e2e8f0;
+            border-radius: 1.25rem;
+            padding: 1rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            color: var(--text-muted);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        /* Modern Inputs */
+        .input-premium {
+            width: 100%;
+            background: #f1f5f9;
+            border: 2px solid transparent;
+            border-radius: 1.25rem;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
             outline: none;
         }
 
-        /* --- MEMBER CHIPS --- */
-        .member-pill {
-            border: 2px solid var(--p-dark) !important;
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
+        .input-premium:focus {
             background: white;
-            color: var(--p-dark);
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
 
-        .member-pill.active {
-            background: var(--p-indigo) !important;
-            color: white !important;
-            transform: scale(1.05);
+        /* Badges & Markers */
+        .badge-pro {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            color: white; font-size: 0.65rem; padding: 2px 10px;
+            border-radius: 20px; font-weight: 800; text-transform: uppercase;
         }
 
-        /* --- ACCORDION FIXES --- */
-        .accordion-button {
-            color: var(--p-dark) !important;
-            font-weight: 800 !important;
-            background-color: #ffffff !important;
-            border: none !important;
-        }
-        
-        .accordion-button:not(.collapsed) {
-            background-color: #f8fafc !important;
-            color: var(--p-indigo) !important;
-            box-shadow: none !important;
-        }
-
-        .accordion-item {
-            border: 2px solid var(--p-dark) !important;
-            border-radius: 16px !important;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-
-        /* --- UTILITIES --- */
-        #activity-feed h4 { color: var(--p-dark); font-weight: 800; }
-        .view-pane.hidden { display: none !important; }
-        
+        /* Scrollbar Styling */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { 
-            background: var(--p-dark); 
-            border-radius: 10px;
-            border: 2px solid #f1f5f9;
+            background: #cbd5e1; 
+            border-radius: 20px; 
+            border: 2px solid var(--bg-canvas); 
+        }
+
+        /* Loader Animation */
+        .sync-loader {
+            width: 24px; height: 24px;
+            border: 3px solid rgba(99, 102, 241, 0.2);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Chart Canvas Constraints */
+        .chart-container { position: relative; height: 250px; width: 100%; }
+
+        /* Micro-interactions */
+        .nav-link { position: relative; }
+        .nav-link.active::after {
+            content: ''; position: absolute; bottom: -10px; left: 50%;
+            transform: translateX(-50%); width: 4px; height: 4px;
+            background: var(--primary); border-radius: 50%;
         }
     </style>
 </head>
-<body class="p-3 md:p-10">
+<body class="antialiased selection:bg-indigo-100 selection:text-indigo-900">
 
-    <div id="auth-screen" class="fixed inset-0 z-[100] bg-white flex items-center justify-center p-4">
-        <div class="super-card p-10 max-w-md w-full text-center animate__animated animate__zoomIn">
-            <h1 class="brand-heading">TRIPSPLIT<span class="text-indigo-600">PRO</span></h1>
-            <p class="text-gray-500 font-bold mb-8 text-xs uppercase tracking-[0.3em]">Next-Gen Financial Logistics</p>
+    <div id="toast-wrapper" class="fixed top-6 left-1/2 -translate-x-1/2 z-[1000] flex flex-col gap-3 pointer-events-none"></div>
+
+    <div id="auth-screen" class="fixed inset-0 z-[600] bg-white flex items-center justify-center p-6 overflow-hidden">
+        <div id="login-module" class="w-full max-w-sm text-center">
+            <div class="mb-12 relative inline-block">
+                <div class="w-28 h-28 bg-indigo-600 rounded-[2.8rem] mx-auto mb-6 flex items-center justify-center shadow-2xl shadow-indigo-200 animate-bounce-slow">
+                    <i class="fa-solid fa-cloud-bolt text-white text-5xl"></i>
+                </div>
+                <div class="absolute -top-2 -right-2 bg-amber-400 w-8 h-8 rounded-full flex items-center justify-center text-white border-4 border-white">
+                    <i class="fa-solid fa-star text-xs"></i>
+                </div>
+                <h1 class="text-5xl font-extrabold tracking-tighter mb-2">TripSplit <span class="text-indigo-600">Pro</span></h1>
+                <p class="text-slate-400 font-semibold uppercase text-[10px] tracking-[0.3em]">Next-Gen Expense Cloud</p>
+            </div>
             
-            <div id="login-container">
-                <button id="google-login-btn" class="premium-btn w-full flex items-center justify-center gap-3 py-4">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
-                    Login with Google
+            <button id="google-login-trigger" class="w-full silk-card py-5 flex items-center justify-center gap-4 hover:bg-slate-50 border-none group transition-all">
+                <div class="w-8 h-8 bg-white shadow-sm rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5">
+                </div>
+                <span class="font-extrabold text-lg text-slate-700">Continue with Google</span>
+            </button>
+            <p class="mt-8 text-[11px] text-slate-400 font-medium px-8 leading-relaxed">
+                By continuing, you agree to the elite membership terms and cloud data policy.
+            </p>
+        </div>
+
+        <div id="circle-discovery" class="hidden w-full max-w-xl p-4">
+            <div class="flex justify-between items-center mb-10">
+                <div>
+                    <h2 class="text-4xl font-extrabold tracking-tight">Your Circles</h2>
+                    <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">Select a workspace to resume</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="signOut()" class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-colors">
+                        <i class="fa-solid fa-power-off"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="discovery-feed" class="space-y-4 max-h-[55vh] overflow-y-auto pr-4 scroll-smooth">
+                <div class="silk-card p-6 animate-pulse bg-slate-50/50">
+                    <div class="flex gap-4">
+                        <div class="w-14 h-14 bg-slate-200 rounded-2xl"></div>
+                        <div class="flex-1 py-2 space-y-3">
+                            <div class="h-3 bg-slate-200 rounded w-1/3"></div>
+                            <div class="h-2 bg-slate-200 rounded w-1/4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-10">
+                <button onclick="openModal('join')" class="p-5 silk-card flex flex-col items-center gap-2 border-dashed border-2 hover:border-indigo-300 group">
+                    <i class="fa-solid fa-qrcode text-slate-300 group-hover:text-indigo-400"></i>
+                    <span class="text-sm font-bold text-slate-500">Join Circle</span>
+                </button>
+                <button onclick="openModal('create')" class="btn-action p-5 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-plus-circle"></i>
+                    <span class="text-sm">Create New</span>
                 </button>
             </div>
-
-            <div id="group-discovery" class="hidden text-left mt-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-black text-lg text-dark">My Circles</h3>
-                    <span class="badge bg-dark text-white rounded-pill">Cloud Active</span>
-                </div>
-                <div id="my-groups-list" class="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2"></div>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="showJoinManual()" class="premium-btn text-[10px] py-3">Join ID</button>
-                    <button onclick="showCreationPopup()" class="premium-btn btn-indigo text-[10px] py-3">Create</button>
-                </div>
-            </div>
         </div>
     </div>
 
-    <div id="app-content" class="max-w-7xl mx-auto hidden animate__animated animate__fadeIn">
+    <div id="main-app" class="hidden min-h-screen">
         
-        <header class="row mb-5 gy-4">
-            <div class="col-md-6 d-flex align-items-center gap-4">
-                <div class="super-card p-1" style="border-radius: 18px; box-shadow: 4px 4px 0 var(--p-dark); width: 70px; height: 70px;">
-                    <img id="user-photo" src="" class="w-full h-full rounded-2xl object-cover">
+        <header class="glass-panel fixed top-0 left-0 right-0 h-24 z-50 flex items-center px-6 md:px-12 justify-between">
+            <div class="flex items-center gap-5">
+                <div class="relative group cursor-pointer" onclick="navigate('profile')">
+                    <div id="avatar-container" class="w-14 h-14 rounded-2xl shadow-xl border-4 border-white overflow-hidden transform group-hover:rotate-6 transition-transform">
+                        <img id="user-avatar" src="" class="w-full h-full object-cover">
+                    </div>
+                    <div id="pro-badge-mini" class="absolute -top-2 -right-2 hidden animate-pulse">
+                        <span class="bg-indigo-600 text-white text-[8px] px-2 py-0.5 rounded-full font-black uppercase">PRO</span>
+                    </div>
                 </div>
                 <div>
-                    <h2 class="text-3xl font-black text-dark leading-none mb-1" id="display-group-name">...</h2>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-indigo-600 text-white border border-dark uppercase px-3">Active Workspace</span>
-                        <button onclick="copyGroupId()" class="text-[10px] font-black text-dark hover:underline">COPY ID <i class="fa-solid fa-copy ml-1"></i></button>
+                    <h3 id="active-circle-title" class="text-xl font-extrabold text-slate-900 leading-none mb-1.5">Loading Circle...</h3>
+                    <div class="flex items-center gap-3">
+                        <p onclick="copyID()" class="text-[10px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-1 cursor-pointer bg-indigo-50 px-2 py-0.5 rounded hover:bg-indigo-100">
+                            ID: <span id="active-circle-id">####</span> <i class="fa-solid fa-copy"></i>
+                        </p>
+                        <span id="sync-status" class="flex items-center gap-1 text-[9px] font-bold text-emerald-500 uppercase">
+                            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span> Real-time
+                        </span>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 d-flex justify-content-md-end align-items-center gap-2">
-                <button onclick="showView('main-dashboard')" class="premium-btn px-4 py-2 text-sm"><i class="fa-solid fa-house"></i></button>
-                <button onclick="showView('plans-page')" class="premium-btn px-4 py-2 text-sm btn-indigo"><i class="fa-solid fa-crown mr-2"></i>Plans</button>
-                <button onclick="showView('settings-page')" class="premium-btn px-4 py-2 text-sm"><i class="fa-solid fa-gear"></i></button>
-                <button onclick="signOutNow()" class="premium-btn px-4 py-2 text-sm border-danger text-danger"><i class="fa-solid fa-power-off"></i></button>
-            </div>
+
+            <nav class="hidden lg:flex items-center gap-4">
+                <div class="bg-slate-100/60 p-1.5 rounded-2xl flex items-center gap-1">
+                    <button onclick="navigate('dashboard')" class="nav-link-desktop px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all active-link">Home</button>
+                    <button onclick="navigate('analytics')" class="nav-link-desktop px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all text-slate-400">Insights</button>
+                    <button onclick="navigate('plans')" class="nav-link-desktop px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all text-slate-400">Upgrade</button>
+                </div>
+                <div id="admin-pillar" class="hidden">
+                    <button onclick="navigate('admin')" class="w-12 h-12 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </button>
+                </div>
+            </nav>
         </header>
 
-        <div id="stats-grid" class="bento-grid mb-10"></div>
+        <main class="pt-32 pb-36 px-4 md:px-12 max-w-[1400px] mx-auto">
+            
+            <div id="view-dashboard" class="view-pane active-view">
+                
+                <div id="broadcast-bar" class="hidden silk-card bg-slate-900 border-none p-5 mb-10 flex items-center justify-between text-white overflow-hidden">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center"><i class="fa-solid fa-bolt-lightning text-indigo-400"></i></div>
+                        <div>
+                            <p class="text-[10px] font-black uppercase opacity-60">System Notice</p>
+                            <p id="broadcast-content" class="text-sm font-bold"></p>
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="text-white/20 hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
 
-        <div id="main-dashboard" class="view-pane active-view">
-            <div class="row g-5">
-                <div class="col-lg-4">
-                    <div class="super-card p-8">
-                        <h3 class="font-black text-xl mb-6 border-b-2 border-dark pb-2 inline-block text-dark">PUBLISH BILL</h3>
-                        <div class="space-y-5">
-                            <div>
-                                <label class="stat-label">Description</label>
-                                <input type="text" id="bill-title" class="luxury-input w-full mt-1" placeholder="Ex: Dinner at Taj">
-                            </div>
-                            <div>
-                                <label class="stat-label">Amount (INR)</label>
-                                <div class="relative">
-                                    <span class="absolute left-4 top-4 font-black text-dark">₹</span>
-                                    <input type="number" id="bill-amount" class="luxury-input w-full pl-10" placeholder="0.00">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    
+                    <div class="lg:col-span-4 space-y-6">
+                        
+                        <div class="silk-card p-8 bg-indigo-600 border-none text-white relative overflow-hidden">
+                            <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+                            <h4 class="text-xs font-black uppercase tracking-[0.2em] opacity-70 mb-4">Current Circulation</h4>
+                            <h2 id="total-group-spend" class="text-5xl font-black tracking-tighter mb-2">₹0</h2>
+                            <p class="text-[11px] font-bold opacity-60 uppercase mb-8">Aggregated group expenditure</p>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white/10 p-4 rounded-2xl">
+                                    <p class="text-[9px] font-black uppercase opacity-60 mb-1">My Contribution</p>
+                                    <p id="user-contribution" class="text-lg font-black">₹0</p>
+                                </div>
+                                <div class="bg-white/10 p-4 rounded-2xl">
+                                    <p class="text-[9px] font-black uppercase opacity-60 mb-1">My Status</p>
+                                    <p id="user-balance-status" class="text-lg font-black">Neutral</p>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="silk-card p-8">
+                            <div class="flex items-center justify-between mb-8">
+                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest">New Entry</h4>
+                                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center"><i class="fa-solid fa-pen-nib text-xs"></i></div>
+                            </div>
+
+                            <div class="space-y-5">
+                                <div class="group">
+                                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1 block mb-2">Description</label>
+                                    <input type="text" id="tx-title" placeholder="What was this for?" class="input-premium">
+                                </div>
+
+                                <div class="group">
+                                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1 block mb-2">Amount (INR)</label>
+                                    <div class="relative">
+                                        <span class="absolute left-5 top-1/2 -translate-y-1/2 font-black text-slate-300 text-xl">₹</span>
+                                        <input type="number" id="tx-amount" placeholder="0.00" class="input-premium pl-12 text-2xl font-black">
+                                    </div>
+                                </div>
+
+                                <div class="group">
+                                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1 block mb-4">Participant Split</label>
+                                    <div id="tx-participants-grid" class="flex flex-wrap gap-2">
+                                        </div>
+                                </div>
+
+                                <div class="pt-4">
+                                    <button onclick="handlePublishTx()" class="w-full btn-action flex items-center justify-center gap-3">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                        <span>Publish to Cloud</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-8 space-y-8">
+                        
+                        <div id="member-balance-ribbon" class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                            </div>
+
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between px-2">
+                                <h3 class="text-2xl font-extrabold tracking-tight">Timeline Feed</h3>
+                                <div class="flex gap-2">
+                                    <button class="w-10 h-10 silk-card flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors"><i class="fa-solid fa-filter text-xs"></i></button>
+                                    <button class="w-10 h-10 silk-card flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors"><i class="fa-solid fa-download text-xs"></i></button>
+                                </div>
+                            </div>
+
+                            <div id="transaction-feed" class="space-y-4">
+                                <div class="silk-card p-20 text-center space-y-4">
+                                    <div class="w-16 h-16 bg-slate-50 rounded-full mx-auto flex items-center justify-center text-slate-200">
+                                        <i class="fa-solid fa-folder-open text-2xl"></i>
+                                    </div>
+                                    <p class="text-slate-400 font-bold text-sm">No cloud records found yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-analytics" class="view-pane">
+                <div class="mb-12">
+                    <h2 class="text-4xl font-extrabold tracking-tight mb-2">Cloud Insights</h2>
+                    <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Visual data breakdown</p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-8 mb-12">
+                    <div class="silk-card p-8">
+                        <h4 class="text-sm font-black mb-8 uppercase tracking-widest text-slate-400">Spending Distribution</h4>
+                        <div class="chart-container">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="silk-card p-8">
+                        <h4 class="text-sm font-black mb-8 uppercase tracking-widest text-slate-400">Time-Series Velocity</h4>
+                        <div class="chart-container">
+                            <canvas id="velocityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="silk-card p-10">
+                    <h3 class="text-xl font-black mb-8">Circle Member Velocity</h3>
+                    <div id="velocity-ranking-table" class="space-y-4">
+                        </div>
+                </div>
+            </div>
+
+            <div id="view-plans" class="view-pane">
+                <div class="max-w-4xl mx-auto text-center mb-16">
+                    <h2 class="text-4xl font-extrabold tracking-tight mb-4">Elite Membership Plans</h2>
+                    <p class="text-slate-500 font-medium text-lg">Scale your adventures with unlimited participants and advanced cloud analytics.</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8 mb-16">
+                    <div class="silk-card p-10 border-2 border-transparent hover:border-slate-100 flex flex-col items-center">
+                        <h4 class="text-lg font-black mb-2">Basic Cloud</h4>
+                        <p class="text-4xl font-extrabold mb-8">₹50<span class="text-xs text-slate-400 font-bold"> /mo</span></p>
+                        <ul class="space-y-4 mb-12 text-sm font-bold text-slate-500 w-full">
+                            <li class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-emerald-500"></i> Up to 5 Circles</li>
+                            <li class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-emerald-500"></i> 10 Members per Circle</li>
+                            <li class="flex items-center gap-3"><i class="fa-solid fa-circle-xmark text-slate-200"></i> Advanced Analytics</li>
+                        </ul>
+                        <button onclick="triggerPayment('Basic', 50)" class="w-full btn-outline">Select Plan</button>
+                    </div>
+
+                    <div class="silk-card p-10 border-2 border-indigo-500 relative flex flex-col items-center scale-105 shadow-2xl">
+                        <div class="absolute -top-4 bg-indigo-500 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase">Most Popular</div>
+                        <h4 class="text-lg font-black mb-2">Standard Pro</h4>
+                        <p class="text-4xl font-extrabold mb-8">₹100<span class="text-xs text-slate-400 font-bold"> /mo</span></p>
+                        <ul class="space-y-4 mb-12 text-sm font-bold text-slate-500 w-full">
+                            <li class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-indigo-500"></i> Up to 20 Circles</li>
+                            <li class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-indigo-500"></i> 50 Members per Circle</li>
+                            <li class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-indigo-500"></i> Dashboard Analytics</li>
+                        </ul>
+                        <button onclick="triggerPayment('Standard', 100)" class="w-full btn-action">Go Pro Now</button>
+                    </div>
+
+                    <div class="silk-card p-10 bg-slate-900 text-white flex flex-col items-center">
+                        <h4 class="text-lg font-black mb-2">Elite Enterprise</h4>
+                        <p class="text-4xl font-extrabold mb-8">₹250<span class="text-xs opacity-50 font-bold"> /mo</span></p>
+                        <ul class="space-y-4 mb-12 text-sm font-bold opacity-60 w-full">
+                            <li class="flex items-center gap-3"><i class="fa-solid fa-bolt text-amber-400"></i> Unlimited Circles</li>
+                            <li class="flex items-center gap-3"><i class="fa-solid fa-bolt text-amber-400"></i> Unlimited Participants</li>
+                            <li class="flex items-center gap-3"><i class="fa-solid fa-bolt text-amber-400"></i> 24/7 VIP Support</li>
+                        </ul>
+                        <button onclick="triggerPayment('Elite', 250)" class="w-full py-4 bg-white text-slate-900 rounded-2xl font-black">Join Elite</button>
+                    </div>
+                </div>
+
+                <div id="payment-module" class="hidden max-w-sm mx-auto animate-fade-in">
+                    <div class="silk-card p-10 bg-indigo-50 border-2 border-indigo-200 text-center">
+                        <p class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-6">Manual Cloud Verification</p>
+                        <div class="bg-white p-4 rounded-3xl mb-8 shadow-inner inline-block">
+                            <img id="upi-qr" src="" class="w-48 h-48">
+                        </div>
+                        <div class="mb-8">
+                            <p class="text-xs font-bold text-slate-400 uppercase mb-1">Payable Amount</p>
+                            <p id="pay-amt-display" class="text-3xl font-black text-slate-900">₹0</p>
+                        </div>
+                        <input type="text" id="tx-ref-id" placeholder="Transaction Ref ID" class="input-premium text-center mb-4 uppercase font-black text-xs">
+                        <button onclick="submitUpgradeRequest()" class="w-full btn-action py-5">Verify Payment</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-profile" class="view-pane max-w-3xl mx-auto">
+                <div class="silk-card p-12 text-center relative overflow-hidden mb-8">
+                    <div class="absolute top-0 left-0 w-full h-2.5 bg-indigo-600"></div>
+                    <div class="w-32 h-32 rounded-[2.5rem] overflow-hidden mx-auto mb-6 shadow-2xl ring-8 ring-indigo-50">
+                        <img id="profile-img-large" src="" class="w-full h-full object-cover">
+                    </div>
+                    <h2 id="profile-full-name" class="text-3xl font-black mb-1">...</h2>
+                    <p id="profile-email-label" class="text-slate-400 font-bold mb-8">...</p>
+                    
+                    <div id="status-chip" class="inline-flex items-center gap-2 px-6 py-2 bg-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500">
+                        <span class="w-2 h-2 bg-slate-300 rounded-full"></span> Free Starter
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="silk-card p-8">
+                        <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Circle Management</h4>
+                        <div id="managed-circles-list" class="space-y-4">
+                            </div>
+                    </div>
+                    <div class="silk-card p-8 flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Cloud Settings</h4>
+                            <div class="space-y-4">
+                                <label class="flex items-center justify-between cursor-pointer group">
+                                    <span class="text-sm font-bold text-slate-700">Push Notifications</span>
+                                    <div class="w-12 h-6 bg-indigo-600 rounded-full relative">
+                                        <div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+                                    </div>
+                                </label>
+                                <label class="flex items-center justify-between cursor-pointer group opacity-50">
+                                    <span class="text-sm font-bold text-slate-700">Real-time GPS Tracking</span>
+                                    <div class="w-12 h-6 bg-slate-200 rounded-full relative">
+                                        <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <button onclick="signOut()" class="w-full mt-10 py-4 bg-red-50 text-red-500 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Destroy Session</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-admin" class="view-pane">
+                <div class="mb-12 flex items-end justify-between">
+                    <div>
+                        <h2 class="text-4xl font-extrabold tracking-tight mb-2">Command Center</h2>
+                        <p class="text-indigo-600 font-black uppercase text-[10px] tracking-[0.4em]">Elite Administrator Access</p>
+                    </div>
+                    <div class="silk-card px-4 py-2 flex items-center gap-3">
+                        <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                        <span class="text-[10px] font-black uppercase text-slate-500">Server Health 100%</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                    <div class="silk-card p-8 bg-slate-900 text-white">
+                        <p class="text-[10px] font-black uppercase opacity-40 mb-1">Global Circles</p>
+                        <h4 id="adm-stat-groups" class="text-4xl font-black tracking-tighter">0</h4>
+                    </div>
+                    <div class="silk-card p-8 bg-indigo-600 text-white">
+                        <p class="text-[10px] font-black uppercase opacity-40 mb-1">Platform Users</p>
+                        <h4 id="adm-stat-users" class="text-4xl font-black tracking-tighter">0</h4>
+                    </div>
+                    <div class="silk-card p-8">
+                        <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Pending Subs</p>
+                        <h4 id="adm-stat-pending" class="text-4xl font-black tracking-tighter text-indigo-600">0</h4>
+                    </div>
+                    <div class="silk-card p-8">
+                        <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Avg Tick Rate</p>
+                        <h4 class="text-4xl font-black tracking-tighter text-slate-900">45ms</h4>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-12 gap-10">
+                    <div class="lg:col-span-8">
+                        <div class="silk-card p-10 h-full">
+                            <h3 class="text-xl font-black mb-8 flex items-center justify-between">
+                                Verification Queue 
+                                <span class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full animate-bounce">Live</span>
+                            </h3>
+                            <div id="adm-sub-queue" class="space-y-4 max-h-[600px] overflow-y-auto pr-4">
+                                <div class="text-center py-24 text-slate-300 italic font-bold">Queue currently empty.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-4">
+                        <div class="silk-card p-10 bg-slate-50 border-none space-y-8">
                             <div>
-                                <label class="stat-label mb-2 block">Split With</label>
-                                <div id="split-selectors" class="flex flex-wrap gap-2"></div>
+                                <h3 class="text-xl font-black mb-6">Global Broadcast</h3>
+                                <textarea id="adm-broadcast-input" placeholder="Enter system message..." class="input-premium h-40 resize-none text-sm bg-white"></textarea>
+                                <button onclick="sendGlobalBroadcast()" class="w-full btn-action mt-4">Push to Cloud</button>
+                                <button onclick="clearAllBroadcasts()" class="w-full mt-2 py-3 text-[10px] font-black uppercase text-red-500 opacity-60 hover:opacity-100">Clear Records</button>
                             </div>
-                            <button onclick="logExpense()" class="premium-btn btn-indigo w-full py-4 mt-4">
-                                Publish to Cloud <i class="fa-solid fa-paper-plane ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-8">
-                    <div class="super-card p-8 bg-white min-h-[600px]">
-                        <div class="d-flex justify-content-between align-items-end mb-8 border-b-4 border-dark pb-4">
-                            <h3 class="font-black text-3xl italic text-dark">TIMELINE</h3>
-                            <div class="text-right">
-                                <p class="stat-label">Total Volume</p>
-                                <p id="grand-total" class="text-3xl font-black text-indigo-600">₹0</p>
+                            
+                            <div class="pt-8 border-t border-slate-200">
+                                <h3 class="text-lg font-black mb-4">Manual Integration</h3>
+                                <input type="text" id="adm-manual-email" placeholder="User Email" class="input-premium mb-2">
+                                <select id="adm-manual-tier" class="input-premium mb-4 text-xs font-black uppercase">
+                                    <option>Basic</option>
+                                    <option>Standard</option>
+                                    <option>Elite</option>
+                                </select>
+                                <button onclick="grantManualSub()" class="w-full btn-outline text-xs">Force Grant Sub</button>
                             </div>
                         </div>
-                        <div id="activity-feed" class="space-y-4"></div>
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
 
-        <div id="settings-page" class="view-pane hidden max-w-3xl mx-auto">
-            <div class="super-card p-10">
-                <h2 class="font-black text-4xl mb-8 text-dark">System Control</h2>
-                
-                <div class="accordion border-0" id="settingsAccordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
-                                <i class="fa-solid fa-users me-3 text-indigo-600"></i> CIRCLE MEMBERS
-                            </button>
-                        </h2>
-                        <div id="collapseOne" class="accordion-collapse collapse">
-                            <div class="accordion-body bg-light">
-                                <div id="member-settings-list" class="space-y-2"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-8 p-6 bg-indigo-50 rounded-3xl border-2 border-dark">
-                    <p class="stat-label mb-2">Workspace Identification</p>
-                    <code id="settings-id-display" class="text-xl font-black text-indigo-600">...</code>
-                </div>
-            </div>
-        </div>
+        <nav class="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] glass-panel rounded-[2.8rem] h-20 shadow-2xl border border-white/50 flex items-center justify-around px-4 z-[500]">
+            <button onclick="navigate('dashboard')" class="nav-item-mobile w-14 h-14 flex items-center justify-center text-slate-400 text-xl transition-all active-mobile"><i class="fa-solid fa-house-chimney"></i></button>
+            <button onclick="navigate('analytics')" class="nav-item-mobile w-14 h-14 flex items-center justify-center text-slate-400 text-xl transition-all"><i class="fa-solid fa-chart-line"></i></button>
+            <button onclick="navigate('plans')" class="nav-item-mobile w-14 h-14 flex items-center justify-center text-slate-400 text-xl transition-all"><i class="fa-solid fa-crown"></i></button>
+            <button id="mobile-admin-btn" onclick="navigate('admin')" class="hidden nav-item-mobile w-14 h-14 flex items-center justify-center text-indigo-400 text-xl transition-all"><i class="fa-solid fa-shield-halved"></i></button>
+            <button onclick="navigate('profile')" class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white shadow-lg active:scale-90 transition-transform">
+                <img id="mobile-nav-avatar" src="" class="w-full h-full object-cover">
+            </button>
+        </nav>
     </div>
 
-    <div id="creation-modal-overlay" class="modal fade show" style="display:none; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content super-card">
-                <div class="p-10 text-center">
-                    <h2 class="font-black text-3xl mb-6 uppercase text-dark">New Workspace</h2>
-                    <input type="text" id="pop-group-name" class="luxury-input w-full mb-6 text-center text-xl" placeholder="Group Name">
-                    <div class="d-flex gap-3">
-                        <button onclick="hideModals()" class="premium-btn w-full">Cancel</button>
-                        <button onclick="finalizeCreation()" class="premium-btn btn-indigo w-full">Create</button>
-                    </div>
-                </div>
+    <div id="modal-container" class="fixed inset-0 z-[1000] bg-slate-900/60 backdrop-blur-md hidden items-center justify-center p-6">
+        <div id="modal-body" class="silk-card p-10 w-full max-w-sm transform scale-95 transition-transform duration-300">
             </div>
-        </div>
     </div>
 
-    <div id="toast-container" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-[300]"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyCpLtdJ4lACW9pNn8fAUmooooqzh_5TIO4", authDomain: "trip-ddc48.firebaseapp.com", databaseURL: "https://trip-ddc48-default-rtdb.firebaseio.com", projectId: "trip-ddc48", storageBucket: "trip-ddc48.firebasestorage.app" };
+        /*
+         * ==========================================
+         * TRIP SPLIT PRO: CORE LOGIC & STATE
+         * ==========================================
+         */
+
+        // 1. Configuration & Constants
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpLtdJ4lACW9pNn8fAUmooooqzh_5TIO4",
+            authDomain: "trip-ddc48.firebaseapp.com",
+            databaseURL: "https://trip-ddc48-default-rtdb.firebaseio.com",
+            projectId: "trip-ddc48",
+            storageBucket: "trip-ddc48.firebasestorage.app"
+        };
+
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database(), auth = firebase.auth(), provider = new firebase.auth.GoogleAuthProvider();
-        
-        let currentGroupId = null, groupMembers = [];
+        const db = firebase.database();
+        const auth = firebase.auth();
+        const provider = new firebase.auth.GoogleAuthProvider();
 
-        function showToast(msg) {
-            const container = document.getElementById('toast-container');
-            const t = document.createElement('div');
-            t.className = 'super-card px-8 py-3 bg-dark text-white text-xs font-black uppercase mb-2 animate__animated animate__fadeInUp';
-            t.style.boxShadow = "none";
-            t.innerText = msg;
-            container.appendChild(t);
-            setTimeout(() => t.remove(), 3000);
-        }
+        const ADMIN_CORE_ID = "akhilgoel985@gmail.com";
+        const UPI_ID = "akhilgoel985-2@okaxis";
 
+        // 2. Global Application State
+        const AppState = {
+            user: null,
+            activeCircleId: null,
+            circleData: null,
+            subscription: 'Free',
+            activeView: 'dashboard',
+            isSyncing: false,
+            charts: { distribution: null, velocity: null }
+        };
+
+        /**
+         * INITIALIZATION & AUTH LISTENERS
+         */
         auth.onAuthStateChanged(user => {
             if (user) {
-                document.getElementById('user-photo').src = user.photoURL;
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('group-discovery').classList.remove('hidden');
-                discoverGroups(user.email.toLowerCase());
+                AppState.user = user;
+                const isAdmin = user.email.toLowerCase() === ADMIN_CORE_ID.toLowerCase();
+
+                // UI Surface Setup
+                document.getElementById('user-avatar').src = user.photoURL;
+                document.getElementById('mobile-nav-avatar').src = user.photoURL;
+                document.getElementById('profile-img-large').src = user.photoURL;
+                document.getElementById('profile-full-name').innerText = user.displayName;
+                document.getElementById('profile-email-label').innerText = user.email;
+
+                if (isAdmin) {
+                    document.getElementById('admin-pillar').classList.remove('hidden');
+                    document.getElementById('mobile-admin-btn').classList.remove('hidden');
+                    initAdminWatchers();
+                }
+
+                initSubWatcher(user.uid);
+                initBroadcastWatcher();
+                fetchUserCircles(user.email.toLowerCase());
+
+                document.getElementById('login-module').classList.add('hidden');
+                document.getElementById('circle-discovery').classList.remove('hidden');
             } else {
-                document.getElementById('auth-screen').style.display = 'flex';
-                document.getElementById('app-content').classList.add('hidden');
+                toggleScreen('auth');
             }
         });
 
-        function discoverGroups(email) {
-            db.ref('groups').on('value', snap => {
-                const list = document.getElementById('my-groups-list');
-                list.innerHTML = '';
-                if(snap.exists()){
-                    snap.forEach(child => {
-                        const g = child.val();
-                        if(g.members && g.members.some(m => m.email === email)){
-                            list.innerHTML += `
-                            <div class="p-4 border-2 border-dark rounded-2xl flex justify-between items-center cursor-pointer hover:bg-indigo-50 transition-all mb-2" onclick="startApp('${child.key}', '${g.name}')">
-                                <span class="font-black text-sm text-dark">${g.name}</span>
-                                <i class="fa-solid fa-chevron-right text-dark" style="font-size: 10px;"></i>
-                            </div>`;
-                        }
-                    });
+        /**
+         * REAL-TIME SUBSCRIPTION WATCHER
+         */
+        function initSubWatcher(uid) {
+            db.ref(`active_subscriptions/${uid}`).on('value', snap => {
+                const sub = snap.val();
+                AppState.subscription = sub ? sub.tier : 'Free';
+                
+                const chip = document.getElementById('status-chip');
+                const badge = document.getElementById('pro-badge-mini');
+
+                if (sub) {
+                    chip.innerHTML = `<span class="w-2 h-2 bg-indigo-500 rounded-full"></span> ${sub.tier} Cloud Elite`;
+                    chip.className = "inline-flex items-center gap-2 px-6 py-2 bg-indigo-50 rounded-full text-[10px] font-black uppercase tracking-widest text-indigo-600 border border-indigo-100";
+                    badge.classList.remove('hidden');
+                } else {
+                    chip.innerHTML = `<span class="w-2 h-2 bg-slate-300 rounded-full"></span> Free Starter`;
+                    badge.classList.add('hidden');
                 }
             });
         }
 
-        window.startApp = (id, name) => {
-            currentGroupId = id;
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app-content').classList.remove('hidden');
-            document.getElementById('display-group-name').innerText = name;
-            document.getElementById('settings-id-display').innerText = id;
+        /**
+         * CIRCLE DISCOVERY & SELECTION
+         */
+        function fetchUserCircles(email) {
+            const feed = document.getElementById('discovery-feed');
+            db.ref('groups').on('value', snap => {
+                feed.innerHTML = '';
+                const groups = snap.val() || {};
+                let found = false;
+
+                Object.entries(groups).forEach(([id, g]) => {
+                    const members = g.members || [];
+                    if (members.some(m => m.email.toLowerCase() === email)) {
+                        found = true;
+                        const card = document.createElement('div');
+                        card.className = "silk-card p-6 flex justify-between items-center cursor-pointer hover:border-indigo-100 group";
+                        card.onclick = () => activateCircle(id);
+                        card.innerHTML = `
+                            <div class="flex items-center gap-5">
+                                <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 text-xl group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-cloud"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-slate-900 leading-none mb-2">${g.name}</h4>
+                                    <div class="flex gap-2">
+                                        <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest">${id}</span>
+                                        <span class="text-[9px] font-black text-slate-300 uppercase">${members.length} Members</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </div>
+                        `;
+                        feed.appendChild(card);
+                    }
+                });
+
+                if (!found) {
+                    feed.innerHTML = `
+                        <div class="py-12 text-center">
+                            <i class="fa-solid fa-earth-americas text-slate-100 text-6xl mb-4"></i>
+                            <p class="text-slate-400 font-bold">You aren't part of any circles yet.</p>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        async function activateCircle(id) {
+            AppState.activeCircleId = id;
+            toggleScreen('app');
             
             db.ref(`groups/${id}`).on('value', snap => {
                 const data = snap.val();
-                if(!data) return;
-                groupMembers = data.members || [];
-                renderDashboard(data.expenses || {});
-                renderSettingsMembers();
+                if (!data) return navigate('dashboard');
+                
+                AppState.circleData = data;
+                document.getElementById('active-circle-title').innerText = data.name;
+                document.getElementById('active-circle-id').innerText = id;
+                
+                renderDashboard();
+                renderParticipants();
+                if (AppState.activeView === 'analytics') renderAnalytics();
             });
-        };
+        }
 
-        function renderDashboard(expenses) {
-            const feed = document.getElementById('activity-feed');
-            const stats = document.getElementById('stats-grid');
-            const selectors = document.getElementById('split-selectors');
-            
+        /**
+         * CORE DASHBOARD RENDERING & LOGIC
+         */
+        function renderDashboard() {
+            const expenses = AppState.circleData.expenses || {};
+            const members = AppState.circleData.members || [];
+            const userEmail = AppState.user.email.toLowerCase();
+
+            let totalSpend = 0;
+            const balances = {};
+            members.forEach(m => balances[m.name] = 0);
+
+            // Timeline Processing
+            const feed = document.getElementById('transaction-feed');
             feed.innerHTML = '';
-            selectors.innerHTML = groupMembers.map(m => `
-                <button class="member-pill active" onclick="this.classList.toggle('active')" data-name="${m.name}">${m.name}</button>
-            `).join('');
+            
+            const entries = Object.entries(expenses).reverse();
+            entries.forEach(([key, e]) => {
+                const amt = parseFloat(e.amount);
+                totalSpend += amt;
 
-            let total = 0, balances = {};
-            groupMembers.forEach(m => balances[m.name] = 0);
+                // Split Logic
+                const splitPerHead = amt / e.involved.length;
+                e.involved.forEach(name => {
+                    if (balances.hasOwnProperty(name)) balances[name] += splitPerHead;
+                });
 
-            Object.entries(expenses).reverse().forEach(([key, exp]) => {
-                total += exp.amount;
-                const share = Math.round(exp.amount / exp.involved.length);
-                exp.involved.forEach(name => { if(balances.hasOwnProperty(name)) balances[name] += share; });
-
-                feed.innerHTML += `
-                <div class="p-6 border-2 border-dark rounded-3xl bg-white flex justify-between items-center mb-3 animate__animated animate__fadeInUp">
-                    <div>
-                        <h4 class="font-black text-dark text-lg">${exp.title}</h4>
-                        <div class="flex flex-wrap gap-1 mt-2">
-                            ${exp.involved.map(n => `<span class="badge bg-white text-dark border border-dark text-[8px]">${n}</span>`).join('')}
+                // Render Card
+                const card = document.createElement('div');
+                card.className = "silk-card p-6 flex justify-between items-center group relative overflow-hidden";
+                card.innerHTML = `
+                    <div class="flex items-center gap-5">
+                        <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-black text-slate-900 leading-tight mb-1">${e.title}</h5>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">${e.date} &bull; BY ${e.by}</p>
                         </div>
                     </div>
                     <div class="text-right">
-                        <p class="font-black text-xl text-dark">₹${exp.amount}</p>
-                        <p class="text-[9px] font-bold text-gray-500 uppercase">${exp.date || 'Recent'}</p>
+                        <p class="text-xl font-black text-slate-900 tracking-tighter">₹${Math.round(amt)}</p>
+                        <p class="text-[9px] font-black text-indigo-500 uppercase">Split ${e.involved.length} Ways</p>
                     </div>
-                </div>`;
+                `;
+                feed.appendChild(card);
             });
 
-            document.getElementById('grand-total').innerText = "₹" + total.toLocaleString();
-            stats.innerHTML = groupMembers.map(m => `
-                <div class="stat-box">
-                    <span class="stat-label">${m.name}'s Share</span>
-                    <span class="stat-value text-indigo-600">₹${balances[m.name]}</span>
-                </div>
-            `).join('');
-        }
-
-        function renderSettingsMembers() {
-            const list = document.getElementById('member-settings-list');
-            list.innerHTML = groupMembers.map(m => `
-                <div class="p-3 border-2 border-dark rounded-2xl bg-white d-flex justify-content-between align-items-center mb-2">
-                    <span class="font-bold text-dark">${m.name}</span>
-                    <span class="text-[10px] text-gray-500 font-bold uppercase">${m.email}</span>
-                </div>
-            `).join('');
-        }
-
-        window.logExpense = () => {
-            const title = document.getElementById('bill-title').value;
-            const amount = parseFloat(document.getElementById('bill-amount').value);
-            const involved = Array.from(document.querySelectorAll('.member-pill.active')).map(b => b.dataset.name);
-
-            if(title && amount && involved.length > 0) {
-                db.ref(`groups/${currentGroupId}/expenses`).push({
-                    title, amount, involved, 
-                    date: new Date().toLocaleDateString(),
-                    by: auth.currentUser.displayName
-                });
-                document.getElementById('bill-title').value = '';
-                document.getElementById('bill-amount').value = '';
-                showToast("PUBLISHED TO CLOUD");
-            } else {
-                showToast("MISSING INFO");
+            // Update UI Counters
+            document.getElementById('total-group-spend').innerText = `₹${Math.round(totalSpend).toLocaleString()}`;
+            
+            // Personal Context
+            const currentUserObj = members.find(m => m.email.toLowerCase() === userEmail);
+            if (currentUserObj) {
+                const myShare = balances[currentUserObj.name] || 0;
+                document.getElementById('user-contribution').innerText = `₹${Math.round(myShare).toLocaleString()}`;
+                document.getElementById('user-balance-status').innerText = myShare > 0 ? "Active" : "Settled";
             }
-        };
 
-        window.showView = (v) => {
-            document.querySelectorAll('.view-pane').forEach(p => p.classList.add('hidden'));
-            document.getElementById(v).classList.remove('hidden');
-        };
+            // Member Insights Ribbon
+            const ribbon = document.getElementById('member-balance-ribbon');
+            ribbon.innerHTML = members.map(m => `
+                <div class="min-w-[160px] silk-card p-5 bg-white">
+                    <p class="text-[9px] font-black text-slate-400 uppercase mb-2">${m.name}</p>
+                    <p class="text-xl font-black text-slate-900">₹${Math.round(balances[m.name])}</p>
+                    <div class="w-full h-1 bg-slate-100 mt-4 rounded-full overflow-hidden">
+                        <div class="h-full bg-indigo-500" style="width: ${Math.min((balances[m.name] / (totalSpend || 1)) * 100, 100)}%"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-        window.copyGroupId = () => {
-            navigator.clipboard.writeText(currentGroupId);
-            showToast("ID COPIED");
-        };
+        function renderParticipants() {
+            const grid = document.getElementById('tx-participants-grid');
+            const members = AppState.circleData.members || [];
+            grid.innerHTML = members.map(m => `
+                <button onclick="toggleChip(this)" data-name="${m.name}" class="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all chip-active bg-indigo-600 text-white shadow-lg shadow-indigo-100">
+                    ${m.name}
+                </button>
+            `).join('');
+        }
 
-        window.showCreationPopup = () => document.getElementById('creation-modal-overlay').style.display = 'block';
-        window.hideModals = () => document.getElementById('creation-modal-overlay').style.display = 'none';
+        /**
+         * ANALYTICS ENGINE
+         */
+        function renderAnalytics() {
+            const ctx1 = document.getElementById('distributionChart').getContext('2d');
+            const ctx2 = document.getElementById('velocityChart').getContext('2d');
+            
+            const members = AppState.circleData.members || [];
+            const expenses = Object.values(AppState.circleData.expenses || {});
 
-        window.finalizeCreation = async () => {
-            const gn = document.getElementById('pop-group-name').value.trim();
-            if(!gn) return;
-            const id = "SPLIT-" + Math.random().toString(36).substr(2, 5).toUpperCase();
-            await db.ref(`groups/${id}`).set({
-                name: gn,
-                admin: auth.currentUser.email.toLowerCase(),
-                members: [{ name: auth.currentUser.displayName.split(' ')[0], email: auth.currentUser.email.toLowerCase() }]
+            // Prepare Data
+            const labels = members.map(m => m.name);
+            const dataMap = {};
+            labels.forEach(l => dataMap[l] = 0);
+
+            expenses.forEach(e => {
+                const share = parseFloat(e.amount) / e.involved.length;
+                e.involved.forEach(name => { if(dataMap.hasOwnProperty(name)) dataMap[name] += share; });
             });
-            hideModals();
-            showToast("WORKSPACE READY");
-        };
 
-        window.signOutNow = () => auth.signOut().then(() => location.reload());
-        document.getElementById('google-login-btn').onclick = () => auth.signInWithPopup(provider);
+            // Destroy existing instances if any
+            if(AppState.charts.distribution) AppState.charts.distribution.destroy();
+            if(AppState.charts.velocity) AppState.charts.velocity.destroy();
+
+            AppState.charts.distribution = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: Object.values(dataMap),
+                        backgroundColor: ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#94a3b8'],
+                        borderWidth: 0,
+                        hoverOffset: 20
+                    }]
+                },
+                options: {
+                    cutout: '70%',
+                    plugins: { legend: { position: 'bottom', labels: { font: { family: 'Plus Jakarta Sans', weight: 'bold' } } } }
+                }
+            });
+
+            AppState.charts.velocity = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: expenses.slice(-7).map(e => e.date),
+                    datasets: [{
+                        label: 'Expense Velocity',
+                        data: expenses.slice(-7).map(e => e.amount),
+                        borderColor: '#6366f1',
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(99, 102, 241, 0.05)'
+                    }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        /**
+         * TRANSACTION HANDLER
+         */
+        async function handlePublishTx() {
+            const title = document.getElementById('tx-title').value.trim();
+            const amount = document.getElementById('tx-amount').value.trim();
+            const involved = Array.from(document.querySelectorAll('.chip-active')).map(c => c.dataset.name);
+
+            if (!title || !amount || involved.length === 0) {
+                return showToast("Please define purpose, amount, and participants", "error");
+            }
+
+            const newTx = {
+                title,
+                amount,
+                involved,
+                by: AppState.user.displayName.split(' ')[0],
+                date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+                timestamp: Date.now()
+            };
+
+            try {
+                await db.ref(`groups/${AppState.activeCircleId}/expenses`).push(newTx);
+                showToast("Expense pushed to cloud successfully");
+                
+                // Clear Form
+                document.getElementById('tx-title').value = '';
+                document.getElementById('tx-amount').value = '';
+            } catch (err) {
+                showToast("Cloud sync failed. Check connection.", "error");
+            }
+        }
+
+        /**
+         * SUBSCRIPTION UPGRADE FLOW
+         */
+        let pendingTier = null;
+        function triggerPayment(tier, price) {
+            pendingTier = { tier, price };
+            const upiString = `upi://pay?pa=${UPI_ID}&pn=Akhil%20Goel&am=${price}&cu=INR&tn=TripSplitPro_${tier}`;
+            
+            document.getElementById('upi-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiString)}`;
+            document.getElementById('pay-amt-display').innerText = `₹${price}`;
+            document.getElementById('payment-module').classList.remove('hidden');
+            
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        async function submitUpgradeRequest() {
+            const txId = document.getElementById('tx-ref-id').value.trim();
+            if (!txId) return showToast("Verification ID required", "error");
+
+            const request = {
+                uid: AppState.user.uid,
+                name: AppState.user.displayName,
+                email: AppState.user.email,
+                tier: pendingTier.tier,
+                ref: txId,
+                status: 'pending',
+                at: new Date().toISOString()
+            };
+
+            await db.ref('subscription_requests').push(request);
+            document.getElementById('payment-module').classList.add('hidden');
+            document.getElementById('tx-ref-id').value = '';
+            showToast("Upgrade request sent. Verification in progress.");
+        }
+
+        /**
+         * ADMIN COMMAND CENTER LOGIC
+         */
+        function initAdminWatchers() {
+            // Stats Watcher
+            db.ref('groups').on('value', snap => {
+                document.getElementById('adm-stat-groups').innerText = snap.numChildren();
+                let uCount = 0;
+                snap.forEach(g => uCount += (g.val().members || []).length);
+                document.getElementById('adm-stat-users').innerText = uCount;
+            });
+
+            // Request Watcher
+            db.ref('subscription_requests').on('value', snap => {
+                const container = document.getElementById('adm-sub-queue');
+                container.innerHTML = '';
+                
+                if (!snap.exists()) {
+                    container.innerHTML = '<div class="text-center py-24 text-slate-300 italic font-bold">Queue currently empty.</div>';
+                    document.getElementById('adm-stat-pending').innerText = '0';
+                    return;
+                }
+
+                document.getElementById('adm-stat-pending').innerText = snap.numChildren();
+
+                snap.forEach(child => {
+                    const r = child.val();
+                    const card = `
+                        <div class="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 flex justify-between items-center">
+                            <div>
+                                <h5 class="font-black text-sm">${r.name}</h5>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${r.tier} | REF: ${r.ref}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="resolveSubscription('${child.key}', '${r.uid}', '${r.tier}', true)" class="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center"><i class="fa-solid fa-check"></i></button>
+                                <button onclick="resolveSubscription('${child.key}', null, null, false)" class="w-10 h-10 bg-white text-red-500 border border-red-50 rounded-xl flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += card;
+                });
+            });
+        }
+
+        async function resolveSubscription(key, uid, tier, approved) {
+            if (approved) {
+                await db.ref(`active_subscriptions/${uid}`).set({
+                    tier: tier,
+                    grantedAt: new Date().toISOString()
+                });
+                showToast(`Subscription granted for ${tier}`);
+            }
+            await db.ref(`subscription_requests/${key}`).remove();
+        }
+
+        function sendGlobalBroadcast() {
+            const msg = document.getElementById('adm-broadcast-input').value.trim();
+            if (!msg) return;
+
+            db.ref('broadcasts').set({
+                text: msg,
+                at: Date.now()
+            });
+            document.getElementById('adm-broadcast-input').value = '';
+            showToast("Global broadcast pushed");
+        }
+
+        function initBroadcastWatcher() {
+            db.ref('broadcasts').on('value', snap => {
+                const bar = document.getElementById('broadcast-bar');
+                const content = document.getElementById('broadcast-content');
+                if (snap.exists()) {
+                    content.innerText = snap.val().text;
+                    bar.classList.remove('hidden');
+                } else {
+                    bar.classList.add('hidden');
+                }
+            });
+        }
+
+        /**
+         * UI UTILITIES & NAVIGATION
+         */
+        function navigate(viewId) {
+            AppState.activeView = viewId;
+            document.querySelectorAll('.view-pane').forEach(v => v.classList.remove('active-view'));
+            document.getElementById(`view-${viewId}`).classList.add('active-view');
+
+            // Nav Bar Visuals
+            document.querySelectorAll('.nav-link-desktop').forEach(l => {
+                l.classList.toggle('active-link', l.innerText.toLowerCase() === viewId);
+                l.classList.toggle('text-slate-400', l.innerText.toLowerCase() !== viewId);
+            });
+
+            if (viewId === 'analytics') renderAnalytics();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleScreen(screen) {
+            if (screen === 'app') {
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+            } else {
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('main-app').classList.add('hidden');
+            }
+        }
+
+        function toggleChip(btn) {
+            btn.classList.toggle('chip-active');
+            btn.classList.toggle('bg-indigo-600');
+            btn.classList.toggle('text-white');
+            btn.classList.toggle('bg-slate-100');
+            btn.classList.toggle('text-slate-400');
+            btn.classList.toggle('shadow-lg');
+        }
+
+        function showToast(msg, type = 'success') {
+            const wrapper = document.getElementById('toast-wrapper');
+            const toast = document.createElement('div');
+            toast.className = `silk-card px-8 py-4 flex items-center gap-4 bg-white shadow-2xl animate-fade-in-up`;
+            toast.innerHTML = `
+                <div class="w-2.5 h-2.5 rounded-full ${type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}"></div>
+                <span class="text-xs font-black uppercase tracking-widest text-slate-700">${msg}</span>
+            `;
+            wrapper.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-[-20px]');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+
+        function openModal(mode) {
+            const body = document.getElementById('modal-body');
+            document.getElementById('modal-container').classList.remove('hidden');
+            document.getElementById('modal-container').classList.add('flex');
+
+            if (mode === 'create') {
+                body.innerHTML = `
+                    <h3 class="text-2xl font-black mb-2">Create Circle</h3>
+                    <p class="text-slate-400 text-xs font-bold uppercase mb-8">Establish a new cloud workspace</p>
+                    <input type="text" id="new-circle-name" placeholder="E.g. Roadtrip to Spiti" class="input-premium mb-6">
+                    <div class="flex gap-3">
+                        <button onclick="closeModal()" class="flex-1 font-bold text-slate-400">Dismiss</button>
+                        <button onclick="commitCircleCreation()" class="flex-1 btn-action">Establish</button>
+                    </div>
+                `;
+            } else if (mode === 'join') {
+                body.innerHTML = `
+                    <h3 class="text-2xl font-black mb-2">Join Circle</h3>
+                    <p class="text-slate-400 text-xs font-bold uppercase mb-8">Enter a unique workspace ID</p>
+                    <input type="text" id="join-id-input" placeholder="PRO-XXXXX" class="input-premium mb-6 text-center font-black uppercase">
+                    <div class="flex gap-3">
+                        <button onclick="closeModal()" class="flex-1 font-bold text-slate-400">Dismiss</button>
+                        <button onclick="commitJoinRequest()" class="flex-1 btn-action">Integrate</button>
+                    </div>
+                `;
+            }
+        }
+
+        async function commitCircleCreation() {
+            const name = document.getElementById('new-circle-name').value.trim();
+            if(!name) return;
+
+            const id = "PRO-" + Math.random().toString(36).substring(2, 7).toUpperCase();
+            const payload = {
+                name,
+                admin: AppState.user.email.toLowerCase(),
+                members: [{
+                    name: AppState.user.displayName.split(' ')[0],
+                    email: AppState.user.email.toLowerCase()
+                }],
+                createdAt: Date.now()
+            };
+
+            await db.ref(`groups/${id}`).set(payload);
+            closeModal();
+            showToast(`Circle ${name} established.`);
+        }
+
+        function closeModal() {
+            document.getElementById('modal-container').classList.add('hidden');
+            document.getElementById('modal-container').classList.remove('flex');
+        }
+
+        function copyID() {
+            navigator.clipboard.writeText(AppState.activeCircleId);
+            showToast("Circle ID copied to cloud clipboard");
+        }
+
+        function signOut() {
+            auth.signOut().then(() => location.reload());
+        }
+
+        /**
+         * INITIALIZATION EVENT
+         */
+        document.getElementById('google-login-trigger').onclick = () => auth.signInWithPopup(provider);
+
     </script>
 </body>
 </html>
