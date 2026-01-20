@@ -3,421 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TripSplit Pro | Ultimate Cloud</title>
+    <title>TripSplit Pro | Premium Expense Cloud</title>
     
-    <link rel="manifest" href="manifest.json">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
     <style>
-        :root { --primary: #4f46e5; --bg: #f8fafc; }
-        body { background: var(--bg); color: #1e293b; font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
-        .silk-card { background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1); border-radius: 2.5rem; }
-        .rounded-silk { border-radius: 2rem; }
-        .rounded-button { border-radius: 1.5rem; }
-        .btn-premium { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; transition: all 0.3s ease; }
+        :root {
+            --p-indigo: #4f46e5;
+            --p-dark: #0f172a;
+            --p-border: #e2e8f0;
+            --p-surface: #ffffff;
+            --p-accent: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.8);
+        }
+
+        body {
+            background-color: #f1f5f9;
+            background-image: radial-gradient(#cbd5e1 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+            color: var(--p-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        /* --- THE "NEXT LEVEL" DESIGN SYSTEM --- */
         
-        .view-pane { display: none; }
-        .view-pane.active-view { display: block; animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .super-card {
+            background: var(--p-surface);
+            border: 2px solid var(--p-dark);
+            box-shadow: 8px 8px 0px 0px var(--p-dark);
+            border-radius: 24px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
+        }
 
-        .timeline-scroll-area { height: 500px; overflow-y: auto; padding-right: 10px; }
-        .timeline-scroll-area::-webkit-scrollbar { width: 5px; }
-        .timeline-scroll-area::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .super-card:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 12px 12px 0px 0px var(--p-indigo);
+        }
 
-        #my-groups-list { max-height: 320px; overflow-y: auto; padding-right: 8px; scroll-behavior: smooth; }
-        #my-groups-list::-webkit-scrollbar { width: 4px; }
-        #my-groups-list::-webkit-scrollbar-thumb { background: rgba(79, 70, 229, 0.1); border-radius: 10px; }
+        .premium-btn {
+            border: 2px solid var(--p-dark) !important;
+            border-radius: 16px !important;
+            font-weight: 800 !important;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 12px 24px !important;
+            transition: all 0.2s ease;
+            position: relative;
+            background: white;
+            color: var(--p-dark);
+        }
 
-        .member-chip { border: 2px solid #f1f5f9; padding: 10px 18px; border-radius: 1.2rem; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; filter: grayscale(1); opacity: 0.6; }
-        .member-chip.active-chip { filter: grayscale(0); opacity: 1; border-color: currentColor; }
+        .premium-btn:hover {
+            background: var(--p-dark);
+            color: white !important;
+            transform: translateY(-2px);
+        }
 
-        .theme-0 { background-color: #e0e7ff !important; color: #4338ca !important; }
-        .theme-1 { background-color: #fce7f3 !important; color: #be185d !important; }
-        .theme-2 { background-color: #fef3c7 !important; color: #b45309 !important; }
-        .theme-3 { background-color: #d1fae5 !important; color: #047857 !important; }
-        
-        .mini-badge { padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; display: inline-block; margin-right: 4px; margin-top: 4px; }
+        .btn-indigo {
+            background: var(--p-indigo);
+            color: white !important;
+            border-color: var(--p-dark) !important;
+        }
 
-        .collapse-btn { width: 100%; text-align: left; padding: 1.5rem 2rem; background: #ffffff; border-radius: 2rem; border: 1px solid rgba(0,0,0,0.05); font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
-        .collapse-content { display: none; padding: 1.5rem 2rem; }
-        .modal-overlay { position: fixed; inset: 0; z-index: 150; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); display: none; items-center; justify-content: center; padding: 1.5rem; }
-        .modal-content-silk { background: white; width: 100%; max-width: 28rem; border-radius: 3rem; padding: 2.5rem; position: relative; animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .notif-dot { position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; background: #ef4444; border: 2px solid white; border-radius: 50%; display: none; }
-        .pulse { animation: pulse-red 2s infinite; }
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-        
-        @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* --- LOGO & BRANDING --- */
+        .brand-heading {
+            font-weight: 900;
+            font-size: 2.5rem;
+            letter-spacing: -2px;
+            border-bottom: 4px solid var(--p-indigo);
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
 
-        #toast-container { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
-        .silk-toast { background: #1e293b; color: white; padding: 1rem 2rem; border-radius: 1.5rem; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); animation: toastIn 0.3s ease-out; pointer-events: auto; }
-        @keyframes toastIn { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        /* --- BENTO GRID LAYOUT --- */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
 
-        .branding-container { position: relative; overflow: hidden; padding: 3rem 0; border-radius: 3rem; background: rgba(255,255,255,0.4); margin-bottom: 2rem; }
-        .tape { position: absolute; width: 200%; height: 60px; display: flex; align-items: center; white-space: nowrap; font-weight: 900; font-size: 1.4rem; color: white; z-index: 0; pointer-events: none; text-transform: uppercase; letter-spacing: 0.3rem; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .tape-1 { background: linear-gradient(90deg, #4f46e5, #6366f1); transform: rotate(-12deg) translateY(20px); top: 15%; left: -50%; }
-        .tape-2 { background: linear-gradient(90deg, #1e293b, #334155); transform: rotate(12deg) translateY(-20px); bottom: 15%; left: -50%; }
-        .marquee { animation: marquee 25s linear infinite; display: flex; gap: 3rem; }
-        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .stat-box {
+            padding: 24px;
+            border: 2px solid var(--p-border);
+            border-radius: 20px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
 
-        .logo-box { position: relative; display: inline-block; margin-bottom: 2.5rem; }
-        .logo-main { font-size: 4.5rem; font-weight: 900; letter-spacing: -0.3rem; display: flex; gap: 5px; }
-        .trip-text { color: #1e293b; animation: splitLeft 3s infinite ease-in-out; }
-        .split-text { color: #4f46e5; animation: splitRight 3s infinite ease-in-out; }
-        .logo-underline { height: 6px; width: 100%; background: #4f46e5; border-radius: 10px; margin-top: -10px; transform: scaleX(0.4); animation: lineGrow 3s infinite ease-in-out; }
-        
-        .member-stat-card { transition: all 0.3s ease; cursor: pointer; }
-        .member-stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px -5px rgba(0,0,0,0.1); }
-        
-        .plan-card-pro { border: 2px solid #4f46e5 !important; }
-        .sub-popup-trigger { cursor: pointer; transition: transform 0.2s; }
+        .stat-label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 1.5px;
+        }
 
-        /* ADMIN CONTROL STYLES */
-        .admin-stat-pill { background: #1e293b; color: white; padding: 1.25rem; border-radius: 1.5rem; flex: 1; text-align: center; }
-        .admin-request-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 1.25rem; margin-bottom: 0.75rem; }
-        .badge-admin { background: #4f46e5; color: white; font-size: 8px; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 5px; }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-top: 8px;
+        }
+
+        /* --- INPUTS --- */
+        .luxury-input {
+            border: 2px solid var(--p-border) !important;
+            border-radius: 16px !important;
+            padding: 16px !important;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: var(--p-accent);
+        }
+
+        .luxury-input:focus {
+            border-color: var(--p-indigo) !important;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        /* --- MEMBER CHIPS --- */
+        .member-pill {
+            border: 2px solid var(--p-dark);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .member-pill.active {
+            background: var(--p-indigo);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* --- ANIMATIONS --- */
+        .fade-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        /* --- CUSTOM SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { 
+            background: var(--p-dark); 
+            border-radius: 10px;
+            border: 2px solid #f1f5f9;
+        }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-3 md:p-10">
 
-    <div id="toast-container"></div>
+    <div id="auth-screen" class="fixed inset-0 z-[100] bg-white flex items-center justify-center p-4">
+        <div class="super-card p-10 max-w-md w-full text-center animate__animated animate__zoomIn">
+            <h1 class="brand-heading">TRIPSPLIT<span class="text-indigo-600">PRO</span></h1>
+            <p class="text-gray-400 font-bold mb-8 text-xs uppercase tracking-[0.3em]">Next-Gen Financial Logistics</p>
+            
+            <div id="login-container">
+                <button id="google-login-btn" class="premium-btn w-full flex items-center justify-center gap-3 py-4 shadow-sm">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+                    Login with Google
+                </button>
+            </div>
 
-    <div id="auth-screen" class="fixed inset-0 z-[100] bg-white flex items-center justify-center p-6">
-        <div id="login-container" class="text-center max-w-sm w-full">
-            <div class="logo-box">
-                <div class="logo-main"><span class="trip-text">TRIP</span><span class="split-text">SPLIT</span></div>
-                <div class="logo-underline"></div>
-            </div>
-            <p class="text-gray-400 font-bold mb-8 text-sm uppercase tracking-widest">Premium Expense Cloud</p>
-            <button id="google-login-btn" class="bg-white border-2 border-gray-100 flex items-center justify-center gap-3 w-full py-5 rounded-button font-black text-lg shadow-xl hover:bg-gray-50 transition-all hover:scale-[1.02] active:scale-95">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="22"> Continue with Google
-            </button>
-        </div>
-        
-        <div id="group-discovery" class="hidden w-full max-w-md">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-3xl font-black tracking-tighter">My Circles</h2>
-                <button onclick="signOutNow()" class="text-red-500 font-black text-[10px] bg-red-50 px-5 py-2.5 rounded-2xl uppercase tracking-tighter">Exit Account</button>
-            </div>
-            <div class="branding-container shadow-inner">
-                <div class="tape tape-1"><div class="marquee"><span>TRIPSPLIT &bull; </span><span>TRIPSPLIT &bull; </span></div></div>
-                <div class="tape tape-2"><div class="marquee" style="animation-direction: reverse;"><span>TRIPSPLIT &bull; </span><span>TRIPSPLIT &bull; </span></div></div>
-                <div id="my-groups-list" class="space-y-4 px-6 relative z-10"></div>
-            </div>
-            <div class="silk-card p-6 bg-indigo-600 shadow-2xl relative z-10 -mt-6">
-                <div class="flex gap-3">
-                    <button onclick="showJoinManual()" class="flex-1 bg-indigo-700 text-white py-4 rounded-button font-black text-[11px] uppercase border border-white/20">Join ID</button>
-                    <button onclick="showCreationPopup()" class="flex-1 bg-white text-indigo-600 py-4 rounded-button font-black text-[11px] uppercase shadow-lg">Create New</button>
+            <div id="group-discovery" class="hidden text-left mt-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-black text-lg">My Circles</h3>
+                    <span class="badge bg-dark rounded-pill">Cloud Active</span>
+                </div>
+                <div id="my-groups-list" class="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="showJoinManual()" class="premium-btn text-[10px] py-3">Join ID</button>
+                    <button onclick="showCreationPopup()" class="premium-btn btn-indigo text-[10px] py-3">Create</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="app-content" class="max-w-6xl mx-auto hidden">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-            <div class="flex items-center gap-4 cursor-pointer" onclick="showView('profile-page')">
-                <img id="user-photo" src="" class="w-14 h-14 rounded-2xl border-2 border-white shadow-xl">
+    <div id="app-content" class="max-w-7xl mx-auto hidden animate__animated animate__fadeIn">
+        
+        <header class="row mb-5 gy-4">
+            <div class="col-md-6 d-flex align-items-center gap-4">
+                <div class="super-card p-1 border-2" style="border-radius: 18px; box-shadow: 4px 4px 0 var(--p-dark);">
+                    <img id="user-photo" src="" class="w-16 h-16 rounded-2xl">
+                </div>
                 <div>
-                    <h2 class="text-xl font-extrabold text-gray-900 leading-none" id="display-group-name">...</h2>
-                    <p class="text-[10px] font-black text-indigo-500 uppercase mt-1 cursor-pointer" onclick="copyGroupId()">Click to Copy ID</p>
+                    <h2 class="text-3xl font-black leading-none mb-1" id="display-group-name">...</h2>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-indigo-100 text-indigo-600 border border-indigo-200 uppercase px-3">Workspace Active</span>
+                        <button onclick="copyGroupId()" class="text-[10px] font-black hover:underline">COPY ID <i class="fa-solid fa-copy ml-1"></i></button>
+                    </div>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <button onclick="showView('main-dashboard')" class="bg-white px-6 py-3 rounded-button text-sm font-bold shadow-sm border border-gray-100">Home</button>
-                <button onclick="location.reload()" class="bg-gray-100 px-6 py-3 rounded-button text-sm font-bold text-gray-600">Switch</button>
-                <button onclick="showView('plans-page')" class="bg-indigo-50 text-indigo-600 px-6 py-3 rounded-button text-sm font-bold shadow-sm border border-indigo-100">Subscription Plan <i class="fa-solid fa-crown ml-1 text-[10px]"></i></button>
-                <div class="relative">
-                    <button onclick="showView('settings-page')" class="bg-gray-900 text-white px-5 py-3 rounded-button text-sm font-bold shadow-lg"><i class="fa-solid fa-sliders"></i></button>
-                    <div id="admin-notif-dot" class="notif-dot pulse"></div>
-                </div>
+            <div class="col-md-6 d-flex justify-content-md-end align-items-center gap-2">
+                <button onclick="showView('main-dashboard')" class="premium-btn px-4 py-2 text-sm"><i class="fa-solid fa-house"></i></button>
+                <button onclick="showView('plans-page')" class="premium-btn px-4 py-2 text-sm btn-indigo"><i class="fa-solid fa-crown mr-2"></i>Plans</button>
+                <button onclick="showView('settings-page')" class="premium-btn px-4 py-2 text-sm"><i class="fa-solid fa-gear"></i></button>
+                <button onclick="signOutNow()" class="premium-btn px-4 py-2 text-sm border-danger text-danger"><i class="fa-solid fa-power-off"></i></button>
             </div>
         </header>
 
+        <div id="stats-grid" class="bento-grid mb-10">
+            </div>
+
         <div id="main-dashboard" class="view-pane active-view">
-            <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"></div>
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                <div class="lg:col-span-5 silk-card p-8 h-fit">
-                    <h3 class="text-lg font-black mb-8 italic uppercase text-center tracking-widest">Log Expense</h3>
-                    <div class="space-y-6">
-                        <input type="text" id="bill-title" placeholder="Description" class="w-full bg-gray-50 rounded-silk p-4 font-bold outline-none border-none">
-                        <div class="relative"><span class="absolute left-4 top-4 text-gray-400 font-black">₹</span><input type="number" id="bill-amount" placeholder="0.00" class="w-full bg-gray-50 rounded-silk p-4 pl-10 text-2xl font-black outline-none border-none"></div>
-                        <div id="split-selectors" class="flex flex-wrap gap-2 pt-2"></div>
-                        <button onclick="logExpense()" class="w-full btn-premium py-5 rounded-button font-black uppercase mt-4 shadow-lg">Publish</button>
-                    </div>
-                </div>
-                <div class="lg:col-span-7 silk-card p-8">
-                    <h3 class="text-xl font-black border-b pb-4 mb-6">Timeline <span id="grand-total" class="float-right text-indigo-600 text-sm">₹0</span></h3>
-                    <div id="activity-feed" class="space-y-5 timeline-scroll-area"></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="plans-page" class="view-pane max-w-6xl mx-auto pb-20">
-            <h2 class="text-4xl font-black text-center mb-10">Choose Your Plan</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-                <div class="silk-card p-8 border-2 border-gray-50 text-center">
-                    <h4 class="text-xl font-black mb-4">Basic</h4>
-                    <p class="text-3xl font-black mb-6">₹50 <span class="text-xs text-gray-400 font-bold">/TRIP</span></p>
-                    <button onclick="openPayment('Basic Plan', 50)" class="w-full bg-gray-100 py-3 rounded-button font-black text-[10px] uppercase">Select Basic</button>
-                </div>
-                <div class="silk-card p-8 plan-card-pro bg-indigo-50 shadow-2xl relative text-center">
-                    <h4 class="text-xl font-black mb-4">Standard</h4>
-                    <p class="text-3xl font-black mb-6">₹70 <span class="text-xs text-indigo-400 font-bold">/TRIP</span></p>
-                    <button onclick="openPayment('Standard Plan', 70)" class="w-full btn-premium py-4 rounded-button font-black text-[10px] uppercase shadow-lg">Select Standard</button>
-                </div>
-                <div class="silk-card p-8 bg-gray-900 text-white shadow-2xl text-center">
-                    <h4 class="text-xl font-black mb-4">Premium</h4>
-                    <p class="text-3xl font-black mb-6">₹100 <span class="text-xs text-gray-500 font-bold">/TRIP</span></p>
-                    <button onclick="openPayment('Premium Plan', 100)" class="w-full bg-white text-gray-900 py-3 rounded-button font-black text-[10px] uppercase">Select Premium</button>
-                </div>
-            </div>
-
-            <div id="manual-payment-gateway" class="hidden mt-12 max-w-sm mx-auto text-center">
-                <div class="silk-card p-8 bg-white border-2 border-indigo-100">
-                    <p class="text-[10px] font-black text-indigo-500 uppercase mb-4 tracking-widest">Pay For <span id="paying-tier-name">Tier</span></p>
-                    <p class="text-3xl font-black mb-6 text-gray-900">₹<span id="qr-price-display">0</span></p>
-                    <div class="w-full aspect-square bg-gray-100 rounded-3xl flex items-center justify-center mb-6 border-2 border-dashed border-gray-200">
-                        <img id="payment-qr" src="" class="w-full h-full object-contain p-4">
-                    </div>
-                    <input type="text" id="tx-id-input" placeholder="Enter Transaction ID" class="w-full bg-gray-50 p-4 rounded-silk font-bold text-center outline-none border-2 border-transparent focus:border-indigo-500 mb-3 uppercase text-sm">
-                    <button onclick="submitPaymentRequest()" class="w-full btn-premium py-4 rounded-button font-black uppercase text-[10px]">Submit for Verification</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="settings-page" class="view-pane max-w-2xl mx-auto space-y-4">
-            
-            <div id="master-admin-section" class="hidden">
-                <button onclick="toggleCollapse('sovereign-collapse')" class="collapse-btn bg-slate-900 text-white border-none shadow-2xl">
-                    <span class="flex items-center gap-3">Sovereign Command Center <i class="fa-solid fa-shield-halved text-indigo-400"></i></span>
-                    <i class="fa-solid fa-chevron-down opacity-50"></i>
-                </button>
-                <div id="sovereign-collapse" class="collapse-content bg-gray-50 mt-2 rounded-silk border border-slate-200 space-y-6">
-                    
-                    <div class="flex gap-3">
-                        <div class="admin-stat-pill">
-                            <p class="text-[8px] font-black opacity-50 uppercase">Total Groups</p>
-                            <p id="adm-total-groups" class="text-2xl font-black">0</p>
+            <div class="row g-5">
+                <div class="col-lg-4">
+                    <div class="super-card p-8">
+                        <h3 class="font-black text-xl mb-6 border-b-2 border-dark pb-2 inline-block">PUBLISH BILL</h3>
+                        <div class="space-y-5">
+                            <div>
+                                <label class="stat-label">Description</label>
+                                <input type="text" id="bill-title" class="luxury-input w-full mt-1" placeholder="Ex: Dinner at Taj">
+                            </div>
+                            <div>
+                                <label class="stat-label">Amount (INR)</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-4 font-black">₹</span>
+                                    <input type="number" id="bill-amount" class="luxury-input w-full pl-10" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="stat-label mb-2 block">Split With</label>
+                                <div id="split-selectors" class="flex flex-wrap gap-2"></div>
+                            </div>
+                            <button onclick="logExpense()" class="premium-btn btn-indigo w-full py-4 mt-4 shadow-lg">
+                                Publish to Cloud <i class="fa-solid fa-paper-plane ml-2"></i>
+                            </button>
                         </div>
-                        <button id="adm-maint-btn" onclick="toggleGlobalMaintenance()" class="admin-stat-pill bg-indigo-600">
-                            <i class="fa-solid fa-power-off text-lg mb-1"></i>
-                            <p class="text-[8px] font-black uppercase">System Live</p>
-                        </button>
                     </div>
+                </div>
 
-                    <div class="silk-card p-6 border border-slate-100">
-                        <p class="text-[9px] font-black text-slate-400 uppercase mb-3 tracking-widest">Deploy Pulse Broadcast</p>
-                        <textarea id="adm-pulse-msg" class="w-full bg-gray-50 p-4 rounded-xl text-xs font-bold border-none mb-3" placeholder="Message to every timeline on the cloud..."></textarea>
-                        <button onclick="sendGlobalPulse()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-black text-[10px] uppercase shadow-lg">Discharge Pulse</button>
+                <div class="col-lg-8">
+                    <div class="super-card p-8 bg-white min-h-[600px]">
+                        <div class="d-flex justify-content-between align-items-end mb-8 border-b-4 border-dark pb-4">
+                            <h3 class="font-black text-3xl italic">TIMELINE</h3>
+                            <div class="text-right">
+                                <p class="stat-label">Total Volume</p>
+                                <p id="grand-total" class="text-3xl font-black text-indigo-600">₹0</p>
+                            </div>
+                        </div>
+                        <div id="activity-feed" class="space-y-4">
+                            </div>
                     </div>
-
-                    <div class="silk-card p-6 border border-slate-100">
-                        <p class="text-[9px] font-black text-slate-400 uppercase mb-4 tracking-widest">Subscription Approvals</p>
-                        <div id="adm-sub-list" class="space-y-3"></div>
-                    </div>
-
-                    <div class="silk-card p-6 border border-slate-100">
-                        <p class="text-[9px] font-black text-slate-400 uppercase mb-4 tracking-widest">Global Cluster Index</p>
-                        <div id="adm-groups-list" class="max-h-60 overflow-y-auto space-y-2 pr-2"></div>
-                    </div>
-
                 </div>
             </div>
-
-            <button onclick="toggleCollapse('member-list-collapse')" class="collapse-btn"><span>Circle Members</span><i class="fa-solid fa-users opacity-30"></i></button>
-            <div id="member-list-collapse" class="collapse-content bg-white mt-2 rounded-silk border border-gray-100"><div id="member-settings-list" class="space-y-3"></div></div>
-            
-            <div class="p-8 silk-card bg-gray-50 text-center">
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Workspace ID</p>
-                <p onclick="copyGroupId()" class="text-xl font-black text-indigo-600 cursor-pointer tracking-tighter" id="settings-id-display">...</p>
-            </div>
         </div>
 
-        <div id="profile-page" class="view-pane max-w-md mx-auto text-center silk-card p-10">
-            <img id="profile-img-large" src="" class="w-28 h-28 rounded-3xl mx-auto mb-6 shadow-2xl">
-            <h2 id="profile-name-large" class="text-3xl font-black text-gray-900 tracking-tight">...</h2>
-            <p id="profile-email-large" class="text-gray-400 font-bold mb-6">...</p>
-            <div id="profile-status-box" onclick="showView('plans-page')" class="bg-gray-100 text-gray-500 p-5 rounded-2xl cursor-pointer shadow-xl transition-all">
-                <p id="profile-plan-status" class="text-[9px] font-black uppercase">Current Plan: Free Starter</p>
-                <p id="profile-plan-action" class="font-black">View Premium Plans</p>
+        <div id="settings-page" class="view-pane hidden max-w-3xl mx-auto">
+            <div class="super-card p-10">
+                <h2 class="font-black text-4xl mb-8">System Control</h2>
+                
+                <div class="accordion border-2 border-dark rounded-3xl overflow-hidden" id="settingsAccordion">
+                    <div class="accordion-item border-b-2 border-dark">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button bg-white font-black text-dark py-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                <i class="fa-solid fa-users mr-3"></i> CIRCLE MEMBERS
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show">
+                            <div class="accordion-body bg-light">
+                                <div id="member-settings-list" class="space-y-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                <div class="mt-8 p-6 bg-indigo-50 rounded-3xl border-2 border-indigo-200">
+                    <p class="stat-label mb-2">Workspace Identification</p>
+                    <code id="settings-id-display" class="text-xl font-black text-indigo-600">...</code>
+                </div>
             </div>
-            <button onclick="signOutNow()" class="w-full bg-red-50 text-red-500 font-black py-4 rounded-button mt-6">Logout</button>
         </div>
     </div>
 
-    <div id="subscription-nag-modal" class="modal-overlay" style="z-index: 250;">
-        <div class="modal-content-silk text-center sub-popup-trigger" onclick="redirectToPlans()">
-            <div class="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 text-3xl pulse"><i class="fa-solid fa-crown"></i></div>
-            <h3 class="text-2xl font-black mb-2">Upgrade Required</h3>
-            <p class="text-gray-500 font-bold mb-8 px-4 text-sm">Unlock full features by selecting a plan.</p>
-            <button class="w-full bg-indigo-600 text-white py-4 rounded-button font-black uppercase shadow-lg">View Plans</button>
+    <div id="creation-modal-overlay" class="modal fade show" style="display:none; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content super-card border-4">
+                <div class="p-10 text-center">
+                    <h2 class="font-black text-3xl mb-6 uppercase">New Workspace</h2>
+                    <input type="text" id="pop-group-name" class="luxury-input w-full mb-6 text-center text-xl" placeholder="Enter Group Name">
+                    <div class="d-flex gap-3">
+                        <button onclick="hideModals()" class="premium-btn w-full">Cancel</button>
+                        <button onclick="finalizeCreation()" class="premium-btn btn-indigo w-full text-white">Create</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <div id="toast-container" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-[300]"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
     <script>
+        // Configuration & App State
         const firebaseConfig = { apiKey: "AIzaSyCpLtdJ4lACW9pNn8fAUmooooqzh_5TIO4", authDomain: "trip-ddc48.firebaseapp.com", databaseURL: "https://trip-ddc48-default-rtdb.firebaseio.com", projectId: "trip-ddc48", storageBucket: "trip-ddc48.firebasestorage.app" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database(), auth = firebase.auth(), provider = new firebase.auth.GoogleAuthProvider();
         
-        let currentGroupId = null, groupMembers = [], isAdmin = false, currentGroupExpenses = {}, allGroupsLocal = {};
-        const MASTER_EMAIL = "akhilgoel985@gmail.com"; 
+        let currentGroupId = null, groupMembers = [], isAdmin = false;
 
+        // UI Handlers
         function showToast(msg) {
             const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'silk-toast'; toast.innerText = msg;
-            container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
+            const t = document.createElement('div');
+            t.className = 'super-card px-8 py-3 bg-dark text-white text-xs font-black uppercase mb-2 animate__animated animate__fadeInUp';
+            t.innerText = msg;
+            container.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
         }
 
-        // --- SUBSCRIPTION STATUS (Real-time) ---
-        function checkSubscriptionStatus(uid) {
-            db.ref(`active_subscriptions/${uid}`).on('value', snapshot => {
-                const statusTag = document.getElementById('profile-plan-status');
-                const actionTag = document.getElementById('profile-plan-action');
-                const statusBox = document.getElementById('profile-status-box');
-                if (snapshot.exists()) {
-                    const subData = snapshot.val();
-                    document.getElementById('subscription-nag-modal').style.display = 'none';
-                    statusBox.className = "bg-indigo-600 text-white p-5 rounded-2xl cursor-pointer shadow-xl";
-                    statusTag.innerText = `Premium Verified Account`;
-                    actionTag.innerText = subData.plan || 'Standard Pro';
-                } else {
-                    document.getElementById('subscription-nag-modal').style.display = 'flex';
-                    statusBox.className = "bg-gray-100 text-gray-500 p-5 rounded-2xl cursor-pointer shadow-xl";
-                    statusTag.innerText = `Current Plan: Free Starter`;
-                    actionTag.innerText = `View Premium Plans`;
-                }
-            });
-        }
-
-        auth.onAuthStateChanged(async (u) => {
-            if (u) {
-                const email = u.email.toLowerCase();
-                document.getElementById('user-photo').src = u.photoURL;
-                document.getElementById('profile-img-large').src = u.photoURL;
-                document.getElementById('profile-name-large').innerText = u.displayName;
-                document.getElementById('profile-email-large').innerText = u.email;
+        // Auth Listener
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('user-photo').src = user.photoURL;
                 document.getElementById('login-container').classList.add('hidden');
                 document.getElementById('group-discovery').classList.remove('hidden');
-                
-                checkSubscriptionStatus(u.uid);
-
-                // Check for Admin Rights
-                if(email === MASTER_EMAIL) {
-                    document.getElementById('master-admin-section').classList.remove('hidden');
-                    initMasterSovereign();
-                }
-
-                discoverGroups(email);
+                discoverGroups(user.email.toLowerCase());
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('app-content').classList.add('hidden');
             }
         });
 
-        /* --- MASTER SOVEREIGN FUNCTIONS (ADMIN) --- */
-        function initMasterSovereign() {
-            // Stats & Maint
-            db.ref('settings/maintenanceMode').on('value', snap => {
-                const isM = snap.val() || false;
-                const btn = document.getElementById('adm-maint-btn');
-                btn.className = isM ? "admin-stat-pill bg-red-500 animate-pulse" : "admin-stat-pill bg-indigo-600";
-                btn.innerHTML = `<i class="fa-solid fa-power-off text-lg mb-1"></i><p class="text-[8px] font-black uppercase">${isM ? 'System Locked' : 'System Live'}</p>`;
-            });
-
-            // Subscription List
-            db.ref('subscription_requests').on('value', snap => {
-                const list = document.getElementById('adm-sub-list');
-                list.innerHTML = '';
-                if(!snap.exists()) { list.innerHTML = '<p class="text-center py-4 text-[10px] opacity-40">No Pending Requests</p>'; return; }
-                snap.forEach(req => {
-                    const r = req.val();
-                    list.innerHTML += `<div class="admin-request-card">
-                        <p class="font-black text-xs text-slate-800">${r.userName}</p>
-                        <p class="text-[10px] text-indigo-600 font-bold uppercase mb-3">${r.tier}</p>
-                        <div class="flex gap-2">
-                            <button onclick="approveSub('${req.key}', '${r.uid}', '${r.tier}', '${r.userEmail}', '${r.userName}')" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-black text-[9px] uppercase">Approve</button>
-                            <button onclick="db.ref('subscription_requests/${req.key}').remove()" class="flex-1 bg-red-50 text-red-500 py-2 rounded-lg font-black text-[9px] uppercase">Reject</button>
-                        </div>
-                    </div>`;
-                });
-            });
-
-            // Global Groups
-            db.ref('groups').on('value', snap => {
-                allGroupsLocal = snap.val() || {};
-                const list = document.getElementById('adm-groups-list');
-                document.getElementById('adm-total-groups').innerText = Object.keys(allGroupsLocal).length;
-                list.innerHTML = Object.entries(allGroupsLocal).map(([id, g]) => `<div class="p-3 bg-white border border-slate-100 rounded-xl flex justify-between items-center"><p class="font-black text-[10px] text-slate-700">${g.name}</p><span class="text-[8px] font-bold opacity-40 uppercase">${id}</span></div>`).join('');
-            });
-        }
-
-        async function approveSub(key, uid, tier, email, name) {
-            const updates = {};
-            updates[`active_subscriptions/${uid}`] = { plan: tier, activatedAt: Date.now() };
-            // Auto-Announcement in the user's groups
-            Object.entries(allGroupsLocal).forEach(([gid, g]) => {
-                if(g.admin === email.toLowerCase()) {
-                    const lk = db.ref(`groups/${gid}/expenses`).push().key;
-                    updates[`groups/${gid}/expenses/${lk}`] = { title: `✨ PRO ACTIVATED: ${tier}`, amount: 0, by: "SYSTEM", type: 'settlement', date: new Date().toLocaleDateString() };
-                }
-            });
-            updates[`subscription_requests/${key}`] = null;
-            await db.ref().update(updates);
-            showToast("Account Upgraded!");
-        }
-
-        async function toggleGlobalMaintenance() {
-            const snap = await db.ref('settings/maintenanceMode').get();
-            if(confirm("Override system mode?")) db.ref('settings/maintenanceMode').set(!snap.val());
-        }
-
-        async function sendGlobalPulse() {
-            const msg = document.getElementById('adm-pulse-msg').value.trim();
-            if(!msg) return;
-            const updates = {};
-            Object.keys(allGroupsLocal).forEach(gid => {
-                const key = db.ref(`groups/${gid}/expenses`).push().key;
-                updates[`groups/${gid}/expenses/${key}`] = { title: `📢 PULSE: ${msg}`, amount: 0, by: "ADMIN", date: new Date().toLocaleDateString() };
-            });
-            await db.ref().update(updates);
-            document.getElementById('adm-pulse-msg').value = '';
-            showToast("Pulse Broadcasted Globally");
-        }
-
-        /* --- STANDARD USER FUNCTIONS (UNCHANGED) --- */
-        window.submitPaymentRequest = async () => {
-            const txId = document.getElementById('tx-id-input').value.trim();
-            if(!txId) { showToast("Enter Transaction ID"); return; }
-            const u = auth.currentUser;
-            await db.ref('subscription_requests').push({
-                uid: u.uid,
-                userEmail: u.email.toLowerCase(),
-                userName: u.displayName,
-                tier: selectedTier,
-                transactionId: txId,
-                date: new Date().toLocaleString()
-            });
-            showToast("Request Sent!");
-            document.getElementById('manual-payment-gateway').classList.add('hidden');
-        };
-
         function discoverGroups(email) {
-            db.ref('groups').on('value', (snap) => {
-                const list = document.getElementById('my-groups-list'); list.innerHTML = '';
-                if (snap.exists()) {
-                    const groups = snap.val();
-                    for (let id in groups) {
-                        const members = groups[id].members || [];
-                        if (members.some(m => m.email === email)) {
-                            list.innerHTML += `<div class="silk-card p-6 bg-white flex justify-between items-center mb-2"><div class="cursor-pointer flex-1" onclick="startApp('${id}', '${groups[id].name}')"><h4 class="font-bold text-gray-800">${groups[id].name}</h4><p class="text-[9px] font-black text-indigo-600 uppercase">${id}</p></div></div>`;
+            db.ref('groups').on('value', snap => {
+                const list = document.getElementById('my-groups-list');
+                list.innerHTML = '';
+                if(snap.exists()){
+                    snap.forEach(child => {
+                        const g = child.val();
+                        if(g.members.some(m => m.email === email)){
+                            list.innerHTML += `
+                            <div class="p-4 border-2 border-dark rounded-2xl flex justify-between items-center cursor-pointer hover:bg-indigo-50 transition-all mb-2" onclick="startApp('${child.key}', '${g.name}')">
+                                <span class="font-black text-sm">${g.name}</span>
+                                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                            </div>`;
                         }
-                    }
+                    });
                 }
             });
         }
@@ -427,53 +363,106 @@
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app-content').classList.remove('hidden');
             document.getElementById('display-group-name').innerText = name;
-            document.getElementById('settings-id-display').innerText = id;
-            db.ref(`groups/${id}`).on('value', (snapshot) => {
-                const data = snapshot.val(); if(!data) return;
+            
+            db.ref(`groups/${id}`).on('value', snap => {
+                const data = snap.val();
                 groupMembers = data.members || [];
-                currentGroupExpenses = data.expenses || {};
-                isAdmin = (data.admin === auth.currentUser.email.toLowerCase());
-                renderUI(currentGroupExpenses);
-                renderSettingsMembers(data.admin);
+                renderDashboard(data.expenses || {});
             });
         };
 
-        function renderUI(expenses) {
-            document.getElementById('split-selectors').innerHTML = groupMembers.map((m, i) => `<button onclick="this.classList.toggle('active-chip')" data-name="${m.name}" class="member-chip active-chip theme-${i % 4}"><i class="fa-solid fa-check"></i> ${m.name}</button>`).join('');
-            let total = 0, balances = {}; groupMembers.forEach(m => balances[m.name] = 0);
-            const feed = document.getElementById('activity-feed'); feed.innerHTML = '';
+        function renderDashboard(expenses) {
+            const feed = document.getElementById('activity-feed');
+            const stats = document.getElementById('stats-grid');
+            const selectors = document.getElementById('split-selectors');
+            
+            feed.innerHTML = '';
+            selectors.innerHTML = groupMembers.map(m => `
+                <button class="member-pill active" onclick="this.classList.toggle('active')" data-name="${m.name}">${m.name}</button>
+            `).join('');
+
+            let total = 0;
+            let balances = {};
+            groupMembers.forEach(m => balances[m.name] = 0);
+
             Object.entries(expenses).reverse().forEach(([key, exp]) => {
-                if (exp.type === 'settlement') { 
-                    balances[exp.payer] -= exp.amount; 
-                    const isPlan = exp.title.includes("PLAN ACTIVATED") || exp.title.includes("PRO ACTIVATED");
-                    feed.innerHTML += `
-                    <div class="p-6 ${isPlan ? 'bg-indigo-600 text-white' : 'bg-green-50 text-green-700'} rounded-silk flex flex-col mb-3 shadow-lg">
-                        <div class="flex justify-between items-center">
-                            <div><h4 class="font-black uppercase tracking-tighter text-sm">${exp.title}</h4><p class="text-[9px] font-bold opacity-70">${exp.date}</p></div>
-                            <div class="text-xl"><i class="fa-solid ${isPlan ? 'fa-crown' : 'fa-check-double'}"></i></div>
+                total += exp.amount;
+                const share = Math.round(exp.amount / exp.involved.length);
+                exp.involved.forEach(name => balances[name] += share);
+
+                feed.innerHTML += `
+                <div class="p-6 border-2 border-dark rounded-3xl bg-white flex justify-between items-center animate__animated animate__fadeInUp">
+                    <div>
+                        <h4 class="font-black text-lg">${exp.title}</h4>
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            ${exp.involved.map(n => `<span class="badge bg-light text-dark border border-dark text-[8px]">${n}</span>`).join('')}
                         </div>
-                    </div>`;
-                } else { 
-                    total += exp.amount; 
-                    const split = Math.round(exp.amount / (exp.involved?.length || 1)); 
-                    exp.involved?.forEach(n => { if (balances.hasOwnProperty(n)) balances[n] += split; }); 
-                    feed.innerHTML += `<div class="p-6 bg-gray-50 rounded-silk flex flex-col mb-3"><div class="flex justify-between items-center mb-2"><h4 class="font-extrabold text-gray-800">${exp.title}</h4><p class="text-xl font-black">₹${exp.amount}</p></div><p class="text-[10px] font-bold text-gray-400">Paid by ${exp.by}</p></div>`;
-                }
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-xl">₹${exp.amount}</p>
+                        <p class="text-[9px] font-bold text-gray-400 uppercase">${exp.date || 'Today'}</p>
+                    </div>
+                </div>`;
             });
+
             document.getElementById('grand-total').innerText = "₹" + total.toLocaleString();
-            document.getElementById('stats-grid').innerHTML = groupMembers.map((m, i) => `<div class="silk-card p-6 theme-${i % 4}"><p class="text-[10px] font-black uppercase">${m.name}</p><p class="text-2xl font-black">₹${balances[m.name] || 0}</p></div>`).join('');
+
+            stats.innerHTML = groupMembers.map(m => `
+                <div class="stat-box shadow-sm border-dark border-2">
+                    <span class="stat-label">${m.name}'s Share</span>
+                    <span class="stat-value text-indigo-600">₹${balances[m.name]}</span>
+                </div>
+            `).join('');
         }
 
-        window.logExpense = () => { const t = document.getElementById('bill-title').value, a = parseFloat(document.getElementById('bill-amount').value); const sel = Array.from(document.querySelectorAll('#split-selectors .active-chip')).map(b => b.dataset.name); if(t && a && sel.length) { db.ref(`groups/${currentGroupId}/expenses`).push({ title: t, amount: a, involved: sel, by: auth.currentUser.displayName.split(' ')[0], date: new Date().toLocaleDateString() }); document.getElementById('bill-title').value = ''; document.getElementById('bill-amount').value = ''; showToast("Published!"); } };
-        let selectedTier = '';
-        window.openPayment = (tier, price) => { selectedTier = tier; document.getElementById('paying-tier-name').innerText = tier; document.getElementById('qr-price-display').innerText = price; const upiLink = `upi://pay?pa=akhilgoel985-2@okaxis&pn=AkhilGoel&am=${price}&cu=INR&tn=TripSplit_${tier}`; document.getElementById('payment-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiLink)}`; document.getElementById('manual-payment-gateway').classList.remove('hidden'); };
-        window.showView = (v) => { document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active-view')); document.getElementById(v).classList.add('active-view'); window.scrollTo(0,0); };
-        window.hideModals = () => { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); };
+        window.logExpense = () => {
+            const title = document.getElementById('bill-title').value;
+            const amount = parseFloat(document.getElementById('bill-amount').value);
+            const involved = Array.from(document.querySelectorAll('.member-pill.active')).map(b => b.dataset.name);
+
+            if(title && amount && involved.length > 0) {
+                db.ref(`groups/${currentGroupId}/expenses`).push({
+                    title, amount, involved, 
+                    date: new Date().toLocaleDateString(),
+                    by: auth.currentUser.displayName
+                });
+                document.getElementById('bill-title').value = '';
+                document.getElementById('bill-amount').value = '';
+                showToast("PUBLISHED TO CLOUD");
+            } else {
+                showToast("FILL ALL FIELDS");
+            }
+        };
+
+        window.showView = (v) => {
+            document.querySelectorAll('.view-pane').forEach(p => p.classList.add('hidden'));
+            document.getElementById(v).classList.remove('hidden');
+        };
+
+        window.copyGroupId = () => {
+            navigator.clipboard.writeText(currentGroupId);
+            showToast("ID COPIED TO CLIPBOARD");
+        };
+
+        window.showCreationPopup = () => document.getElementById('creation-modal-overlay').style.display = 'block';
+        window.hideModals = () => document.getElementById('creation-modal-overlay').style.display = 'none';
+
+        window.finalizeCreation = async () => {
+            const gn = document.getElementById('pop-group-name').value.trim();
+            if(!gn) return;
+            const id = "SPLIT-" + Math.random().toString(36).substr(2, 5).toUpperCase();
+            await db.ref(`groups/${id}`).set({
+                name: gn,
+                admin: auth.currentUser.email.toLowerCase(),
+                members: [{ name: auth.currentUser.displayName.split(' ')[0], email: auth.currentUser.email.toLowerCase() }]
+            });
+            hideModals();
+            showToast("WORKSPACE READY");
+        };
+
         window.signOutNow = () => auth.signOut().then(() => location.reload());
         document.getElementById('google-login-btn').onclick = () => auth.signInWithPopup(provider);
-        window.toggleCollapse = (id) => { const el = document.getElementById(id); el.style.display = (el.style.display === 'none') ? 'block' : 'none'; };
-        function renderSettingsMembers(admin) { document.getElementById('member-settings-list').innerHTML = groupMembers.map((m, i) => `<div class="p-5 silk-card theme-${i % 4} flex justify-between items-center"><div><p class="font-black text-gray-800">${m.name} ${m.email === MASTER_EMAIL ? '<span class="badge-admin">MASTER</span>' : ''}</p><p class="text-xs font-bold opacity-60 uppercase">${m.email}</p></div></div>`).join(''); }
-        window.redirectToPlans = () => { hideModals(); showView('plans-page'); };
+
     </script>
 </body>
 </html>
