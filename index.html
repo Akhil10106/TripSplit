@@ -8,17 +8,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
     <style>
         :root {
             --p-indigo: #4f46e5;
             --p-dark: #0f172a;
-            --p-border: #e2e8f0;
+            --p-border: #0f172a; 
             --p-surface: #ffffff;
             --p-accent: #f8fafc;
-            --glass: rgba(255, 255, 255, 0.8);
         }
 
         body {
@@ -33,12 +32,13 @@
         /* --- THE "NEXT LEVEL" DESIGN SYSTEM --- */
         
         .super-card {
-            background: var(--p-surface);
-            border: 2px solid var(--p-dark);
+            background: var(--p-surface) !important;
+            border: 2px solid var(--p-dark) !important;
             box-shadow: 8px 8px 0px 0px var(--p-dark);
             border-radius: 24px;
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             overflow: hidden;
+            display: block;
         }
 
         .super-card:hover {
@@ -55,18 +55,26 @@
             padding: 12px 24px !important;
             transition: all 0.2s ease;
             position: relative;
-            background: white;
-            color: var(--p-dark);
+            background: white !important;
+            color: var(--p-dark) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none !important;
+        }
+
+        .premium-btn i {
+            color: inherit !important;
         }
 
         .premium-btn:hover {
-            background: var(--p-dark);
+            background: var(--p-dark) !important;
             color: white !important;
             transform: translateY(-2px);
         }
 
         .btn-indigo {
-            background: var(--p-indigo);
+            background: var(--p-indigo) !important;
             color: white !important;
             border-color: var(--p-dark) !important;
         }
@@ -79,6 +87,7 @@
             border-bottom: 4px solid var(--p-indigo);
             display: inline-block;
             margin-bottom: 1rem;
+            color: var(--p-dark);
         }
 
         /* --- BENTO GRID LAYOUT --- */
@@ -90,47 +99,52 @@
 
         .stat-box {
             padding: 24px;
-            border: 2px solid var(--p-border);
+            border: 2px solid var(--p-dark) !important;
             border-radius: 20px;
             background: white;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            box-shadow: 4px 4px 0px 0px var(--p-dark);
         }
 
         .stat-label {
             font-size: 10px;
             font-weight: 800;
             text-transform: uppercase;
-            color: #64748b;
+            color: #475569 !important;
             letter-spacing: 1.5px;
+            display: block;
         }
 
         .stat-value {
             font-size: 1.8rem;
             font-weight: 900;
             margin-top: 8px;
+            color: var(--p-dark);
+            display: block;
         }
 
         /* --- INPUTS --- */
         .luxury-input {
-            border: 2px solid var(--p-border) !important;
+            border: 2px solid var(--p-dark) !important;
             border-radius: 16px !important;
             padding: 16px !important;
             font-weight: 600;
             transition: all 0.3s ease;
-            background: var(--p-accent);
+            background: #ffffff !important;
+            color: var(--p-dark) !important;
         }
 
         .luxury-input:focus {
             border-color: var(--p-indigo) !important;
-            background: white;
             box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            outline: none;
         }
 
         /* --- MEMBER CHIPS --- */
         .member-pill {
-            border: 2px solid var(--p-dark);
+            border: 2px solid var(--p-dark) !important;
             padding: 8px 16px;
             border-radius: 12px;
             font-weight: 700;
@@ -138,20 +152,40 @@
             cursor: pointer;
             transition: all 0.2s;
             background: white;
+            color: var(--p-dark);
         }
 
         .member-pill.active {
-            background: var(--p-indigo);
-            color: white;
+            background: var(--p-indigo) !important;
+            color: white !important;
             transform: scale(1.05);
         }
 
-        /* --- ANIMATIONS --- */
-        .fade-up {
-            animation: fadeInUp 0.5s ease-out forwards;
+        /* --- ACCORDION FIXES --- */
+        .accordion-button {
+            color: var(--p-dark) !important;
+            font-weight: 800 !important;
+            background-color: #ffffff !important;
+            border: none !important;
+        }
+        
+        .accordion-button:not(.collapsed) {
+            background-color: #f8fafc !important;
+            color: var(--p-indigo) !important;
+            box-shadow: none !important;
         }
 
-        /* --- CUSTOM SCROLLBAR --- */
+        .accordion-item {
+            border: 2px solid var(--p-dark) !important;
+            border-radius: 16px !important;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        /* --- UTILITIES --- */
+        #activity-feed h4 { color: var(--p-dark); font-weight: 800; }
+        .view-pane.hidden { display: none !important; }
+        
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { 
@@ -166,10 +200,10 @@
     <div id="auth-screen" class="fixed inset-0 z-[100] bg-white flex items-center justify-center p-4">
         <div class="super-card p-10 max-w-md w-full text-center animate__animated animate__zoomIn">
             <h1 class="brand-heading">TRIPSPLIT<span class="text-indigo-600">PRO</span></h1>
-            <p class="text-gray-400 font-bold mb-8 text-xs uppercase tracking-[0.3em]">Next-Gen Financial Logistics</p>
+            <p class="text-gray-500 font-bold mb-8 text-xs uppercase tracking-[0.3em]">Next-Gen Financial Logistics</p>
             
             <div id="login-container">
-                <button id="google-login-btn" class="premium-btn w-full flex items-center justify-center gap-3 py-4 shadow-sm">
+                <button id="google-login-btn" class="premium-btn w-full flex items-center justify-center gap-3 py-4">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
                     Login with Google
                 </button>
@@ -177,8 +211,8 @@
 
             <div id="group-discovery" class="hidden text-left mt-6">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-black text-lg">My Circles</h3>
-                    <span class="badge bg-dark rounded-pill">Cloud Active</span>
+                    <h3 class="font-black text-lg text-dark">My Circles</h3>
+                    <span class="badge bg-dark text-white rounded-pill">Cloud Active</span>
                 </div>
                 <div id="my-groups-list" class="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2"></div>
                 <div class="grid grid-cols-2 gap-3">
@@ -193,14 +227,14 @@
         
         <header class="row mb-5 gy-4">
             <div class="col-md-6 d-flex align-items-center gap-4">
-                <div class="super-card p-1 border-2" style="border-radius: 18px; box-shadow: 4px 4px 0 var(--p-dark);">
-                    <img id="user-photo" src="" class="w-16 h-16 rounded-2xl">
+                <div class="super-card p-1" style="border-radius: 18px; box-shadow: 4px 4px 0 var(--p-dark); width: 70px; height: 70px;">
+                    <img id="user-photo" src="" class="w-full h-full rounded-2xl object-cover">
                 </div>
                 <div>
-                    <h2 class="text-3xl font-black leading-none mb-1" id="display-group-name">...</h2>
+                    <h2 class="text-3xl font-black text-dark leading-none mb-1" id="display-group-name">...</h2>
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-indigo-100 text-indigo-600 border border-indigo-200 uppercase px-3">Workspace Active</span>
-                        <button onclick="copyGroupId()" class="text-[10px] font-black hover:underline">COPY ID <i class="fa-solid fa-copy ml-1"></i></button>
+                        <span class="badge bg-indigo-600 text-white border border-dark uppercase px-3">Active Workspace</span>
+                        <button onclick="copyGroupId()" class="text-[10px] font-black text-dark hover:underline">COPY ID <i class="fa-solid fa-copy ml-1"></i></button>
                     </div>
                 </div>
             </div>
@@ -212,14 +246,13 @@
             </div>
         </header>
 
-        <div id="stats-grid" class="bento-grid mb-10">
-            </div>
+        <div id="stats-grid" class="bento-grid mb-10"></div>
 
         <div id="main-dashboard" class="view-pane active-view">
             <div class="row g-5">
                 <div class="col-lg-4">
                     <div class="super-card p-8">
-                        <h3 class="font-black text-xl mb-6 border-b-2 border-dark pb-2 inline-block">PUBLISH BILL</h3>
+                        <h3 class="font-black text-xl mb-6 border-b-2 border-dark pb-2 inline-block text-dark">PUBLISH BILL</h3>
                         <div class="space-y-5">
                             <div>
                                 <label class="stat-label">Description</label>
@@ -228,7 +261,7 @@
                             <div>
                                 <label class="stat-label">Amount (INR)</label>
                                 <div class="relative">
-                                    <span class="absolute left-4 top-4 font-black">₹</span>
+                                    <span class="absolute left-4 top-4 font-black text-dark">₹</span>
                                     <input type="number" id="bill-amount" class="luxury-input w-full pl-10" placeholder="0.00">
                                 </div>
                             </div>
@@ -236,7 +269,7 @@
                                 <label class="stat-label mb-2 block">Split With</label>
                                 <div id="split-selectors" class="flex flex-wrap gap-2"></div>
                             </div>
-                            <button onclick="logExpense()" class="premium-btn btn-indigo w-full py-4 mt-4 shadow-lg">
+                            <button onclick="logExpense()" class="premium-btn btn-indigo w-full py-4 mt-4">
                                 Publish to Cloud <i class="fa-solid fa-paper-plane ml-2"></i>
                             </button>
                         </div>
@@ -246,14 +279,13 @@
                 <div class="col-lg-8">
                     <div class="super-card p-8 bg-white min-h-[600px]">
                         <div class="d-flex justify-content-between align-items-end mb-8 border-b-4 border-dark pb-4">
-                            <h3 class="font-black text-3xl italic">TIMELINE</h3>
+                            <h3 class="font-black text-3xl italic text-dark">TIMELINE</h3>
                             <div class="text-right">
                                 <p class="stat-label">Total Volume</p>
                                 <p id="grand-total" class="text-3xl font-black text-indigo-600">₹0</p>
                             </div>
                         </div>
-                        <div id="activity-feed" class="space-y-4">
-                            </div>
+                        <div id="activity-feed" class="space-y-4"></div>
                     </div>
                 </div>
             </div>
@@ -261,24 +293,24 @@
 
         <div id="settings-page" class="view-pane hidden max-w-3xl mx-auto">
             <div class="super-card p-10">
-                <h2 class="font-black text-4xl mb-8">System Control</h2>
+                <h2 class="font-black text-4xl mb-8 text-dark">System Control</h2>
                 
-                <div class="accordion border-2 border-dark rounded-3xl overflow-hidden" id="settingsAccordion">
-                    <div class="accordion-item border-b-2 border-dark">
+                <div class="accordion border-0" id="settingsAccordion">
+                    <div class="accordion-item">
                         <h2 class="accordion-header">
-                            <button class="accordion-button bg-white font-black text-dark py-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
-                                <i class="fa-solid fa-users mr-3"></i> CIRCLE MEMBERS
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                <i class="fa-solid fa-users me-3 text-indigo-600"></i> CIRCLE MEMBERS
                             </button>
                         </h2>
-                        <div id="collapseOne" class="accordion-collapse collapse show">
+                        <div id="collapseOne" class="accordion-collapse collapse">
                             <div class="accordion-body bg-light">
                                 <div id="member-settings-list" class="space-y-2"></div>
                             </div>
                         </div>
                     </div>
-                    </div>
+                </div>
 
-                <div class="mt-8 p-6 bg-indigo-50 rounded-3xl border-2 border-indigo-200">
+                <div class="mt-8 p-6 bg-indigo-50 rounded-3xl border-2 border-dark">
                     <p class="stat-label mb-2">Workspace Identification</p>
                     <code id="settings-id-display" class="text-xl font-black text-indigo-600">...</code>
                 </div>
@@ -286,15 +318,15 @@
         </div>
     </div>
 
-    <div id="creation-modal-overlay" class="modal fade show" style="display:none; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);">
+    <div id="creation-modal-overlay" class="modal fade show" style="display:none; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content super-card border-4">
+            <div class="modal-content super-card">
                 <div class="p-10 text-center">
-                    <h2 class="font-black text-3xl mb-6 uppercase">New Workspace</h2>
-                    <input type="text" id="pop-group-name" class="luxury-input w-full mb-6 text-center text-xl" placeholder="Enter Group Name">
+                    <h2 class="font-black text-3xl mb-6 uppercase text-dark">New Workspace</h2>
+                    <input type="text" id="pop-group-name" class="luxury-input w-full mb-6 text-center text-xl" placeholder="Group Name">
                     <div class="d-flex gap-3">
                         <button onclick="hideModals()" class="premium-btn w-full">Cancel</button>
-                        <button onclick="finalizeCreation()" class="premium-btn btn-indigo w-full text-white">Create</button>
+                        <button onclick="finalizeCreation()" class="premium-btn btn-indigo w-full">Create</button>
                     </div>
                 </div>
             </div>
@@ -309,24 +341,22 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
     <script>
-        // Configuration & App State
         const firebaseConfig = { apiKey: "AIzaSyCpLtdJ4lACW9pNn8fAUmooooqzh_5TIO4", authDomain: "trip-ddc48.firebaseapp.com", databaseURL: "https://trip-ddc48-default-rtdb.firebaseio.com", projectId: "trip-ddc48", storageBucket: "trip-ddc48.firebasestorage.app" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database(), auth = firebase.auth(), provider = new firebase.auth.GoogleAuthProvider();
         
-        let currentGroupId = null, groupMembers = [], isAdmin = false;
+        let currentGroupId = null, groupMembers = [];
 
-        // UI Handlers
         function showToast(msg) {
             const container = document.getElementById('toast-container');
             const t = document.createElement('div');
             t.className = 'super-card px-8 py-3 bg-dark text-white text-xs font-black uppercase mb-2 animate__animated animate__fadeInUp';
+            t.style.boxShadow = "none";
             t.innerText = msg;
             container.appendChild(t);
             setTimeout(() => t.remove(), 3000);
         }
 
-        // Auth Listener
         auth.onAuthStateChanged(user => {
             if (user) {
                 document.getElementById('user-photo').src = user.photoURL;
@@ -346,11 +376,11 @@
                 if(snap.exists()){
                     snap.forEach(child => {
                         const g = child.val();
-                        if(g.members.some(m => m.email === email)){
+                        if(g.members && g.members.some(m => m.email === email)){
                             list.innerHTML += `
                             <div class="p-4 border-2 border-dark rounded-2xl flex justify-between items-center cursor-pointer hover:bg-indigo-50 transition-all mb-2" onclick="startApp('${child.key}', '${g.name}')">
-                                <span class="font-black text-sm">${g.name}</span>
-                                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                                <span class="font-black text-sm text-dark">${g.name}</span>
+                                <i class="fa-solid fa-chevron-right text-dark" style="font-size: 10px;"></i>
                             </div>`;
                         }
                     });
@@ -363,11 +393,14 @@
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app-content').classList.remove('hidden');
             document.getElementById('display-group-name').innerText = name;
+            document.getElementById('settings-id-display').innerText = id;
             
             db.ref(`groups/${id}`).on('value', snap => {
                 const data = snap.val();
+                if(!data) return;
                 groupMembers = data.members || [];
                 renderDashboard(data.expenses || {});
+                renderSettingsMembers();
             });
         };
 
@@ -381,36 +414,44 @@
                 <button class="member-pill active" onclick="this.classList.toggle('active')" data-name="${m.name}">${m.name}</button>
             `).join('');
 
-            let total = 0;
-            let balances = {};
+            let total = 0, balances = {};
             groupMembers.forEach(m => balances[m.name] = 0);
 
             Object.entries(expenses).reverse().forEach(([key, exp]) => {
                 total += exp.amount;
                 const share = Math.round(exp.amount / exp.involved.length);
-                exp.involved.forEach(name => balances[name] += share);
+                exp.involved.forEach(name => { if(balances.hasOwnProperty(name)) balances[name] += share; });
 
                 feed.innerHTML += `
-                <div class="p-6 border-2 border-dark rounded-3xl bg-white flex justify-between items-center animate__animated animate__fadeInUp">
+                <div class="p-6 border-2 border-dark rounded-3xl bg-white flex justify-between items-center mb-3 animate__animated animate__fadeInUp">
                     <div>
-                        <h4 class="font-black text-lg">${exp.title}</h4>
+                        <h4 class="font-black text-dark text-lg">${exp.title}</h4>
                         <div class="flex flex-wrap gap-1 mt-2">
-                            ${exp.involved.map(n => `<span class="badge bg-light text-dark border border-dark text-[8px]">${n}</span>`).join('')}
+                            ${exp.involved.map(n => `<span class="badge bg-white text-dark border border-dark text-[8px]">${n}</span>`).join('')}
                         </div>
                     </div>
                     <div class="text-right">
-                        <p class="font-black text-xl">₹${exp.amount}</p>
-                        <p class="text-[9px] font-bold text-gray-400 uppercase">${exp.date || 'Today'}</p>
+                        <p class="font-black text-xl text-dark">₹${exp.amount}</p>
+                        <p class="text-[9px] font-bold text-gray-500 uppercase">${exp.date || 'Recent'}</p>
                     </div>
                 </div>`;
             });
 
             document.getElementById('grand-total').innerText = "₹" + total.toLocaleString();
-
             stats.innerHTML = groupMembers.map(m => `
-                <div class="stat-box shadow-sm border-dark border-2">
+                <div class="stat-box">
                     <span class="stat-label">${m.name}'s Share</span>
                     <span class="stat-value text-indigo-600">₹${balances[m.name]}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderSettingsMembers() {
+            const list = document.getElementById('member-settings-list');
+            list.innerHTML = groupMembers.map(m => `
+                <div class="p-3 border-2 border-dark rounded-2xl bg-white d-flex justify-content-between align-items-center mb-2">
+                    <span class="font-bold text-dark">${m.name}</span>
+                    <span class="text-[10px] text-gray-500 font-bold uppercase">${m.email}</span>
                 </div>
             `).join('');
         }
@@ -430,7 +471,7 @@
                 document.getElementById('bill-amount').value = '';
                 showToast("PUBLISHED TO CLOUD");
             } else {
-                showToast("FILL ALL FIELDS");
+                showToast("MISSING INFO");
             }
         };
 
@@ -441,7 +482,7 @@
 
         window.copyGroupId = () => {
             navigator.clipboard.writeText(currentGroupId);
-            showToast("ID COPIED TO CLIPBOARD");
+            showToast("ID COPIED");
         };
 
         window.showCreationPopup = () => document.getElementById('creation-modal-overlay').style.display = 'block';
@@ -462,7 +503,6 @@
 
         window.signOutNow = () => auth.signOut().then(() => location.reload());
         document.getElementById('google-login-btn').onclick = () => auth.signInWithPopup(provider);
-
     </script>
 </body>
 </html>
