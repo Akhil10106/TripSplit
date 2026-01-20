@@ -47,6 +47,7 @@
         .modal-content-silk { background: white; width: 100%; max-width: 28rem; border-radius: 3rem; padding: 2.5rem; position: relative; animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .notif-dot { position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; background: #ef4444; border: 2px solid white; border-radius: 50%; display: none; }
         .pulse { animation: pulse-red 2s infinite; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         
         @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
@@ -72,6 +73,11 @@
         
         .plan-card-pro { border: 2px solid #4f46e5 !important; }
         .sub-popup-trigger { cursor: pointer; transition: transform 0.2s; }
+        
+        /* ADMIN UI ADDITIONS */
+        .admin-stat-card { background: #1e293b; color: white; padding: 1.5rem; border-radius: 1.5rem; flex: 1; min-width: 120px; }
+        .admin-badge-red { background: #fee2e2; color: #ef4444; font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 900; }
+        .admin-badge-green { background: #dcfce7; color: #16a34a; font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 900; }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -182,15 +188,56 @@
         </div>
 
         <div id="settings-page" class="view-pane max-w-2xl mx-auto space-y-4">
+            
+            <div id="sovereign-command-wrapper" class="hidden">
+                <button onclick="toggleCollapse('admin-control-collapse')" class="collapse-btn bg-slate-950 text-white border-none shadow-2xl">
+                    <span class="flex items-center gap-3">Admin Control Center <i class="fa-solid fa-shield-halved text-indigo-500"></i></span>
+                    <div class="flex items-center gap-2">
+                        <span id="admin-status-pill" class="admin-badge-green">LIVE</span>
+                        <i class="fa-solid fa-chevron-down opacity-50"></i>
+                    </div>
+                </button>
+                <div id="admin-control-collapse" class="collapse-content bg-gray-50 mt-2 rounded-silk border border-slate-200 space-y-6">
+                    
+                    <div class="flex gap-3">
+                        <div class="admin-stat-card">
+                            <p class="text-[8px] font-black opacity-60 uppercase">Total Clusters</p>
+                            <p id="master-total-groups" class="text-2xl font-black">0</p>
+                        </div>
+                        <button id="master-maint-btn" onclick="toggleMasterMaintenance()" class="admin-stat-card bg-indigo-600 flex flex-col justify-center items-center">
+                            <i class="fa-solid fa-power-off text-lg mb-1"></i>
+                            <p class="text-[8px] font-black uppercase">System Mode</p>
+                        </button>
+                    </div>
+
+                    <div class="silk-card p-6 bg-white border border-slate-100">
+                        <p class="text-[9px] font-black text-slate-400 uppercase mb-3">Pulse Broadcast</p>
+                        <textarea id="master-pulse-msg" class="w-full bg-gray-50 p-4 rounded-xl text-xs font-bold border-none mb-3" placeholder="Message to all timelines..."></textarea>
+                        <button onclick="sendMasterPulse()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-black text-[10px] uppercase">Deploy Pulse</button>
+                    </div>
+
+                    <div class="silk-card p-6 bg-white border border-slate-100">
+                        <p class="text-[9px] font-black text-slate-400 uppercase mb-3">Subscription Approvals</p>
+                        <div id="master-subscription-list" class="space-y-3"></div>
+                    </div>
+
+                    <div class="silk-card p-6 bg-white border border-slate-100">
+                        <p class="text-[9px] font-black text-slate-400 uppercase mb-3">Node Clusters Registry</p>
+                        <div id="master-groups-index" class="space-y-2 max-h-40 overflow-y-auto pr-2"></div>
+                    </div>
+                </div>
+            </div>
+
             <div id="admin-vault-wrapper" class="hidden">
                 <button onclick="toggleCollapse('vault-collapse')" class="collapse-btn bg-indigo-900 text-white border-none shadow-xl">
-                    <span class="flex items-center gap-3">Subscription Vault <i class="fa-solid fa-shield-halved text-indigo-400"></i></span>
+                    <span class="flex items-center gap-3">Circle Manager <i class="fa-solid fa-shield-halved text-indigo-400"></i></span>
                     <i class="fa-solid fa-chevron-down opacity-50"></i>
                 </button>
                 <div id="vault-collapse" class="collapse-content bg-gray-50 mt-2 rounded-silk border border-indigo-200">
                     <div id="admin-subscription-list" class="space-y-3"></div>
                 </div>
             </div>
+
             <button onclick="toggleCollapse('member-list-collapse')" class="collapse-btn"><span>Circle Members</span><i class="fa-solid fa-users opacity-30"></i></button>
             <div id="member-list-collapse" class="collapse-content bg-white mt-2 rounded-silk border border-gray-100"><div id="member-settings-list" class="space-y-3"></div></div>
             <div class="p-8 silk-card bg-gray-50 text-center"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Workspace ID</p><p onclick="copyGroupId()" class="text-xl font-black text-indigo-600 cursor-pointer tracking-tighter" id="settings-id-display">...</p></div>
@@ -226,8 +273,8 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database(), auth = firebase.auth(), provider = new firebase.auth.GoogleAuthProvider();
         
-        let currentGroupId = null, groupMembers = [], isAdmin = false, currentGroupExpenses = {};
-        const OWNER_EMAIL = "akhilgoel@example.com"; 
+        let currentGroupId = null, groupMembers = [], isAdmin = false, currentGroupExpenses = {}, allGroupsLocal = {};
+        const MASTER_EMAIL = "akhilgoel985@gmail.com"; 
 
         function showToast(msg) {
             const container = document.getElementById('toast-container');
@@ -236,7 +283,6 @@
             container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
         }
 
-        // --- FIXED: Visual Confirmation in Profile ---
         function checkSubscriptionStatus(uid) {
             db.ref(`active_subscriptions/${uid}`).on('value', snapshot => {
                 const statusTag = document.getElementById('profile-plan-status');
@@ -246,8 +292,6 @@
                 if (snapshot.exists()) {
                     const subData = snapshot.val();
                     document.getElementById('subscription-nag-modal').style.display = 'none';
-                    
-                    // Update UI Colors and Text
                     statusBox.className = "bg-indigo-600 text-white p-5 rounded-2xl cursor-pointer shadow-xl transition-all";
                     statusTag.className = "text-[9px] font-black uppercase text-indigo-200";
                     statusTag.innerText = `Premium Verified Account`;
@@ -264,6 +308,7 @@
 
         auth.onAuthStateChanged(async (u) => {
             if (u) {
+                const userEmail = u.email.toLowerCase();
                 document.getElementById('user-photo').src = u.photoURL;
                 document.getElementById('profile-img-large').src = u.photoURL;
                 document.getElementById('profile-name-large').innerText = u.displayName;
@@ -273,17 +318,103 @@
                 
                 checkSubscriptionStatus(u.uid);
 
-                if(u.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
-                    document.getElementById('admin-vault-wrapper').classList.remove('hidden');
-                    listenForSubscriptionRequests();
+                // Check for Master Admin
+                if(userEmail === MASTER_EMAIL) {
+                    document.getElementById('sovereign-command-wrapper').classList.remove('hidden');
+                    initMasterAdmin();
                 }
-                discoverGroups(u.email.toLowerCase());
+
+                discoverGroups(userEmail);
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('app-content').classList.add('hidden');
             }
         });
 
+        /* --- MASTER ADMIN FUNCTIONS --- */
+        function initMasterAdmin() {
+            // Maintenance mode listener
+            db.ref('settings/maintenanceMode').on('value', snap => {
+                const isMaint = snap.val() || false;
+                const btn = document.getElementById('master-maint-btn');
+                const pill = document.getElementById('admin-status-pill');
+                btn.className = isMaint ? "admin-stat-card bg-red-500 flex flex-col justify-center items-center" : "admin-stat-card bg-indigo-600 flex flex-col justify-center items-center";
+                pill.className = isMaint ? "admin-badge-red" : "admin-badge-green";
+                pill.innerText = isMaint ? "LOCKED" : "LIVE";
+            });
+
+            // Subscription requests listener
+            db.ref('subscription_requests').on('value', snap => {
+                const list = document.getElementById('master-subscription-list');
+                list.innerHTML = '';
+                if(!snap.exists()) { list.innerHTML = '<p class="text-center py-4 text-[10px] opacity-50">No Pending Requests</p>'; return; }
+                snap.forEach(req => {
+                    const r = req.val();
+                    list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl border border-slate-100">
+                        <p class="font-black text-xs">${r.userName}</p>
+                        <p class="text-[10px] text-indigo-600 font-bold uppercase mb-3">${r.tier}</p>
+                        <div class="flex gap-2">
+                            <button onclick="resolveMasterSub('${req.key}', true, '${r.userEmail}', '${r.tier}', '${r.userName}', '${r.uid}')" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-black text-[9px] uppercase">Approve</button>
+                            <button onclick="resolveMasterSub('${req.key}', false)" class="flex-1 bg-red-50 text-red-500 py-2 rounded-lg font-black text-[9px] uppercase">Reject</button>
+                        </div>
+                    </div>`;
+                });
+            });
+
+            // Global groups listener
+            db.ref('groups').on('value', snap => {
+                allGroupsLocal = snap.val() || {};
+                const list = document.getElementById('master-groups-index');
+                const count = document.getElementById('master-total-groups');
+                list.innerHTML = '';
+                count.innerText = Object.keys(allGroupsLocal).length;
+                Object.entries(allGroupsLocal).forEach(([id, g]) => {
+                    list.innerHTML += `<div class="p-3 bg-gray-100 rounded-xl flex justify-between items-center">
+                        <div><p class="font-black text-[10px] text-slate-800">${g.name}</p><p class="text-[8px] font-bold opacity-50">${id}</p></div>
+                        <span class="text-[8px] font-black px-2 py-1 bg-white rounded-md">${(g.members||[]).length} NODES</span>
+                    </div>`;
+                });
+            });
+        }
+
+        async function resolveMasterSub(key, approve, email, tier, name, uid) {
+            const updates = {};
+            if (approve) {
+                updates[`active_subscriptions/${uid}`] = { plan: tier, status: 'active', activatedAt: Date.now() };
+                Object.entries(allGroupsLocal).forEach(([gid, g]) => {
+                    if(g.admin === email.toLowerCase()){
+                        const logKey = db.ref(`groups/${gid}/expenses`).push().key;
+                        updates[`groups/${gid}/expenses/${logKey}`] = { title: `✨ PRO ACTIVATED: ${tier}`, amount: 0, by: "SYSTEM", date: new Date().toLocaleDateString(), type: 'settlement' };
+                    }
+                });
+            }
+            updates[`subscription_requests/${key}`] = null;
+            await db.ref().update(updates);
+            showToast(approve ? "Success: Account Upgraded" : "Request Cleared");
+        }
+
+        async function toggleMasterMaintenance() {
+            const snap = await db.ref('settings/maintenanceMode').get();
+            const current = snap.val() || false;
+            if(confirm(`SYSTEM OVERRIDE: Turn Maintenance ${!current ? 'ON' : 'OFF'}?`)) {
+                await db.ref('settings/maintenanceMode').set(!current);
+            }
+        }
+
+        async function sendMasterPulse() {
+            const msg = document.getElementById('master-pulse-msg').value.trim();
+            if(!msg) return;
+            const updates = {};
+            Object.keys(allGroupsLocal).forEach(gid => {
+                const key = db.ref(`groups/${gid}/expenses`).push().key;
+                updates[`groups/${gid}/expenses/${key}`] = { title: `📢 PULSE: ${msg}`, amount: 0, by: "ADMIN", date: new Date().toLocaleDateString() };
+            });
+            await db.ref().update(updates);
+            document.getElementById('master-pulse-msg').value = '';
+            showToast("Pulse Dispatched to All Clusters");
+        }
+
+        /* --- STANDARD USER FUNCTIONS (UNCHANGED) --- */
         window.submitPaymentRequest = async () => {
             const txId = document.getElementById('tx-id-input').value.trim();
             if(!txId) { showToast("Enter Transaction ID"); return; }
@@ -297,46 +428,9 @@
                 status: 'pending',
                 date: new Date().toLocaleString()
             });
-            showToast("Request Sent! Pending Approval.");
+            showToast("Request Sent! Manual Verification Pending.");
             document.getElementById('tx-id-input').value = '';
             document.getElementById('manual-payment-gateway').classList.add('hidden');
-        };
-
-        function listenForSubscriptionRequests() {
-            db.ref('subscription_requests').on('value', snap => {
-                const list = document.getElementById('admin-subscription-list'); list.innerHTML = '';
-                if(!snap.exists()) { list.innerHTML = '<p class="text-center py-4 text-xs opacity-50">Empty Vault</p>'; return; }
-                snap.forEach(req => {
-                    const r = req.val();
-                    list.innerHTML += `<div class="p-5 bg-white rounded-3xl border border-indigo-100 flex flex-col gap-3">
-                        <div class="flex justify-between items-start"><div><p class="font-black text-xs text-gray-900">${r.userName}</p><p class="text-[10px] font-bold text-gray-400 uppercase">${r.userEmail}</p></div><span class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg text-[8px] font-black uppercase">${r.tier}</span></div>
-                        <div class="bg-gray-100 p-3 rounded-2xl"><p class="text-[9px] font-black text-gray-400 uppercase mb-1">TXID: ${r.transactionId}</p></div>
-                        <div class="flex gap-2">
-                            <button onclick="resolveSubscription('${req.key}', true, '${r.userEmail}', '${r.tier}', '${r.userName}', '${r.uid}')" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-black text-[10px] uppercase">Approve</button>
-                            <button onclick="resolveSubscription('${req.key}', false, '${r.userEmail}', '${r.tier}', '${r.userName}', '${r.uid}')" class="flex-1 bg-red-50 text-red-500 py-3 rounded-xl font-black text-[10px] uppercase">Reject</button>
-                        </div>
-                    </div>`;
-                });
-            });
-        }
-
-        window.resolveSubscription = async (key, approve, email, tier, name, uid) => {
-            const updates = {};
-            if (approve) {
-                updates[`active_subscriptions/${uid}`] = { plan: tier, status: 'active', activatedAt: Date.now() };
-                const snap = await db.ref('groups').get();
-                if(snap.exists()){
-                    Object.entries(snap.val()).forEach(([gid, g]) => {
-                        if(g.admin === email.toLowerCase()){
-                            const logKey = db.ref(`groups/${gid}/expenses`).push().key;
-                            updates[`groups/${gid}/expenses/${logKey}`] = { title: `✨ PRO ACTIVATED: ${tier}`, amount: 0, involved: [name.split(' ')[0]], by: "SYSTEM", date: new Date().toLocaleDateString(), type: 'settlement' };
-                        }
-                    });
-                }
-            }
-            updates[`subscription_requests/${key}`] = null;
-            await db.ref().update(updates);
-            showToast(approve ? "Pro Activated" : "Rejected");
         };
 
         function discoverGroups(email) {
@@ -370,7 +464,6 @@
             });
         };
 
-        // --- FIXED: Enhanced Timeline for Plan Activation ---
         function renderUI(expenses) {
             document.getElementById('split-selectors').innerHTML = groupMembers.map((m, i) => `<button onclick="this.classList.toggle('active-chip')" data-name="${m.name}" class="member-chip active-chip theme-${i % 4}"><i class="fa-solid fa-check"></i> ${m.name}</button>`).join('');
             let total = 0, balances = {}; groupMembers.forEach(m => balances[m.name] = 0);
@@ -378,7 +471,6 @@
             Object.entries(expenses).reverse().forEach(([key, exp]) => {
                 if (exp.type === 'settlement') { 
                     balances[exp.payer] -= exp.amount; 
-                    // Special rendering for Plan Activation
                     const isPlan = exp.title.includes("PLAN ACTIVATED") || exp.title.includes("PRO ACTIVATED");
                     feed.innerHTML += `
                     <div class="p-6 ${isPlan ? 'bg-indigo-600 text-white' : 'bg-green-50 text-green-700'} rounded-silk flex flex-col mb-3 shadow-lg">
