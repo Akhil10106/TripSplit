@@ -28,7 +28,6 @@
 
         #my-groups-list { max-height: 320px; overflow-y: auto; padding-right: 8px; scroll-behavior: smooth; }
         #my-groups-list::-webkit-scrollbar { width: 4px; }
-        #my-groups-list::-webkit-scrollbar-track { background: transparent; }
         #my-groups-list::-webkit-scrollbar-thumb { background: rgba(79, 70, 229, 0.1); border-radius: 10px; }
 
         .member-chip { border: 2px solid #f1f5f9; padding: 10px 18px; border-radius: 1.2rem; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; filter: grayscale(1); opacity: 0.6; }
@@ -73,11 +72,11 @@
         
         .plan-card-pro { border: 2px solid #4f46e5 !important; }
         .sub-popup-trigger { cursor: pointer; transition: transform 0.2s; }
-        
-        /* ADMIN UI ADDITIONS */
-        .admin-stat-card { background: #1e293b; color: white; padding: 1.5rem; border-radius: 1.5rem; flex: 1; min-width: 120px; }
-        .admin-badge-red { background: #fee2e2; color: #ef4444; font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 900; }
-        .admin-badge-green { background: #dcfce7; color: #16a34a; font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 900; }
+
+        /* ADMIN CONTROL STYLES */
+        .admin-stat-pill { background: #1e293b; color: white; padding: 1.25rem; border-radius: 1.5rem; flex: 1; text-align: center; }
+        .admin-request-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 1.25rem; margin-bottom: 0.75rem; }
+        .badge-admin { background: #4f46e5; color: white; font-size: 8px; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 5px; }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -189,63 +188,55 @@
 
         <div id="settings-page" class="view-pane max-w-2xl mx-auto space-y-4">
             
-            <div id="sovereign-command-wrapper" class="hidden">
-                <button onclick="toggleCollapse('admin-control-collapse')" class="collapse-btn bg-slate-950 text-white border-none shadow-2xl">
-                    <span class="flex items-center gap-3">Admin Control Center <i class="fa-solid fa-shield-halved text-indigo-500"></i></span>
-                    <div class="flex items-center gap-2">
-                        <span id="admin-status-pill" class="admin-badge-green">LIVE</span>
-                        <i class="fa-solid fa-chevron-down opacity-50"></i>
-                    </div>
+            <div id="master-admin-section" class="hidden">
+                <button onclick="toggleCollapse('sovereign-collapse')" class="collapse-btn bg-slate-900 text-white border-none shadow-2xl">
+                    <span class="flex items-center gap-3">Sovereign Command Center <i class="fa-solid fa-shield-halved text-indigo-400"></i></span>
+                    <i class="fa-solid fa-chevron-down opacity-50"></i>
                 </button>
-                <div id="admin-control-collapse" class="collapse-content bg-gray-50 mt-2 rounded-silk border border-slate-200 space-y-6">
+                <div id="sovereign-collapse" class="collapse-content bg-gray-50 mt-2 rounded-silk border border-slate-200 space-y-6">
                     
                     <div class="flex gap-3">
-                        <div class="admin-stat-card">
-                            <p class="text-[8px] font-black opacity-60 uppercase">Total Clusters</p>
-                            <p id="master-total-groups" class="text-2xl font-black">0</p>
+                        <div class="admin-stat-pill">
+                            <p class="text-[8px] font-black opacity-50 uppercase">Total Groups</p>
+                            <p id="adm-total-groups" class="text-2xl font-black">0</p>
                         </div>
-                        <button id="master-maint-btn" onclick="toggleMasterMaintenance()" class="admin-stat-card bg-indigo-600 flex flex-col justify-center items-center">
+                        <button id="adm-maint-btn" onclick="toggleGlobalMaintenance()" class="admin-stat-pill bg-indigo-600">
                             <i class="fa-solid fa-power-off text-lg mb-1"></i>
-                            <p class="text-[8px] font-black uppercase">System Mode</p>
+                            <p class="text-[8px] font-black uppercase">System Live</p>
                         </button>
                     </div>
 
-                    <div class="silk-card p-6 bg-white border border-slate-100">
-                        <p class="text-[9px] font-black text-slate-400 uppercase mb-3">Pulse Broadcast</p>
-                        <textarea id="master-pulse-msg" class="w-full bg-gray-50 p-4 rounded-xl text-xs font-bold border-none mb-3" placeholder="Message to all timelines..."></textarea>
-                        <button onclick="sendMasterPulse()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-black text-[10px] uppercase">Deploy Pulse</button>
+                    <div class="silk-card p-6 border border-slate-100">
+                        <p class="text-[9px] font-black text-slate-400 uppercase mb-3 tracking-widest">Deploy Pulse Broadcast</p>
+                        <textarea id="adm-pulse-msg" class="w-full bg-gray-50 p-4 rounded-xl text-xs font-bold border-none mb-3" placeholder="Message to every timeline on the cloud..."></textarea>
+                        <button onclick="sendGlobalPulse()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-black text-[10px] uppercase shadow-lg">Discharge Pulse</button>
                     </div>
 
-                    <div class="silk-card p-6 bg-white border border-slate-100">
-                        <p class="text-[9px] font-black text-slate-400 uppercase mb-3">Subscription Approvals</p>
-                        <div id="master-subscription-list" class="space-y-3"></div>
+                    <div class="silk-card p-6 border border-slate-100">
+                        <p class="text-[9px] font-black text-slate-400 uppercase mb-4 tracking-widest">Subscription Approvals</p>
+                        <div id="adm-sub-list" class="space-y-3"></div>
                     </div>
 
-                    <div class="silk-card p-6 bg-white border border-slate-100">
-                        <p class="text-[9px] font-black text-slate-400 uppercase mb-3">Node Clusters Registry</p>
-                        <div id="master-groups-index" class="space-y-2 max-h-40 overflow-y-auto pr-2"></div>
+                    <div class="silk-card p-6 border border-slate-100">
+                        <p class="text-[9px] font-black text-slate-400 uppercase mb-4 tracking-widest">Global Cluster Index</p>
+                        <div id="adm-groups-list" class="max-h-60 overflow-y-auto space-y-2 pr-2"></div>
                     </div>
-                </div>
-            </div>
 
-            <div id="admin-vault-wrapper" class="hidden">
-                <button onclick="toggleCollapse('vault-collapse')" class="collapse-btn bg-indigo-900 text-white border-none shadow-xl">
-                    <span class="flex items-center gap-3">Circle Manager <i class="fa-solid fa-shield-halved text-indigo-400"></i></span>
-                    <i class="fa-solid fa-chevron-down opacity-50"></i>
-                </button>
-                <div id="vault-collapse" class="collapse-content bg-gray-50 mt-2 rounded-silk border border-indigo-200">
-                    <div id="admin-subscription-list" class="space-y-3"></div>
                 </div>
             </div>
 
             <button onclick="toggleCollapse('member-list-collapse')" class="collapse-btn"><span>Circle Members</span><i class="fa-solid fa-users opacity-30"></i></button>
             <div id="member-list-collapse" class="collapse-content bg-white mt-2 rounded-silk border border-gray-100"><div id="member-settings-list" class="space-y-3"></div></div>
-            <div class="p-8 silk-card bg-gray-50 text-center"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Workspace ID</p><p onclick="copyGroupId()" class="text-xl font-black text-indigo-600 cursor-pointer tracking-tighter" id="settings-id-display">...</p></div>
+            
+            <div class="p-8 silk-card bg-gray-50 text-center">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Workspace ID</p>
+                <p onclick="copyGroupId()" class="text-xl font-black text-indigo-600 cursor-pointer tracking-tighter" id="settings-id-display">...</p>
+            </div>
         </div>
 
         <div id="profile-page" class="view-pane max-w-md mx-auto text-center silk-card p-10">
             <img id="profile-img-large" src="" class="w-28 h-28 rounded-3xl mx-auto mb-6 shadow-2xl">
-            <h2 id="profile-name-large" class="text-3xl font-black text-gray-900">...</h2>
+            <h2 id="profile-name-large" class="text-3xl font-black text-gray-900 tracking-tight">...</h2>
             <p id="profile-email-large" class="text-gray-400 font-bold mb-6">...</p>
             <div id="profile-status-box" onclick="showView('plans-page')" class="bg-gray-100 text-gray-500 p-5 rounded-2xl cursor-pointer shadow-xl transition-all">
                 <p id="profile-plan-status" class="text-[9px] font-black uppercase">Current Plan: Free Starter</p>
@@ -283,23 +274,21 @@
             container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
         }
 
+        // --- SUBSCRIPTION STATUS (Real-time) ---
         function checkSubscriptionStatus(uid) {
             db.ref(`active_subscriptions/${uid}`).on('value', snapshot => {
                 const statusTag = document.getElementById('profile-plan-status');
                 const actionTag = document.getElementById('profile-plan-action');
                 const statusBox = document.getElementById('profile-status-box');
-
                 if (snapshot.exists()) {
                     const subData = snapshot.val();
                     document.getElementById('subscription-nag-modal').style.display = 'none';
-                    statusBox.className = "bg-indigo-600 text-white p-5 rounded-2xl cursor-pointer shadow-xl transition-all";
-                    statusTag.className = "text-[9px] font-black uppercase text-indigo-200";
+                    statusBox.className = "bg-indigo-600 text-white p-5 rounded-2xl cursor-pointer shadow-xl";
                     statusTag.innerText = `Premium Verified Account`;
-                    actionTag.innerText = subData.plan || 'Standard Pro Plan';
+                    actionTag.innerText = subData.plan || 'Standard Pro';
                 } else {
                     document.getElementById('subscription-nag-modal').style.display = 'flex';
-                    statusBox.className = "bg-gray-100 text-gray-500 p-5 rounded-2xl cursor-pointer shadow-xl transition-all";
-                    statusTag.className = "text-[9px] font-black uppercase text-gray-400";
+                    statusBox.className = "bg-gray-100 text-gray-500 p-5 rounded-2xl cursor-pointer shadow-xl";
                     statusTag.innerText = `Current Plan: Free Starter`;
                     actionTag.innerText = `View Premium Plans`;
                 }
@@ -308,7 +297,7 @@
 
         auth.onAuthStateChanged(async (u) => {
             if (u) {
-                const userEmail = u.email.toLowerCase();
+                const email = u.email.toLowerCase();
                 document.getElementById('user-photo').src = u.photoURL;
                 document.getElementById('profile-img-large').src = u.photoURL;
                 document.getElementById('profile-name-large').innerText = u.displayName;
@@ -318,91 +307,78 @@
                 
                 checkSubscriptionStatus(u.uid);
 
-                // Check for Master Admin
-                if(userEmail === MASTER_EMAIL) {
-                    document.getElementById('sovereign-command-wrapper').classList.remove('hidden');
-                    initMasterAdmin();
+                // Check for Admin Rights
+                if(email === MASTER_EMAIL) {
+                    document.getElementById('master-admin-section').classList.remove('hidden');
+                    initMasterSovereign();
                 }
 
-                discoverGroups(userEmail);
+                discoverGroups(email);
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('app-content').classList.add('hidden');
             }
         });
 
-        /* --- MASTER ADMIN FUNCTIONS --- */
-        function initMasterAdmin() {
-            // Maintenance mode listener
+        /* --- MASTER SOVEREIGN FUNCTIONS (ADMIN) --- */
+        function initMasterSovereign() {
+            // Stats & Maint
             db.ref('settings/maintenanceMode').on('value', snap => {
-                const isMaint = snap.val() || false;
-                const btn = document.getElementById('master-maint-btn');
-                const pill = document.getElementById('admin-status-pill');
-                btn.className = isMaint ? "admin-stat-card bg-red-500 flex flex-col justify-center items-center" : "admin-stat-card bg-indigo-600 flex flex-col justify-center items-center";
-                pill.className = isMaint ? "admin-badge-red" : "admin-badge-green";
-                pill.innerText = isMaint ? "LOCKED" : "LIVE";
+                const isM = snap.val() || false;
+                const btn = document.getElementById('adm-maint-btn');
+                btn.className = isM ? "admin-stat-pill bg-red-500 animate-pulse" : "admin-stat-pill bg-indigo-600";
+                btn.innerHTML = `<i class="fa-solid fa-power-off text-lg mb-1"></i><p class="text-[8px] font-black uppercase">${isM ? 'System Locked' : 'System Live'}</p>`;
             });
 
-            // Subscription requests listener
+            // Subscription List
             db.ref('subscription_requests').on('value', snap => {
-                const list = document.getElementById('master-subscription-list');
+                const list = document.getElementById('adm-sub-list');
                 list.innerHTML = '';
-                if(!snap.exists()) { list.innerHTML = '<p class="text-center py-4 text-[10px] opacity-50">No Pending Requests</p>'; return; }
+                if(!snap.exists()) { list.innerHTML = '<p class="text-center py-4 text-[10px] opacity-40">No Pending Requests</p>'; return; }
                 snap.forEach(req => {
                     const r = req.val();
-                    list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl border border-slate-100">
-                        <p class="font-black text-xs">${r.userName}</p>
+                    list.innerHTML += `<div class="admin-request-card">
+                        <p class="font-black text-xs text-slate-800">${r.userName}</p>
                         <p class="text-[10px] text-indigo-600 font-bold uppercase mb-3">${r.tier}</p>
                         <div class="flex gap-2">
-                            <button onclick="resolveMasterSub('${req.key}', true, '${r.userEmail}', '${r.tier}', '${r.userName}', '${r.uid}')" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-black text-[9px] uppercase">Approve</button>
-                            <button onclick="resolveMasterSub('${req.key}', false)" class="flex-1 bg-red-50 text-red-500 py-2 rounded-lg font-black text-[9px] uppercase">Reject</button>
+                            <button onclick="approveSub('${req.key}', '${r.uid}', '${r.tier}', '${r.userEmail}', '${r.userName}')" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-black text-[9px] uppercase">Approve</button>
+                            <button onclick="db.ref('subscription_requests/${req.key}').remove()" class="flex-1 bg-red-50 text-red-500 py-2 rounded-lg font-black text-[9px] uppercase">Reject</button>
                         </div>
                     </div>`;
                 });
             });
 
-            // Global groups listener
+            // Global Groups
             db.ref('groups').on('value', snap => {
                 allGroupsLocal = snap.val() || {};
-                const list = document.getElementById('master-groups-index');
-                const count = document.getElementById('master-total-groups');
-                list.innerHTML = '';
-                count.innerText = Object.keys(allGroupsLocal).length;
-                Object.entries(allGroupsLocal).forEach(([id, g]) => {
-                    list.innerHTML += `<div class="p-3 bg-gray-100 rounded-xl flex justify-between items-center">
-                        <div><p class="font-black text-[10px] text-slate-800">${g.name}</p><p class="text-[8px] font-bold opacity-50">${id}</p></div>
-                        <span class="text-[8px] font-black px-2 py-1 bg-white rounded-md">${(g.members||[]).length} NODES</span>
-                    </div>`;
-                });
+                const list = document.getElementById('adm-groups-list');
+                document.getElementById('adm-total-groups').innerText = Object.keys(allGroupsLocal).length;
+                list.innerHTML = Object.entries(allGroupsLocal).map(([id, g]) => `<div class="p-3 bg-white border border-slate-100 rounded-xl flex justify-between items-center"><p class="font-black text-[10px] text-slate-700">${g.name}</p><span class="text-[8px] font-bold opacity-40 uppercase">${id}</span></div>`).join('');
             });
         }
 
-        async function resolveMasterSub(key, approve, email, tier, name, uid) {
+        async function approveSub(key, uid, tier, email, name) {
             const updates = {};
-            if (approve) {
-                updates[`active_subscriptions/${uid}`] = { plan: tier, status: 'active', activatedAt: Date.now() };
-                Object.entries(allGroupsLocal).forEach(([gid, g]) => {
-                    if(g.admin === email.toLowerCase()){
-                        const logKey = db.ref(`groups/${gid}/expenses`).push().key;
-                        updates[`groups/${gid}/expenses/${logKey}`] = { title: `✨ PRO ACTIVATED: ${tier}`, amount: 0, by: "SYSTEM", date: new Date().toLocaleDateString(), type: 'settlement' };
-                    }
-                });
-            }
+            updates[`active_subscriptions/${uid}`] = { plan: tier, activatedAt: Date.now() };
+            // Auto-Announcement in the user's groups
+            Object.entries(allGroupsLocal).forEach(([gid, g]) => {
+                if(g.admin === email.toLowerCase()) {
+                    const lk = db.ref(`groups/${gid}/expenses`).push().key;
+                    updates[`groups/${gid}/expenses/${lk}`] = { title: `✨ PRO ACTIVATED: ${tier}`, amount: 0, by: "SYSTEM", type: 'settlement', date: new Date().toLocaleDateString() };
+                }
+            });
             updates[`subscription_requests/${key}`] = null;
             await db.ref().update(updates);
-            showToast(approve ? "Success: Account Upgraded" : "Request Cleared");
+            showToast("Account Upgraded!");
         }
 
-        async function toggleMasterMaintenance() {
+        async function toggleGlobalMaintenance() {
             const snap = await db.ref('settings/maintenanceMode').get();
-            const current = snap.val() || false;
-            if(confirm(`SYSTEM OVERRIDE: Turn Maintenance ${!current ? 'ON' : 'OFF'}?`)) {
-                await db.ref('settings/maintenanceMode').set(!current);
-            }
+            if(confirm("Override system mode?")) db.ref('settings/maintenanceMode').set(!snap.val());
         }
 
-        async function sendMasterPulse() {
-            const msg = document.getElementById('master-pulse-msg').value.trim();
+        async function sendGlobalPulse() {
+            const msg = document.getElementById('adm-pulse-msg').value.trim();
             if(!msg) return;
             const updates = {};
             Object.keys(allGroupsLocal).forEach(gid => {
@@ -410,8 +386,8 @@
                 updates[`groups/${gid}/expenses/${key}`] = { title: `📢 PULSE: ${msg}`, amount: 0, by: "ADMIN", date: new Date().toLocaleDateString() };
             });
             await db.ref().update(updates);
-            document.getElementById('master-pulse-msg').value = '';
-            showToast("Pulse Dispatched to All Clusters");
+            document.getElementById('adm-pulse-msg').value = '';
+            showToast("Pulse Broadcasted Globally");
         }
 
         /* --- STANDARD USER FUNCTIONS (UNCHANGED) --- */
@@ -425,11 +401,9 @@
                 userName: u.displayName,
                 tier: selectedTier,
                 transactionId: txId,
-                status: 'pending',
                 date: new Date().toLocaleString()
             });
-            showToast("Request Sent! Manual Verification Pending.");
-            document.getElementById('tx-id-input').value = '';
+            showToast("Request Sent!");
             document.getElementById('manual-payment-gateway').classList.add('hidden');
         };
 
@@ -498,7 +472,7 @@
         window.signOutNow = () => auth.signOut().then(() => location.reload());
         document.getElementById('google-login-btn').onclick = () => auth.signInWithPopup(provider);
         window.toggleCollapse = (id) => { const el = document.getElementById(id); el.style.display = (el.style.display === 'none') ? 'block' : 'none'; };
-        function renderSettingsMembers(admin) { document.getElementById('member-settings-list').innerHTML = groupMembers.map((m, i) => `<div class="p-5 silk-card theme-${i % 4} flex justify-between items-center"><div><p class="font-black text-gray-800">${m.name}</p><p class="text-xs font-bold opacity-60 uppercase">${m.email}</p></div></div>`).join(''); }
+        function renderSettingsMembers(admin) { document.getElementById('member-settings-list').innerHTML = groupMembers.map((m, i) => `<div class="p-5 silk-card theme-${i % 4} flex justify-between items-center"><div><p class="font-black text-gray-800">${m.name} ${m.email === MASTER_EMAIL ? '<span class="badge-admin">MASTER</span>' : ''}</p><p class="text-xs font-bold opacity-60 uppercase">${m.email}</p></div></div>`).join(''); }
         window.redirectToPlans = () => { hideModals(); showView('plans-page'); };
     </script>
 </body>
