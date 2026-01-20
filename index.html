@@ -2,423 +2,541 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TripSplit Pro | Ultimate Cloud</title>
     
     <link rel="manifest" href="manifest.json">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+
+    <style>
+        :root { --primary: #4f46e5; --bg: #f8fafc; }
+        body { background: var(--bg); color: #1e293b; font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+        .silk-card { background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1); border-radius: 2.5rem; }
+        .rounded-silk { border-radius: 2rem; }
+        .rounded-button { border-radius: 1.5rem; }
+        .btn-premium { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; transition: all 0.3s ease; }
+        
+        .view-pane { display: none; }
+        .view-pane.active-view { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .timeline-scroll-area { height: 500px; overflow-y: auto; padding-right: 10px; }
+        .timeline-scroll-area::-webkit-scrollbar { width: 5px; }
+        .timeline-scroll-area::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        #my-groups-list { max-height: 320px; overflow-y: auto; padding-right: 8px; scroll-behavior: smooth; }
+        #my-groups-list::-webkit-scrollbar { width: 4px; }
+        #my-groups-list::-webkit-scrollbar-track { background: transparent; }
+        #my-groups-list::-webkit-scrollbar-thumb { background: rgba(79, 70, 229, 0.1); border-radius: 10px; }
+
+        .member-chip { border: 2px solid #f1f5f9; padding: 10px 18px; border-radius: 1.2rem; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; filter: grayscale(1); opacity: 0.6; }
+        .member-chip.active-chip { filter: grayscale(0); opacity: 1; border-color: currentColor; }
+
+        .theme-0 { background-color: #e0e7ff !important; color: #4338ca !important; }
+        .theme-1 { background-color: #fce7f3 !important; color: #be185d !important; }
+        .theme-2 { background-color: #fef3c7 !important; color: #b45309 !important; }
+        .theme-3 { background-color: #d1fae5 !important; color: #047857 !important; }
+        
+        .mini-badge { padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; display: inline-block; margin-right: 4px; margin-top: 4px; }
+
+        .collapse-btn { width: 100%; text-align: left; padding: 1.5rem 2rem; background: #ffffff; border-radius: 2rem; border: 1px solid rgba(0,0,0,0.05); font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+        .collapse-content { display: none; padding: 1.5rem 2rem; }
+        .modal-overlay { position: fixed; inset: 0; z-index: 150; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); display: none; items-center; justify-content: center; padding: 1.5rem; }
+        .modal-content-silk { background: white; width: 100%; max-width: 28rem; border-radius: 3rem; padding: 2.5rem; position: relative; animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .notif-dot { position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; background: #ef4444; border: 2px solid white; border-radius: 50%; display: none; }
+        .pulse { animation: pulse-red 2s infinite; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        
+        @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        #toast-container { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
+        .silk-toast { background: #1e293b; color: white; padding: 1rem 2rem; border-radius: 1.5rem; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); animation: toastIn 0.3s ease-out; pointer-events: auto; }
+        @keyframes toastIn { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .branding-container { position: relative; overflow: hidden; padding: 3rem 0; border-radius: 3rem; background: rgba(255,255,255,0.4); margin-bottom: 2rem; }
+        .tape { position: absolute; width: 200%; height: 60px; display: flex; align-items: center; white-space: nowrap; font-weight: 900; font-size: 1.4rem; color: white; z-index: 0; pointer-events: none; text-transform: uppercase; letter-spacing: 0.3rem; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .tape-1 { background: linear-gradient(90deg, #4f46e5, #6366f1); transform: rotate(-12deg) translateY(20px); top: 15%; left: -50%; }
+        .tape-2 { background: linear-gradient(90deg, #1e293b, #334155); transform: rotate(12deg) translateY(-20px); bottom: 15%; left: -50%; }
+        .marquee { animation: marquee 25s linear infinite; display: flex; gap: 3rem; }
+        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+        .logo-box { position: relative; display: inline-block; margin-bottom: 2.5rem; }
+        .logo-main { font-size: 4.5rem; font-weight: 900; letter-spacing: -0.3rem; display: flex; gap: 5px; }
+        .trip-text { color: #1e293b; animation: splitLeft 3s infinite ease-in-out; }
+        .split-text { color: #4f46e5; animation: splitRight 3s infinite ease-in-out; }
+        @keyframes splitLeft { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-15px); opacity: 0.8; } }
+        @keyframes splitRight { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(15px); opacity: 0.8; } }
+        .logo-underline { height: 6px; width: 100%; background: #4f46e5; border-radius: 10px; margin-top: -10px; transform: scaleX(0.4); animation: lineGrow 3s infinite ease-in-out; }
+        @keyframes lineGrow { 0%, 100% { transform: scaleX(0.4); } 50% { transform: scaleX(1); } }
+        
+        .member-detail-scroll { max-height: 200px; overflow-y: auto; display: none; margin-top: 1rem; border-top: 1px solid #f1f5f9; padding-top: 1rem; }
+        .member-stat-card { transition: all 0.3s ease; cursor: pointer; }
+        .member-stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px -5px rgba(0,0,0,0.1); }
+        
+        .glass-search { background: rgba(241, 245, 249, 0.8); backdrop-filter: blur(10px); border: 2px solid white; border-radius: 1.5rem; transition: all 0.3s ease; }
+        .glass-search:focus-within { border-color: #4f46e5; box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.3); }
+
+        .more-tile-creative { 
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); 
+            position: relative; 
+            overflow: hidden; 
+            border: none !important;
+        }
+        .more-tile-creative::before { 
+            content: ''; 
+            position: absolute; 
+            top: -50%; left: -50%; 
+            width: 200%; height: 200%; 
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%); 
+            animation: rotate-bg 6s linear infinite; 
+        }
+        @keyframes rotate-bg { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .more-pulse { animation: more-glow 2s infinite ease-in-out; }
+        @keyframes more-glow { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(79, 70, 229, 0.4); } 50% { transform: scale(1.02); box-shadow: 0 0 40px rgba(124, 58, 237, 0.6); } }
+
+        .plan-badge { font-size: 8px; font-weight: 900; background: #f1f5f9; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; color: #64748b; }
+        .plan-card-pro { border: 2px solid #4f46e5 !important; }
+
+        .sub-popup-trigger { cursor: pointer; transition: transform 0.2s; }
+        .sub-popup-trigger:active { transform: scale(0.98); }
+    </style>
 </head>
-<body class="antialiased text-slate-900 bg-slate-50 font-sans">
+<body class="p-4 md:p-10">
 
-    <div id="toast-container" aria-live="polite" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[300] flex flex-col gap-2 pointer-events-none"></div>
+    <div id="toast-container"></div>
 
-    <div id="auth-screen" class="fixed inset-0 z-[100] bg-white flex items-center justify-center p-6 transition-opacity duration-300">
-        <div id="login-container" class="text-center max-w-sm w-full animate-fade-in">
-            <div class="logo-box mb-10">
+    <div id="auth-screen" class="fixed inset-0 z-[100] bg-white flex items-center justify-center p-6">
+        <div id="login-container" class="text-center max-w-sm w-full">
+            <div class="logo-box">
                 <div class="logo-main"><span class="trip-text">TRIP</span><span class="split-text">SPLIT</span></div>
                 <div class="logo-underline"></div>
             </div>
-            <p class="text-slate-400 font-bold mb-10 text-xs uppercase tracking-[0.3em]">Premium Expense Cloud</p>
-            <button id="google-login-btn" class="bg-white border border-slate-200 flex items-center justify-center gap-4 w-full py-5 rounded-2xl font-bold text-lg shadow-sm hover:shadow-md hover:bg-slate-50 active:scale-95 transition-all">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="22" alt="Google"> 
-                <span>Continue with Google</span>
+            <p class="text-gray-400 font-bold mb-8 text-sm uppercase tracking-widest">Premium Expense Cloud</p>
+            <button id="google-login-btn" class="bg-white border-2 border-gray-100 flex items-center justify-center gap-3 w-full py-5 rounded-button font-black text-lg shadow-xl hover:bg-gray-50 transition-all hover:scale-[1.02] active:scale-95">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="22"> Continue with Google
             </button>
         </div>
         
-        <div id="group-discovery" class="hidden w-full max-w-md animate-fade-in">
-            <div class="flex justify-between items-end mb-8 px-2">
-                <div>
-                    <h2 class="text-4xl font-extrabold tracking-tighter text-slate-900">My Circles</h2>
-                    <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mt-1">Select workspace to continue</p>
-                </div>
-                <button onclick="signOutNow()" class="text-red-500 font-bold text-[10px] bg-red-50 hover:bg-red-100 px-4 py-2 rounded-xl uppercase tracking-tighter transition-colors">Sign Out</button>
+        <div id="group-discovery" class="hidden w-full max-w-md">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black tracking-tighter">My Circles</h2>
+                <button onclick="signOutNow()" class="text-red-500 font-black text-[10px] bg-red-50 px-5 py-2.5 rounded-2xl uppercase tracking-tighter">Exit Account</button>
             </div>
-            
-            <div class="branding-container relative shadow-2xl shadow-indigo-100/50 mb-6 overflow-hidden bg-white border border-slate-100">
+            <div class="branding-container shadow-inner">
                 <div class="tape tape-1"><div class="marquee"><span>TRIPSPLIT &bull; TRIPSPLIT &bull; </span><span>TRIPSPLIT &bull; TRIPSPLIT &bull; </span></div></div>
-                <div class="tape tape-2"><div class="marquee-reverse"><span>TRIPSPLIT &bull; TRIPSPLIT &bull; </span><span>TRIPSPLIT &bull; TRIPSPLIT &bull; </span></div></div>
-                <div id="my-groups-list" class="space-y-3 px-6 py-8 relative z-10"></div>
+                <div class="tape tape-2"><div class="marquee" style="animation-direction: reverse;"><span>TRIPSPLIT &bull; TRIPSPLIT &bull; </span><span>TRIPSPLIT &bull; TRIPSPLIT &bull; </span></div></div>
+                <div id="my-groups-list" class="space-y-4 px-6 relative z-10"></div>
             </div>
-
-            <div class="p-2">
+            <div class="silk-card p-6 bg-indigo-600 shadow-2xl relative z-10 -mt-6">
                 <div class="flex gap-3">
-                    <button onclick="showJoinManual()" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">Join ID</button>
-                    <button onclick="showCreationPopup()" class="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-indigo-200 active:scale-95 transition-all">Create New</button>
+                    <button onclick="showJoinManual()" class="flex-1 bg-indigo-700 text-white py-4 rounded-button font-black text-[11px] uppercase border border-white/20">Join ID</button>
+                    <button onclick="showCreationPopup()" class="flex-1 bg-white text-indigo-600 py-4 rounded-button font-black text-[11px] uppercase shadow-lg">Create New</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="app-content" class="max-w-6xl mx-auto hidden pb-20">
-        <header class="flex flex-col md:flex-row justify-between items-center py-8 mb-4 gap-6 px-4">
-            <div class="flex items-center gap-4 group cursor-pointer" onclick="showView('profile-page')">
-                <div class="relative">
-                    <img id="user-photo" src="" class="w-14 h-14 rounded-2xl border-2 border-white shadow-xl group-hover:scale-105 transition-transform">
-                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
-                </div>
+    <div id="app-content" class="max-w-6xl mx-auto hidden">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+            <div class="flex items-center gap-4 cursor-pointer" onclick="showView('profile-page')">
+                <img id="user-photo" src="" class="w-14 h-14 rounded-2xl border-2 border-white shadow-xl">
                 <div>
-                    <h2 class="text-xl font-bold text-slate-900 tracking-tight" id="display-group-name">...</h2>
-                    <button onclick="event.stopPropagation(); copyGroupId()" class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest flex items-center gap-1 hover:text-indigo-600">
-                        <span id="group-id-short">...</span> <i class="fa-regular fa-copy"></i>
-                    </button>
+                    <h2 class="text-xl font-extrabold text-gray-900 leading-none" id="display-group-name">...</h2>
+                    <p class="text-[10px] font-black text-indigo-500 uppercase mt-1 cursor-pointer" onclick="copyGroupId()">Click to Copy ID</p>
                 </div>
             </div>
-            
-            <nav class="flex items-center gap-2 bg-white/50 p-1.5 rounded-2xl border border-slate-200/60 backdrop-blur-md">
-                <button onclick="showView('main-dashboard')" class="nav-link px-5 py-2.5 rounded-xl text-xs font-bold transition-all active" id="nav-home">Home</button>
-                <button onclick="location.reload()" class="nav-link px-5 py-2.5 rounded-xl text-xs font-bold transition-all" id="nav-switch">Switch</button>
-                <button onclick="showView('plans-page')" class="nav-link px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2" id="nav-plans">
-                    <span>Pro</span> <i class="fa-solid fa-crown text-[10px] text-amber-500"></i>
-                </button>
-                <div class="relative ml-1">
-                    <button onclick="showView('settings-page')" class="bg-slate-900 text-white w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-800 transition-colors shadow-lg shadow-slate-200">
-                        <i class="fa-solid fa-sliders text-sm"></i>
-                    </button>
-                    <div id="admin-notif-dot" class="notif-dot pulse hidden"></div>
+            <div class="flex gap-2">
+                <button onclick="showView('main-dashboard')" class="bg-white px-6 py-3 rounded-button text-sm font-bold shadow-sm border border-gray-100 hover:bg-gray-50 transition-all">Home</button>
+                <button onclick="location.reload()" class="bg-gray-100 px-6 py-3 rounded-button text-sm font-bold text-gray-600 hover:bg-gray-200 transition-all">Switch</button>
+                <button onclick="showView('plans-page')" class="bg-indigo-50 text-indigo-600 px-6 py-3 rounded-button text-sm font-bold shadow-sm border border-indigo-100 hover:bg-indigo-100 transition-all">Subscription Plan <i class="fa-solid fa-crown ml-1 text-[10px]"></i></button>
+                <div class="relative">
+                    <button onclick="showView('settings-page')" class="bg-gray-900 text-white px-5 py-3 rounded-button text-sm font-bold shadow-lg"><i class="fa-solid fa-sliders"></i></button>
+                    <div id="admin-notif-dot" class="notif-dot pulse"></div>
                 </div>
-            </nav>
+            </div>
         </header>
 
-        <main id="main-dashboard" class="view-pane active-view px-4">
-            <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
+        <div id="main-dashboard" class="view-pane active-view">
+            <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <div class="lg:col-span-5 silk-card p-8 h-fit">
+                    <h3 class="text-lg font-black mb-8 italic uppercase text-center tracking-widest">Log Expense</h3>
+                    <div class="space-y-6">
+                        <input type="text" id="bill-title" placeholder="Description" class="w-full bg-gray-50 rounded-silk p-4 font-bold outline-none border-none">
+                        <div class="relative"><span class="absolute left-4 top-4 text-gray-400 font-black">₹</span><input type="number" id="bill-amount" placeholder="0.00" class="w-full bg-gray-50 rounded-silk p-4 pl-10 text-2xl font-black outline-none border-none"></div>
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-2 mb-[-1rem]">Involved Members</p>
+                        <div id="split-selectors" class="flex flex-wrap gap-2 pt-2"></div>
+                        <button onclick="logExpense()" class="w-full btn-premium py-5 rounded-button font-black uppercase mt-4 shadow-lg">Publish</button>
+                    </div>
+                </div>
+                <div class="lg:col-span-7 silk-card p-8">
+                    <h3 class="text-xl font-black border-b pb-4 mb-6">Timeline <span id="grand-total" class="float-right text-indigo-600 text-sm">₹0</span></h3>
+                    <div id="activity-feed" class="space-y-5 timeline-scroll-area"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="plans-page" class="view-pane max-w-6xl mx-auto pb-20">
+            <h2 class="text-4xl font-black text-center mb-2 tracking-tighter text-gray-900">Choose Your Plan</h2>
+            <p class="text-center text-gray-400 font-bold mb-10 uppercase text-[9px] tracking-[0.3em]">Unlock Your Groups</p>
             
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <section class="lg:col-span-5">
-                    <div class="silk-card p-8 sticky top-8">
-                        <div class="flex items-center justify-center gap-3 mb-8">
-                            <div class="h-px bg-slate-100 flex-1"></div>
-                            <h3 class="text-[11px] font-bold uppercase tracking-[0.4em] text-slate-400">Log Expense</h3>
-                            <div class="h-px bg-slate-100 flex-1"></div>
-                        </div>
-                        
-                        <div class="space-y-5">
-                            <div class="group">
-                                <label for="bill-title" class="sr-only">Description</label>
-                                <input type="text" id="bill-title" placeholder="What was this for?" class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:bg-white transition-all">
-                            </div>
-                            
-                            <div class="relative group">
-                                <label for="bill-amount" class="sr-only">Amount</label>
-                                <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-lg">₹</span>
-                                <input type="number" id="bill-amount" placeholder="0.00" class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 pl-10 text-2xl font-extrabold text-slate-900 outline-none focus:border-indigo-500 focus:bg-white transition-all">
-                            </div>
-
-                            <div class="pt-2">
-                                <div class="flex items-center justify-between mb-3 px-1">
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Involved Members</p>
-                                    <button onclick="selectAllInvolved()" class="text-[9px] font-bold text-indigo-500 uppercase">Select All</button>
-                                </div>
-                                <div id="split-selectors" class="flex flex-wrap gap-2"></div>
-                            </div>
-                            
-                            <button onclick="logExpense()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl shadow-indigo-100 active:scale-[0.98] transition-all mt-4">
-                                Publish Expense
-                            </button>
-                        </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
+                <div class="silk-card p-8 border-2 border-gray-50">
+                    <h4 class="text-xl font-black text-gray-800 mb-4">Basic</h4>
+                    <div class="space-y-2 mb-6">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-400">Single Trip</span><span class="font-black">₹50</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-400">Monthly</span><span class="font-black">₹70</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-400">Yearly (20% Off)</span><span class="text-indigo-600 font-black">₹672</span></div>
                     </div>
-                </section>
-
-                <section class="lg:col-span-7">
-                    <div class="silk-card p-0 overflow-hidden">
-                        <div class="flex items-center justify-between p-8 border-b border-slate-50">
-                            <h3 class="text-xl font-bold text-slate-900 tracking-tight">Timeline</h3>
-                            <div class="text-right">
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Total Spent</p>
-                                <p id="grand-total" class="text-indigo-600 font-extrabold text-lg">₹0</p>
-                            </div>
-                        </div>
-                        <div id="activity-feed" class="timeline-scroll-area p-8 space-y-4"></div>
-                    </div>
-                </section>
-            </div>
-        </main>
-
-        <main id="plans-page" class="view-pane px-4 animate-fade-in">
-            <div class="max-w-4xl mx-auto text-center mb-12">
-                <h2 class="text-5xl font-extrabold text-slate-900 tracking-tighter mb-4">Choose Your Plan</h2>
-                <p class="text-slate-500 font-medium text-lg">Scale your adventures with premium group features.</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="silk-card p-8 flex flex-col hover:border-indigo-200 transition-colors">
-                    <h4 class="text-xl font-bold text-slate-900 mb-6">Basic</h4>
-                    <div class="space-y-3 mb-8">
-                        <div class="flex justify-between items-center text-sm"><span class="font-medium text-slate-500">Single Trip</span><span class="font-bold">₹50</span></div>
-                        <div class="flex justify-between items-center text-sm"><span class="font-medium text-slate-500">Monthly</span><span class="font-bold">₹70</span></div>
-                        <div class="flex justify-between items-center text-sm"><span class="font-medium text-indigo-500">Yearly</span><span class="text-indigo-600 font-bold">₹672</span></div>
-                    </div>
-                    <ul class="text-xs font-semibold text-slate-600 space-y-3 mb-8 border-t border-slate-50 pt-6 flex-grow">
-                        <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-green-500"></i> Max 2 Groups</li>
-                        <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-green-500"></i> 4 Members per Group</li>
+                    <ul class="text-[11px] font-bold text-gray-500 space-y-2 mb-8 border-t pt-4">
+                        <li><i class="fa-solid fa-check text-green-500 mr-2"></i> Max 2 Groups</li>
+                        <li><i class="fa-solid fa-check text-green-500 mr-2"></i> 4 Members per Group</li>
                     </ul>
-                    <button onclick="openPayment('Basic Plan', 50)" class="w-full bg-slate-50 text-slate-900 py-3 rounded-xl font-bold text-xs uppercase tracking-widest border border-slate-200 hover:bg-white transition-colors">Select Basic</button>
+                    <button onclick="openPayment('Basic Plan', 50)" class="w-full bg-gray-100 text-gray-800 py-3 rounded-button font-black text-[10px] uppercase">Select Basic</button>
                 </div>
 
-                <div class="silk-card p-8 flex flex-col border-2 border-indigo-500 relative bg-white shadow-2xl shadow-indigo-100">
-                    <div class="absolute top-0 right-0 bg-indigo-500 text-white px-4 py-1.5 rounded-bl-2xl text-[10px] font-bold uppercase tracking-widest">Recommended</div>
-                    <h4 class="text-xl font-bold text-slate-900 mb-6">Standard</h4>
-                    <div class="space-y-3 mb-8">
-                        <div class="flex justify-between items-center text-sm"><span class="font-medium text-slate-500">Single Trip</span><span class="font-bold">₹70</span></div>
-                        <div class="flex justify-between items-center text-sm"><span class="font-medium text-slate-500">Monthly</span><span class="font-bold">₹100</span></div>
-                        <div class="flex justify-between items-center text-sm"><span class="font-medium text-indigo-500">Yearly</span><span class="text-indigo-600 font-bold">₹960</span></div>
+                <div class="silk-card p-8 plan-card-pro bg-indigo-50 shadow-2xl relative overflow-hidden">
+                    <div class="absolute -top-2 -right-10 bg-indigo-600 text-white w-40 text-center py-5 rotate-45 text-[8px] font-black uppercase tracking-widest shadow-lg">Recommended</div>
+                    <h4 class="text-xl font-black text-gray-800 mb-4">Standard</h4>
+                    <div class="space-y-2 mb-6">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-400">Single Trip</span><span class="font-black">₹70</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-400">Monthly</span><span class="font-black">₹100</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-400">Yearly (20% Off)</span><span class="text-indigo-600 font-black">₹960</span></div>
                     </div>
-                    <ul class="text-xs font-semibold text-slate-600 space-y-3 mb-8 border-t border-indigo-50 pt-6 flex-grow">
-                        <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-500"></i> Max 5 Groups</li>
-                        <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-500"></i> 10 Members per Group</li>
-                        <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-500"></i> Priority Support</li>
+                    <ul class="text-[11px] font-bold text-gray-500 space-y-2 mb-8 border-t border-indigo-100 pt-4">
+                        <li><i class="fa-solid fa-check text-indigo-500 mr-2"></i> Max 5 Groups</li>
+                        <li><i class="fa-solid fa-check text-indigo-500 mr-2"></i> 10 Members per Group</li>
                     </ul>
-                    <button onclick="openPayment('Standard Plan', 70)" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-indigo-200 active:scale-95 transition-all">Select Standard</button>
+                    <button onclick="openPayment('Standard Plan', 70)" class="w-full btn-premium py-4 rounded-button font-black text-[10px] uppercase shadow-lg">Select Standard</button>
                 </div>
 
-                <div class="silk-card p-8 flex flex-col bg-slate-900 text-white border-none">
-                    <h4 class="text-xl font-bold mb-6">Premium</h4>
-                    <div class="space-y-3 mb-8">
-                        <div class="flex justify-between items-center text-sm"><span class="font-medium opacity-50">Single Trip</span><span class="font-bold">₹100</span></div>
-                        <div class="flex justify-between items-center text-sm"><span class="font-medium opacity-50">Monthly</span><span class="font-bold">₹150</span></div>
-                        <div class="flex justify-between items-center text-sm"><span class="font-medium text-indigo-400">Yearly</span><span class="text-indigo-400 font-bold">₹1440</span></div>
+                <div class="silk-card p-8 border-2 border-gray-900 bg-gray-900 text-white shadow-2xl">
+                    <h4 class="text-xl font-black mb-4">Premium</h4>
+                    <div class="space-y-2 mb-6">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold opacity-50">Single Trip</span><span class="font-black">₹100</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold opacity-50">Monthly</span><span class="font-black">₹150</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold opacity-50">Yearly (20% Off)</span><span class="text-indigo-400 font-black">₹1440</span></div>
                     </div>
-                    <ul class="text-xs font-semibold text-slate-400 space-y-3 mb-8 border-t border-slate-800 pt-6 flex-grow">
-                        <li class="flex items-center gap-2"><i class="fa-solid fa-bolt text-indigo-400"></i> Unlimited Groups</li>
-                        <li class="flex items-center gap-2"><i class="fa-solid fa-bolt text-indigo-400"></i> Unlimited Members</li>
-                        <li class="flex items-center gap-2"><i class="fa-solid fa-bolt text-indigo-400"></i> API Access</li>
+                    <ul class="text-[11px] font-bold text-gray-400 space-y-2 mb-8 border-t border-gray-800 pt-4">
+                        <li><i class="fa-solid fa-bolt text-indigo-400 mr-2"></i> Unlimited Groups</li>
+                        <li><i class="fa-solid fa-bolt text-indigo-400 mr-2"></i> Unlimited Members</li>
                     </ul>
-                    <button onclick="openPayment('Premium Plan', 100)" class="w-full bg-white text-slate-900 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-colors">Select Premium</button>
+                    <button onclick="openPayment('Premium Plan', 100)" class="w-full bg-white text-gray-900 py-3 rounded-button font-black text-[10px] uppercase">Select Premium</button>
                 </div>
             </div>
 
-            <div id="manual-payment-gateway" class="hidden mt-16 max-w-sm mx-auto animate-fade-in-up">
-                <div class="silk-card p-8 bg-white border border-indigo-100 shadow-2xl">
-                    <div class="text-center mb-8">
-                        <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1">Secure Checkout</p>
-                        <h4 class="text-2xl font-extrabold text-slate-900" id="paying-tier-name">Plan Name</h4>
-                        <div class="mt-4 inline-flex items-baseline gap-1">
-                            <span class="text-lg font-bold">₹</span>
-                            <span class="text-4xl font-black tracking-tight" id="qr-price-display">0</span>
-                        </div>
+            <div id="manual-payment-gateway" class="hidden mt-12 max-w-sm mx-auto text-center animate-bounce-short">
+                <div class="silk-card p-8 bg-white border-2 border-indigo-100">
+                    <p class="text-[10px] font-black text-indigo-500 uppercase mb-4 tracking-widest">Pay For <span id="paying-tier-name">Tier</span></p>
+                    <div class="mb-4">
+                        <p class="text-3xl font-black text-gray-900">₹<span id="qr-price-display">0</span></p>
+                        <p class="text-[9px] font-bold text-gray-400 uppercase">Amount Auto-Locked</p>
                     </div>
-                    
-                    <div class="bg-slate-50 rounded-3xl p-6 border-2 border-dashed border-slate-200 flex items-center justify-center mb-8 aspect-square relative">
-                        <img id="payment-qr" src="" class="max-w-full max-h-full rounded-xl mix-blend-multiply" alt="Payment QR">
-                        <div class="absolute inset-0 bg-white/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
-                            <p class="text-[10px] font-bold text-slate-900 uppercase">Scan with any UPI App</p>
-                        </div>
+                    <div class="w-full aspect-square bg-gray-100 rounded-3xl flex items-center justify-center mb-6 overflow-hidden border-2 border-dashed border-gray-200 p-4">
+                        <img id="payment-qr" src="" class="w-full h-full object-contain">
                     </div>
-                    
-                    <div class="space-y-4">
-                        <div class="relative">
-                            <input type="text" id="tx-id-input" placeholder="Transaction ID / UTR" class="w-full bg-slate-50 border border-slate-100 p-4 rounded-xl font-bold text-center outline-none focus:border-indigo-500 focus:bg-white transition-all text-sm">
-                        </div>
-                        <button onclick="submitPaymentRequest()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs active:scale-[0.98] transition-all">Submit Verification</button>
+                    <div class="space-y-3">
+                        <input type="text" id="tx-id-input" placeholder="Enter Transaction ID" class="w-full bg-gray-50 p-4 rounded-silk font-bold text-center outline-none border-2 border-transparent focus:border-indigo-500 transition-all uppercase text-sm">
+                        <button onclick="submitPaymentRequest()" class="w-full btn-premium py-4 rounded-button font-black uppercase text-[10px]">Submit for Verification</button>
                     </div>
-                    <p class="text-[10px] font-bold text-slate-400 mt-6 text-center italic leading-relaxed">Verification is handled manually.<br>Typical TAT: 30-60 Minutes.</p>
+                    <p class="text-[9px] font-bold text-gray-400 mt-4 italic">Approvals usually take 30-60 minutes</p>
                 </div>
             </div>
-        </main>
+        </div>
 
-        <main id="settings-page" class="view-pane max-w-2xl mx-auto space-y-4 px-4 animate-fade-in">
+        <div id="settings-page" class="view-pane max-w-2xl mx-auto space-y-4">
             <div id="admin-vault-wrapper" class="hidden">
-                <button onclick="toggleCollapse('vault-collapse')" class="collapse-btn bg-slate-900 text-white border-none shadow-xl shadow-slate-200">
+                <button onclick="toggleCollapse('vault-collapse')" class="collapse-btn bg-indigo-900 text-white border-none shadow-xl">
                     <span class="flex items-center gap-3">Subscription Vault <i class="fa-solid fa-shield-halved text-indigo-400"></i></span>
                     <i class="fa-solid fa-chevron-down opacity-50"></i>
                 </button>
-                <div id="vault-collapse" class="collapse-content bg-slate-50 mt-2 rounded-3xl border border-slate-200">
+                <div id="vault-collapse" class="collapse-content bg-gray-50 mt-2 rounded-silk border border-indigo-200">
                     <div id="admin-subscription-list" class="space-y-3"></div>
                 </div>
             </div>
-
             <div id="install-wrapper" class="hidden">
-                <button id="install-btn" class="collapse-btn bg-indigo-50 border-indigo-100">
-                    <span class="text-indigo-900">Install Offline Application</span>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[9px] bg-indigo-600 text-white px-2 py-0.5 rounded font-bold uppercase">PWA</span>
-                        <i class="fa-solid fa-cloud-arrow-down text-indigo-500"></i>
-                    </div>
+                <button id="install-btn" class="collapse-btn bg-indigo-50 border-indigo-100 mb-4">
+                    <span class="text-indigo-900">Install TripSplit Pro</span>
+                    <div class="flex items-center gap-2"><span class="text-[9px] bg-indigo-600 text-white px-2 py-1 rounded-lg">OFFLINE READY</span><i class="fa-solid fa-download text-indigo-500"></i></div>
                 </button>
             </div>
-
-            <button onclick="toggleCollapse('settlement-collapse')" class="collapse-btn bg-emerald-50 border-emerald-100 text-emerald-900">
-                <span>Settlement Center</span>
-                <i class="fa-solid fa-hand-holding-dollar opacity-60"></i>
-            </button>
-            <div id="settlement-collapse" class="collapse-content bg-white mt-2 rounded-3xl border border-emerald-50 shadow-sm">
-                <div id="settlement-list" class="space-y-3"></div>
-            </div>
-
+            <button onclick="toggleCollapse('settlement-collapse')" class="collapse-btn bg-green-50 border-green-100"><span class="text-green-900">Settlement Center</span><i class="fa-solid fa-hand-holding-dollar text-green-500"></i></button>
+            <div id="settlement-collapse" class="collapse-content bg-white mt-2 rounded-silk border border-green-100"><div id="settlement-list" class="space-y-3"></div></div>
             <div id="admin-tickets-wrapper" class="hidden">
-                <button onclick="toggleCollapse('tickets-collapse')" class="collapse-btn bg-rose-50 border-rose-100 text-rose-900">
-                    <span>Pending Join Requests</span>
-                    <i class="fa-solid fa-ticket opacity-60"></i>
-                </button>
-                <div id="tickets-collapse" class="collapse-content bg-white mt-2 rounded-3xl border border-rose-50 shadow-sm">
-                    <div id="ticket-list" class="space-y-3"></div>
-                </div>
+                <button onclick="toggleCollapse('tickets-collapse')" class="collapse-btn bg-red-50 border-red-100"><span class="text-red-900">Pending Join Requests</span><i class="fa-solid fa-ticket text-red-400"></i></button>
+                <div id="tickets-collapse" class="collapse-content bg-white mt-2 rounded-silk border border-red-100"><div id="ticket-list" class="space-y-3"></div></div>
             </div>
-
             <div id="admin-tools-wrapper" class="hidden">
-                <button onclick="toggleCollapse('admin-tools-collapse')" class="collapse-btn">
-                    <span>Add Member Manually</span>
-                    <i class="fa-solid fa-user-plus opacity-30"></i>
-                </button>
-                <div id="admin-tools-collapse" class="collapse-content bg-white mt-2 rounded-3xl border border-slate-100 shadow-sm">
-                    <div class="flex flex-col gap-3">
-                        <input type="text" id="new-mem-name" placeholder="Display Name" class="w-full p-4 bg-slate-50 rounded-xl font-bold border-none text-sm focus:ring-2 focus:ring-indigo-100 transition-all">
-                        <input type="email" id="new-mem-email" placeholder="Email Address" class="w-full p-4 bg-slate-50 rounded-xl font-bold border-none text-sm focus:ring-2 focus:ring-indigo-100 transition-all">
-                        <button onclick="adminAddMember()" class="bg-indigo-600 text-white w-full py-4 rounded-xl font-bold text-xs uppercase tracking-widest mt-2">Provision Member</button>
-                    </div>
-                </div>
+                <button onclick="toggleCollapse('admin-tools-collapse')" class="collapse-btn"><span>Add Member Manually</span><i class="fa-solid fa-chevron-down opacity-30"></i></button>
+                <div id="admin-tools-collapse" class="collapse-content bg-white mt-2 rounded-silk border border-gray-100"><div class="flex flex-col gap-3"><input type="text" id="new-mem-name" placeholder="Name" class="w-full p-4 bg-gray-50 rounded-xl font-bold border-none"><input type="email" id="new-mem-email" placeholder="Email" class="w-full p-4 bg-gray-50 rounded-xl font-bold border-none"><button onclick="adminAddMember()" class="bg-indigo-600 text-white w-full py-4 rounded-xl font-black text-xs uppercase">Confirm & Add</button></div></div>
             </div>
+            <button onclick="toggleCollapse('member-list-collapse')" class="collapse-btn"><span>Circle Members</span><i class="fa-solid fa-users opacity-30"></i></button>
+            <div id="member-list-collapse" class="collapse-content bg-white mt-2 rounded-silk border border-gray-100"><div id="member-settings-list" class="space-y-3"></div></div>
+            <div class="p-8 silk-card bg-gray-50 text-center"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Workspace ID</p><p onclick="copyGroupId()" class="text-xl font-black text-indigo-600 cursor-pointer tracking-tighter" id="settings-id-display">...</p></div>
+        </div>
 
-            <button onclick="toggleCollapse('member-list-collapse')" class="collapse-btn">
-                <span>Circle Directory</span>
-                <i class="fa-solid fa-users opacity-30"></i>
-            </button>
-            <div id="member-list-collapse" class="collapse-content bg-white mt-2 rounded-3xl border border-slate-100 shadow-sm">
-                <div id="member-settings-list" class="space-y-2"></div>
+        <div id="profile-page" class="view-pane max-w-md mx-auto text-center silk-card p-10">
+            <img id="profile-img-large" src="" class="w-28 h-28 rounded-3xl mx-auto mb-6 shadow-2xl">
+            <h2 id="profile-name-large" class="text-3xl font-black text-gray-900 tracking-tight">...</h2>
+            <p id="profile-email-large" class="text-gray-400 font-bold mb-2">...</p>
+            <p id="profile-account-type" class="text-[10px] font-black text-indigo-500 bg-indigo-50 inline-block px-4 py-1 rounded-full uppercase tracking-widest mb-6">...</p>
+            <div onclick="showView('plans-page')" class="bg-indigo-600 text-white p-5 rounded-2xl cursor-pointer mt-4 hover:scale-[1.02] transition-transform shadow-xl">
+                <p id="profile-plan-name" class="text-[9px] font-black uppercase text-indigo-200">Current Plan: Free Starter</p>
+                <p class="font-black">View Premium Plans</p>
             </div>
-
-            <div class="p-8 silk-card bg-slate-50 text-center border-dashed">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Workspace ID</p>
-                <p onclick="copyGroupId()" class="text-2xl font-black text-slate-900 cursor-pointer tracking-tighter hover:text-indigo-600 transition-colors" id="settings-id-display">...</p>
-                <p class="text-[9px] text-slate-400 mt-2 font-medium">Click to share with team</p>
+            <div onclick="copyGroupId()" class="bg-gray-50 p-4 rounded-2xl cursor-pointer mt-4">
+                <p class="text-[9px] font-black text-gray-400 uppercase">Workspace ID (Click to Copy)</p>
+                <p class="font-black text-gray-800" id="profile-id-display">...</p>
             </div>
-        </main>
-
-        <main id="profile-page" class="view-pane max-w-md mx-auto px-4 animate-fade-in">
-            <div class="silk-card p-10 text-center">
-                <div class="relative w-32 h-32 mx-auto mb-8">
-                    <img id="profile-img-large" src="" class="w-full h-full rounded-3xl shadow-2xl border-4 border-white object-cover">
-                    <div class="absolute -bottom-2 -right-2 bg-white p-2 rounded-2xl shadow-lg">
-                        <i class="fa-solid fa-check-circle text-indigo-500 text-xl"></i>
-                    </div>
-                </div>
-                <h2 id="profile-name-large" class="text-3xl font-extrabold text-slate-900 tracking-tight">...</h2>
-                <p id="profile-email-large" class="text-slate-400 font-semibold mb-6">...</p>
-                
-                <span id="profile-account-type" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-4 py-1.5 rounded-full uppercase tracking-[0.2em]">...</span>
-                
-                <div class="grid gap-3 mt-10">
-                    <div onclick="showView('plans-page')" class="bg-slate-900 text-white p-6 rounded-3xl cursor-pointer hover:scale-[1.02] transition-transform shadow-xl text-left flex justify-between items-center group">
-                        <div>
-                            <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Membership</p>
-                            <p class="font-bold">Manage Subscription</p>
-                        </div>
-                        <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <div onclick="copyGroupId()" class="bg-white border border-slate-100 p-6 rounded-3xl cursor-pointer hover:bg-slate-50 transition-colors text-left flex justify-between items-center">
-                        <div>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Active Workspace</p>
-                            <p class="font-bold text-slate-900" id="profile-id-display">...</p>
-                        </div>
-                        <i class="fa-regular fa-copy text-slate-300"></i>
-                    </div>
-                    <button onclick="signOutNow()" class="w-full bg-rose-50 text-rose-600 font-bold py-5 rounded-3xl mt-4 hover:bg-rose-100 transition-colors uppercase tracking-widest text-xs">Terminate Session</button>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="subscription-nag-modal" class="modal-overlay">
-        <div class="modal-content-silk text-center max-w-sm" onclick="redirectToPlans()">
-            <button onclick="event.stopPropagation(); hideModals()" class="modal-close-btn"><i class="fa-solid fa-circle-xmark"></i></button>
-            <div class="w-20 h-20 bg-amber-50 text-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-6 text-3xl pulse">
-                <i class="fa-solid fa-crown"></i>
-            </div>
-            <h3 class="text-2xl font-extrabold mb-3">Upgrade Required</h3>
-            <p class="text-slate-500 font-medium mb-8 px-2 leading-relaxed text-sm">You are currently using the limited version. Unlock multi-group support and larger circles today.</p>
-            <button class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg shadow-indigo-100">Browse Plans</button>
+            <button onclick="signOutNow()" class="w-full bg-red-50 text-red-500 font-black py-4 rounded-button mt-6">Logout</button>
         </div>
     </div>
 
-    <div id="member-modal-overlay" class="modal-overlay">
-        <div class="modal-content-silk text-center max-w-sm">
-            <button onclick="hideModals()" class="modal-close-btn"><i class="fa-solid fa-circle-xmark"></i></button>
-            <div class="w-24 h-24 bg-slate-100 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-4xl overflow-hidden border-4 border-white shadow-xl">
-                <img id="modal-member-img" src="" class="hidden w-full h-full object-cover">
-                <i id="modal-member-icon" class="fa-solid fa-user text-slate-300"></i>
-            </div>
-            <h3 id="modal-member-name" class="text-2xl font-extrabold text-slate-900">Member Name</h3>
-            <p id="modal-member-email" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">email@example.com</p>
-            
-            <div class="bg-indigo-600 rounded-3xl p-8 mb-6 text-white shadow-xl shadow-indigo-100">
-                <p class="text-[10px] font-bold text-indigo-200 uppercase tracking-[0.2em] mb-2">Running Balance</p>
-                <p id="modal-member-balance" class="text-4xl font-black">₹0</p>
-            </div>
-            
-            <button onclick="toggleMemberContribution()" class="w-full bg-slate-50 py-4 rounded-2xl font-bold text-[10px] uppercase tracking-widest text-slate-500 hover:bg-slate-100 transition-all">
-                <span id="contribution-toggle-text">View History</span>
-            </button>
-            <div id="member-contribution-list" class="member-detail-scroll mt-4 space-y-2"></div>
-        </div>
-    </div>
-
-    <div id="all-members-modal-overlay" class="modal-overlay">
-        <div class="modal-content-silk">
-            <button onclick="hideModals()" class="modal-close-btn"><i class="fa-solid fa-circle-xmark"></i></button>
-            <h3 class="text-2xl font-extrabold text-slate-900 mb-2">Circle Directory</h3>
-            <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-8">Full participant list</p>
-            
-            <div class="glass-search flex items-center px-5 py-4 mb-6 sticky top-0 z-10">
-                <i class="fa-solid fa-magnifying-glass text-slate-300 mr-3"></i>
-                <input type="text" id="member-search-input" oninput="filterDirectory()" placeholder="Filter by name or email..." class="bg-transparent border-none outline-none w-full font-bold text-sm text-slate-700">
-            </div>
-            
-            <div id="full-directory-list" class="space-y-3 overflow-y-auto pr-2 custom-scrollbar" style="max-height: 55vh;"></div>
-        </div>
-    </div>
-
-    <div id="creation-modal-overlay" class="modal-overlay">
-        <div class="modal-content-silk max-w-sm">
-            <button onclick="hideModals()" class="modal-close-btn"><i class="fa-solid fa-circle-xmark"></i></button>
-            <h2 class="text-2xl font-extrabold mb-8 text-slate-900 text-center">New Circle</h2>
-            <div class="space-y-6">
-                <input type="text" id="pop-group-name" placeholder="Name your trip..." class="w-full bg-slate-50 p-5 rounded-2xl font-bold border-none outline-none focus:ring-2 focus:ring-indigo-100">
-                <button onclick="finalizeCreation()" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl shadow-indigo-100">Launch Workspace</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="join-modal-overlay" class="modal-overlay">
-        <div class="modal-content-silk text-center max-w-sm">
-            <button onclick="hideModals()" class="modal-close-btn"><i class="fa-solid fa-circle-xmark"></i></button>
-            <h3 class="text-xl font-extrabold mb-8">Enter Circle ID</h3>
-            <input type="text" id="manual-id" placeholder="ID-XXXX-XXXX" class="w-full p-5 bg-slate-50 rounded-2xl font-black text-center mb-6 border-none outline-none uppercase tracking-widest">
-            <button onclick="requestJoinGroup()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs">Request Access</button>
-        </div>
-    </div>
-
-    <div id="settle-modal-overlay" class="modal-overlay">
-        <div class="modal-content-silk text-center max-w-sm">
-            <button onclick="hideModals()" class="modal-close-btn"><i class="fa-solid fa-circle-xmark"></i></button>
-            <h3 class="text-xl font-extrabold mb-2">Settle Balance</h3>
-            <p id="settle-user-name" class="text-indigo-600 font-bold text-[10px] uppercase mb-8 tracking-[0.2em]">Username</p>
-            <div class="relative mb-8">
-                <span class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-xl">₹</span>
-                <input type="number" id="settle-amount-input" class="w-full p-6 pl-12 bg-slate-50 rounded-3xl font-black border-none text-3xl focus:ring-2 focus:ring-emerald-100">
-            </div>
-            <button id="confirm-settle-btn" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg shadow-emerald-50 active:scale-95 transition-all">Confirm Payment</button>
-        </div>
-    </div>
-
-    <div id="delete-modal-overlay" class="modal-overlay">
-        <div class="modal-content-silk text-center max-w-sm">
-            <div class="w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center mx-auto mb-6 text-3xl">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-            <h3 id="delete-modal-title" class="text-2xl font-extrabold mb-3">Are you sure?</h3>
-            <p id="delete-modal-desc" class="text-slate-500 font-medium mb-10 px-4 leading-relaxed text-sm">This action cannot be undone.</p>
-            <div class="flex gap-4">
-                <button onclick="hideModals()" class="flex-1 bg-slate-50 text-slate-500 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest">Cancel</button>
-                <button id="confirm-delete-btn" class="flex-1 bg-rose-500 text-white py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-rose-100">Delete</button>
-            </div>
+    <div id="subscription-nag-modal" class="modal-overlay" style="z-index: 250;">
+        <div class="modal-content-silk text-center sub-popup-trigger" onclick="redirectToPlans()">
+            <button onclick="event.stopPropagation(); hideModals()" class="absolute top-6 right-6 text-gray-300 hover:text-red-400 transition-colors"><i class="fa-solid fa-circle-xmark text-2xl"></i></button>
+            <div class="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 text-3xl pulse"><i class="fa-solid fa-crown"></i></div>
+            <h3 class="text-2xl font-black mb-2">Upgrade Required</h3>
+            <p class="text-gray-500 font-bold mb-8 px-4 leading-relaxed text-sm">You are not currently subscribed to a plan. Tap here to view subscription options and unlock full features.</p>
+            <button class="w-full bg-indigo-600 text-white py-4 rounded-button font-black uppercase shadow-lg">View Plans</button>
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="script.js"></script>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyCpLtdJ4lACW9pNn8fAUmooooqzh_5TIO4", authDomain: "trip-ddc48.firebaseapp.com", databaseURL: "https://trip-ddc48-default-rtdb.firebaseio.com", projectId: "trip-ddc48", storageBucket: "trip-ddc48.firebasestorage.app" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database(), auth = firebase.auth(), provider = new firebase.auth.GoogleAuthProvider();
+        let currentGroupId = null, groupMembers = [], isAdmin = false, currentGroupExpenses = {};
+
+        const OWNER_EMAIL = "akhilgoel@gmail.com"; 
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'silk-toast'; toast.innerText = msg;
+            container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
+        }
+
+        // DEBUGGED: Real-time listener for changes
+        function checkSubscriptionStatus(uid) {
+            db.ref(`active_subscriptions/${uid}`).on('value', snapshot => {
+                const planTag = document.getElementById('profile-plan-name');
+                if (snapshot.exists()) {
+                    const sub = snapshot.val();
+                    document.getElementById('subscription-nag-modal').style.display = 'none';
+                    planTag.innerText = `Current Plan: ${sub.plan}`;
+                    planTag.classList.replace('text-indigo-200', 'text-white');
+                } else {
+                    document.getElementById('subscription-nag-modal').style.display = 'flex';
+                    planTag.innerText = `Current Plan: Free Starter`;
+                }
+            });
+        }
+
+        window.redirectToPlans = () => { hideModals(); showView('plans-page'); };
+
+        auth.onAuthStateChanged(async (u) => {
+            if (u) {
+                document.getElementById('user-photo').src = u.photoURL;
+                document.getElementById('profile-img-large').src = u.photoURL;
+                document.getElementById('profile-name-large').innerText = u.displayName;
+                document.getElementById('profile-email-large').innerText = u.email;
+                document.getElementById('login-container').classList.add('hidden');
+                document.getElementById('group-discovery').classList.remove('hidden');
+                
+                checkSubscriptionStatus(u.uid);
+
+                if(u.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
+                    document.getElementById('admin-vault-wrapper').classList.remove('hidden');
+                    listenForSubscriptionRequests();
+                }
+                discoverGroups(u.email.toLowerCase());
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('app-content').classList.add('hidden');
+            }
+        });
+
+        let selectedTier = '';
+        window.openPayment = (tier, price) => {
+            const MY_UPI_ID = "akhilgoel985-2@okaxis";
+            const MY_NAME = "Akhil Goel";
+            selectedTier = tier;
+            document.getElementById('paying-tier-name').innerText = tier;
+            document.getElementById('qr-price-display').innerText = price;
+            const upiLink = `upi://pay?pa=${MY_UPI_ID}&pn=${encodeURIComponent(MY_NAME)}&am=${price}&cu=INR&tn=TripSplit_${tier}`;
+            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiLink)}`;
+            document.getElementById('payment-qr').src = qrImageUrl;
+            document.getElementById('manual-payment-gateway').classList.remove('hidden');
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        };
+
+        // DEBUGGED: Now sends UID
+        window.submitPaymentRequest = async () => {
+            const txId = document.getElementById('tx-id-input').value.trim();
+            if(!txId) { showToast("Enter Transaction ID"); return; }
+            const u = auth.currentUser;
+            await db.ref('subscription_requests').push({
+                uid: u.uid, // CRITICAL: Added UID
+                userEmail: u.email.toLowerCase(),
+                userName: u.displayName,
+                tier: selectedTier,
+                transactionId: txId,
+                status: 'pending',
+                date: new Date().toLocaleString()
+            });
+            showToast("Request Sent! Pending Approval.");
+            document.getElementById('tx-id-input').value = '';
+            document.getElementById('manual-payment-gateway').classList.add('hidden');
+        };
+
+        // DEBUGGED: Admin List View for Owner
+        function listenForSubscriptionRequests() {
+            db.ref('subscription_requests').on('value', snap => {
+                const list = document.getElementById('admin-subscription-list'); list.innerHTML = '';
+                if(!snap.exists()) { list.innerHTML = '<p class="text-center py-4 text-xs opacity-50">Empty Vault</p>'; return; }
+                snap.forEach(req => {
+                    const r = req.val();
+                    list.innerHTML += `<div class="p-5 bg-white rounded-3xl border border-indigo-100 flex flex-col gap-3">
+                        <div class="flex justify-between items-start"><div><p class="font-black text-xs text-gray-900">${r.userName}</p><p class="text-[10px] font-bold text-gray-400 uppercase">${r.userEmail}</p></div><span class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg text-[8px] font-black uppercase">${r.tier}</span></div>
+                        <div class="bg-gray-100 p-3 rounded-2xl"><p class="text-[9px] font-black text-gray-400 uppercase mb-1">TXID: ${r.transactionId}</p></div>
+                        <div class="flex gap-2">
+                            <button onclick="resolveSubscription('${req.key}', 'approved', '${r.userEmail}', '${r.tier}', '${r.userName}', '${r.uid}')" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-black text-[10px] uppercase">Approve</button>
+                            <button onclick="resolveSubscription('${req.key}', 'rejected', '${r.userEmail}', '${r.tier}', '${r.userName}', '${r.uid}')" class="flex-1 bg-red-50 text-red-500 py-3 rounded-xl font-black text-[10px] uppercase">Reject</button>
+                        </div>
+                    </div>`;
+                });
+            });
+        }
+
+        // DEBUGGED: Advanced resolution logic inside User App
+        window.resolveSubscription = async (key, status, email, tier, userName, uid) => {
+            const approved = (status === 'approved');
+            const updates = {};
+            
+            if (approved) {
+                // Update active_subscriptions
+                updates[`active_subscriptions/${uid}`] = {
+                    plan: tier,
+                    status: 'active',
+                    activatedAt: Date.now()
+                };
+                
+                // Add to Timeline (find group owned by user)
+                const groupSnap = await db.ref('groups').get();
+                if(groupSnap.exists()){
+                    Object.entries(groupSnap.val()).forEach(([gid, gdata]) => {
+                        if(gdata.admin === email.toLowerCase()) {
+                            const newLogKey = db.ref(`groups/${gid}/expenses`).push().key;
+                            updates[`groups/${gid}/expenses/${newLogKey}`] = {
+                                title: `✨ PRO ACTIVATED: ${tier}`,
+                                amount: 0, involved: [userName.split(' ')[0]],
+                                by: "SYSTEM", date: new Date().toLocaleDateString(), type: 'settlement'
+                            };
+                        }
+                    });
+                }
+            } else {
+                // Add rejection alert to Timeline
+                const groupSnap = await db.ref('groups').get();
+                if(groupSnap.exists()){
+                    Object.entries(groupSnap.val()).forEach(([gid, gdata]) => {
+                        if(gdata.admin === email.toLowerCase()) {
+                            const newLogKey = db.ref(`groups/${gid}/expenses`).push().key;
+                            updates[`groups/${gid}/expenses/${newLogKey}`] = {
+                                title: `⚠️ REQUEST REJECTED: ${tier}`,
+                                amount: 0, involved: [userName.split(' ')[0]],
+                                by: "SYSTEM", date: new Date().toLocaleDateString()
+                            };
+                        }
+                    });
+                }
+            }
+            
+            updates[`subscription_requests/${key}`] = null;
+            await db.ref().update(updates);
+            showToast(approved ? "Subscription Approved!" : "Request Rejected");
+        }
+
+        // All core app functions like discoverGroups, startApp, logExpense, etc. follow here...
+        // ... [Rest of your original code remains exactly the same] ...
+        
+        function discoverGroups(email) {
+            db.ref('groups').on('value', (snap) => {
+                const list = document.getElementById('my-groups-list'); list.innerHTML = '';
+                if (snap.exists()) {
+                    const groups = snap.val();
+                    for (let id in groups) {
+                        const members = groups[id].members || [];
+                        if (members.some(m => m.email === email)) {
+                            const isOwner = groups[id].admin === email;
+                            list.innerHTML += `<div class="silk-card p-6 bg-white flex justify-between items-center mb-2"><div class="cursor-pointer flex-1" onclick="startApp('${id}', '${groups[id].name}')"><h4 class="font-bold text-gray-800">${groups[id].name}</h4><p class="text-[9px] font-black text-indigo-600 uppercase">${id}</p></div></div>`;
+                        }
+                    }
+                }
+            });
+        }
+
+        window.startApp = (id, name) => {
+            currentGroupId = id;
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-content').classList.remove('hidden');
+            document.getElementById('display-group-name').innerText = name;
+            document.getElementById('settings-id-display').innerText = id;
+            document.getElementById('profile-id-display').innerText = id;
+            db.ref(`groups/${id}`).on('value', (snapshot) => {
+                const data = snapshot.val(); if(!data) return;
+                groupMembers = data.members || [];
+                currentGroupExpenses = data.expenses || {};
+                isAdmin = (data.admin === auth.currentUser.email.toLowerCase());
+                document.getElementById('profile-account-type').innerText = isAdmin ? "Group Admin" : "Group Member";
+                document.getElementById('admin-tools-wrapper').classList.toggle('hidden', !isAdmin);
+                document.getElementById('admin-tickets-wrapper').classList.toggle('hidden', !isAdmin);
+                renderUI(currentGroupExpenses);
+                renderSettingsMembers(data.admin);
+            });
+        };
+
+        function renderUI(expenses) {
+            document.getElementById('split-selectors').innerHTML = groupMembers.map((m, i) => `<button onclick="this.classList.toggle('active-chip')" data-name="${m.name}" class="member-chip active-chip theme-${i % 4}"><i class="fa-solid fa-check"></i> ${m.name}</button>`).join('');
+            let total = 0, balances = {}; groupMembers.forEach(m => balances[m.name] = 0);
+            const feed = document.getElementById('activity-feed'); feed.innerHTML = '';
+            Object.entries(expenses).reverse().forEach(([key, exp]) => {
+                let splitDetailHTML = '';
+                if (exp.type === 'settlement') {
+                    balances[exp.payer] -= exp.amount; splitDetailHTML = `<span class="mini-badge bg-green-100 text-green-700">Settled by ${exp.payer}</span>`;
+                } else {
+                    total += exp.amount; const split = Math.round(exp.amount / (exp.involved?.length || 1));
+                    exp.involved?.forEach(name => { if (balances.hasOwnProperty(name)) balances[name] += split; });
+                    splitDetailHTML = exp.involved ? exp.involved.map(n => `<span class="mini-badge bg-white shadow-sm border border-gray-100">${n}: <span class="text-indigo-600">₹${split}</span></span>`).join('') : '';
+                }
+                feed.innerHTML += `<div class="p-6 ${exp.type === 'settlement' ? 'bg-green-50' : 'bg-gray-50'} rounded-silk flex flex-col mb-3"><div class="flex justify-between items-center mb-2"><div><h4 class="font-extrabold text-gray-800">${exp.title}</h4></div><p class="text-xl font-black ${exp.type === 'settlement' ? 'text-green-600' : 'text-gray-900'}">₹${exp.amount}</p></div><div class="flex flex-wrap gap-1">${splitDetailHTML}</div></div>`;
+            });
+            document.getElementById('grand-total').innerText = "₹" + total.toLocaleString();
+            const statsGrid = document.getElementById('stats-grid');
+            statsGrid.innerHTML = groupMembers.map((m, i) => `<div class="silk-card p-6 theme-${i % 4} member-stat-card"><p class="text-[10px] font-black uppercase opacity-70">${m.name}</p><p class="text-2xl font-black">₹${balances[m.name] || 0}</p></div>`).join('');
+            window.currentBalances = balances;
+        }
+
+        window.logExpense = () => { const t = document.getElementById('bill-title').value, a = parseFloat(document.getElementById('bill-amount').value); const sel = Array.from(document.querySelectorAll('#split-selectors .active-chip')).map(b => b.dataset.name); if(t && a && sel.length) { db.ref(`groups/${currentGroupId}/expenses`).push({ title: t, amount: a, involved: sel, by: auth.currentUser.displayName.split(' ')[0], date: new Date().toLocaleDateString() }); document.getElementById('bill-title').value = ''; document.getElementById('bill-amount').value = ''; showToast("Published!"); } };
+        window.showView = (v) => { document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active-view')); document.getElementById(v).classList.add('active-view'); window.scrollTo(0,0); };
+        window.hideModals = () => { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); };
+        window.signOutNow = () => auth.signOut().then(() => location.reload());
+        document.getElementById('google-login-btn').onclick = () => auth.signInWithPopup(provider);
+        window.copyGroupId = () => { if (currentGroupId) { navigator.clipboard.writeText(currentGroupId).then(() => showToast("Copied!")); } else { showToast("Join a circle!"); } };
+        window.finalizeCreation = async () => { const gn = document.getElementById('pop-group-name').value.trim(); if(!gn) return; const id = "CIRCLE-" + Math.random().toString(36).substr(2, 4).toUpperCase(); await db.ref(`groups/${id}`).set({ name: gn, members: [{name: auth.currentUser.displayName.split(' ')[0], email: auth.currentUser.email.toLowerCase()}], admin: auth.currentUser.email.toLowerCase() }); hideModals(); showToast("Created!"); };
+        window.requestJoinGroup = async () => { const id = document.getElementById('manual-id').value.trim().toUpperCase(); const snap = await db.ref(`groups/${id}`).get(); if(snap.exists()){ const u = auth.currentUser; await db.ref(`groups/${id}/tickets`).push({ name: u.displayName, email: u.email.toLowerCase() }); showToast("Sent!"); hideModals(); } else showToast("Invalid ID"); };
+        window.toggleCollapse = (id) => { const el = document.getElementById(id); el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none'; };
+        window.showCreationPopup = () => document.getElementById('creation-modal-overlay').style.display = 'flex';
+        window.showJoinManual = () => document.getElementById('join-modal-overlay').style.display = 'flex';
+        function renderSettingsMembers(adminEmail) { document.getElementById('member-settings-list').innerHTML = groupMembers.map((m, i) => `<div class="p-5 silk-card theme-${i % 4} flex justify-between items-center"><div class="flex flex-col"><div class="flex items-center gap-2"><p class="font-black text-gray-800">${m.name}</p></div><p class="text-xs font-bold opacity-60 uppercase">${m.email}</p></div></div>`).join(''); }
+    </script>
 </body>
 </html>
