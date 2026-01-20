@@ -200,9 +200,9 @@
             <img id="profile-img-large" src="" class="w-28 h-28 rounded-3xl mx-auto mb-6 shadow-2xl">
             <h2 id="profile-name-large" class="text-3xl font-black text-gray-900">...</h2>
             <p id="profile-email-large" class="text-gray-400 font-bold mb-6">...</p>
-            <div onclick="showView('plans-page')" class="bg-indigo-600 text-white p-5 rounded-2xl cursor-pointer shadow-xl">
-                <p id="profile-plan-status" class="text-[9px] font-black uppercase text-indigo-200">Current Plan: Free Starter</p>
-                <p class="font-black">View Premium Plans</p>
+            <div id="profile-status-box" onclick="showView('plans-page')" class="bg-gray-100 text-gray-500 p-5 rounded-2xl cursor-pointer shadow-xl transition-all">
+                <p id="profile-plan-status" class="text-[9px] font-black uppercase">Current Plan: Free Starter</p>
+                <p id="profile-plan-action" class="font-black">View Premium Plans</p>
             </div>
             <button onclick="signOutNow()" class="w-full bg-red-50 text-red-500 font-black py-4 rounded-button mt-6">Logout</button>
         </div>
@@ -236,17 +236,28 @@
             container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
         }
 
-        // --- DEBUGGED: Real-time Listener for Instant Updates ---
+        // --- FIXED: Visual Confirmation in Profile ---
         function checkSubscriptionStatus(uid) {
             db.ref(`active_subscriptions/${uid}`).on('value', snapshot => {
                 const statusTag = document.getElementById('profile-plan-status');
+                const actionTag = document.getElementById('profile-plan-action');
+                const statusBox = document.getElementById('profile-status-box');
+
                 if (snapshot.exists()) {
                     const subData = snapshot.val();
                     document.getElementById('subscription-nag-modal').style.display = 'none';
-                    if(statusTag) statusTag.innerText = `Current Plan: ${subData.plan || 'Active'}`;
+                    
+                    // Update UI Colors and Text
+                    statusBox.className = "bg-indigo-600 text-white p-5 rounded-2xl cursor-pointer shadow-xl transition-all";
+                    statusTag.className = "text-[9px] font-black uppercase text-indigo-200";
+                    statusTag.innerText = `Premium Verified Account`;
+                    actionTag.innerText = subData.plan || 'Standard Pro Plan';
                 } else {
                     document.getElementById('subscription-nag-modal').style.display = 'flex';
-                    if(statusTag) statusTag.innerText = `Current Plan: Free Starter`;
+                    statusBox.className = "bg-gray-100 text-gray-500 p-5 rounded-2xl cursor-pointer shadow-xl transition-all";
+                    statusTag.className = "text-[9px] font-black uppercase text-gray-400";
+                    statusTag.innerText = `Current Plan: Free Starter`;
+                    actionTag.innerText = `View Premium Plans`;
                 }
             });
         }
@@ -273,13 +284,12 @@
             }
         });
 
-        // --- DEBUGGED: Sends UID so Admin can find the user ---
         window.submitPaymentRequest = async () => {
             const txId = document.getElementById('tx-id-input').value.trim();
             if(!txId) { showToast("Enter Transaction ID"); return; }
             const u = auth.currentUser;
             await db.ref('subscription_requests').push({
-                uid: u.uid, // <--- THE FIX
+                uid: u.uid,
                 userEmail: u.email.toLowerCase(),
                 userName: u.displayName,
                 tier: selectedTier,
@@ -287,12 +297,11 @@
                 status: 'pending',
                 date: new Date().toLocaleString()
             });
-            showToast("Request Sent! Manual Verification Pending.");
+            showToast("Request Sent! Pending Approval.");
             document.getElementById('tx-id-input').value = '';
             document.getElementById('manual-payment-gateway').classList.add('hidden');
         };
 
-        // Subscription resolution for Owner view
         function listenForSubscriptionRequests() {
             db.ref('subscription_requests').on('value', snap => {
                 const list = document.getElementById('admin-subscription-list'); list.innerHTML = '';
@@ -330,7 +339,6 @@
             showToast(approve ? "Pro Activated" : "Rejected");
         };
 
-        // Core App Logic (Preserved)
         function discoverGroups(email) {
             db.ref('groups').on('value', (snap) => {
                 const list = document.getElementById('my-groups-list'); list.innerHTML = '';
@@ -362,31 +370,37 @@
             });
         };
 
+        // --- FIXED: Enhanced Timeline for Plan Activation ---
         function renderUI(expenses) {
             document.getElementById('split-selectors').innerHTML = groupMembers.map((m, i) => `<button onclick="this.classList.toggle('active-chip')" data-name="${m.name}" class="member-chip active-chip theme-${i % 4}"><i class="fa-solid fa-check"></i> ${m.name}</button>`).join('');
             let total = 0, balances = {}; groupMembers.forEach(m => balances[m.name] = 0);
             const feed = document.getElementById('activity-feed'); feed.innerHTML = '';
             Object.entries(expenses).reverse().forEach(([key, exp]) => {
-                if (exp.type === 'settlement') { balances[exp.payer] -= exp.amount; }
-                else { total += exp.amount; const split = Math.round(exp.amount / (exp.involved?.length || 1)); exp.involved?.forEach(n => { if (balances.hasOwnProperty(n)) balances[n] += split; }); }
-                feed.innerHTML += `<div class="p-6 ${exp.type === 'settlement' ? 'bg-green-50' : 'bg-gray-50'} rounded-silk flex flex-col mb-3"><div class="flex justify-between items-center mb-2"><h4 class="font-extrabold text-gray-800">${exp.title}</h4><p class="text-xl font-black">₹${exp.amount}</p></div></div>`;
+                if (exp.type === 'settlement') { 
+                    balances[exp.payer] -= exp.amount; 
+                    // Special rendering for Plan Activation
+                    const isPlan = exp.title.includes("PLAN ACTIVATED") || exp.title.includes("PRO ACTIVATED");
+                    feed.innerHTML += `
+                    <div class="p-6 ${isPlan ? 'bg-indigo-600 text-white' : 'bg-green-50 text-green-700'} rounded-silk flex flex-col mb-3 shadow-lg">
+                        <div class="flex justify-between items-center">
+                            <div><h4 class="font-black uppercase tracking-tighter text-sm">${exp.title}</h4><p class="text-[9px] font-bold opacity-70">${exp.date}</p></div>
+                            <div class="text-xl"><i class="fa-solid ${isPlan ? 'fa-crown' : 'fa-check-double'}"></i></div>
+                        </div>
+                    </div>`;
+                } else { 
+                    total += exp.amount; 
+                    const split = Math.round(exp.amount / (exp.involved?.length || 1)); 
+                    exp.involved?.forEach(n => { if (balances.hasOwnProperty(n)) balances[n] += split; }); 
+                    feed.innerHTML += `<div class="p-6 bg-gray-50 rounded-silk flex flex-col mb-3"><div class="flex justify-between items-center mb-2"><h4 class="font-extrabold text-gray-800">${exp.title}</h4><p class="text-xl font-black">₹${exp.amount}</p></div><p class="text-[10px] font-bold text-gray-400">Paid by ${exp.by}</p></div>`;
+                }
             });
             document.getElementById('grand-total').innerText = "₹" + total.toLocaleString();
             document.getElementById('stats-grid').innerHTML = groupMembers.map((m, i) => `<div class="silk-card p-6 theme-${i % 4}"><p class="text-[10px] font-black uppercase">${m.name}</p><p class="text-2xl font-black">₹${balances[m.name] || 0}</p></div>`).join('');
         }
 
         window.logExpense = () => { const t = document.getElementById('bill-title').value, a = parseFloat(document.getElementById('bill-amount').value); const sel = Array.from(document.querySelectorAll('#split-selectors .active-chip')).map(b => b.dataset.name); if(t && a && sel.length) { db.ref(`groups/${currentGroupId}/expenses`).push({ title: t, amount: a, involved: sel, by: auth.currentUser.displayName.split(' ')[0], date: new Date().toLocaleDateString() }); document.getElementById('bill-title').value = ''; document.getElementById('bill-amount').value = ''; showToast("Published!"); } };
-        
         let selectedTier = '';
-        window.openPayment = (tier, price) => {
-            selectedTier = tier;
-            document.getElementById('paying-tier-name').innerText = tier;
-            document.getElementById('qr-price-display').innerText = price;
-            const upiLink = `upi://pay?pa=akhilgoel985-2@okaxis&pn=AkhilGoel&am=${price}&cu=INR&tn=TripSplit_${tier}`;
-            document.getElementById('payment-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiLink)}`;
-            document.getElementById('manual-payment-gateway').classList.remove('hidden');
-        };
-
+        window.openPayment = (tier, price) => { selectedTier = tier; document.getElementById('paying-tier-name').innerText = tier; document.getElementById('qr-price-display').innerText = price; const upiLink = `upi://pay?pa=akhilgoel985-2@okaxis&pn=AkhilGoel&am=${price}&cu=INR&tn=TripSplit_${tier}`; document.getElementById('payment-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiLink)}`; document.getElementById('manual-payment-gateway').classList.remove('hidden'); };
         window.showView = (v) => { document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active-view')); document.getElementById(v).classList.add('active-view'); window.scrollTo(0,0); };
         window.hideModals = () => { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); };
         window.signOutNow = () => auth.signOut().then(() => location.reload());
