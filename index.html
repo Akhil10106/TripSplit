@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Orbit | Premium Trip Planner</title>
+
+    <link rel="stylesheet" href="orbit-style.css">
+
+</head>
+
+<body>
+
+    <div class="bg-glow"></div>
+
+    
+
+    <main id="app">
+
+        <section id="wizard-container" class="glass-card hidden">
+
+            <div class="wizard-header">
+
+                <div class="brand">
+
+                    <span class="logo-dot"></span>
+
+                    <h1>Orbit</h1>
+
+                </div>
+
+                <div class="progress-bar">
+
+                    <div class="progress-fill" id="progress-fill"></div>
+
+                    <div class="steps-indicator">
+
+                        <span class="step-dot active"></span>
+
+                        <span class="step-dot"></span>
+
+                        <span class="step-dot"></span>
+
+                        <span class="step-dot"></span>
+
+                        <span class="step-dot"></span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div id="step-content">
+
+                <div class="step fade-in" data-step="1">
+
+                    <h2>Where are you heading?</h2>
+
+                    <p class="subtitle">Let's start with the basics of your journey.</p>
+
+                    <div class="input-group">
+
+                        <label>Destination / Trip Name</label>
+
+                        <input type="text" id="trip-name" placeholder="e.g. Summer in Santorini">
+
+                    </div>
+
+                    <div class="grid-2">
+
+                        <div class="input-group">
+
+                            <label>Start Date</label>
+
+                            <input type="date" id="start-date">
+
+                        </div>
+
+                        <div class="input-group">
+
+                            <label>End Date</label>
+
+                            <input type="date" id="end-date">
+
+                        </div>
+
+                    </div>
+
+                    <div class="info-badge hidden" id="duration-badge">
+
+                        Duration: <span id="calc-days">0</span> Days
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="step hidden fade-in" data-step="2">
+
+                    <h2>How are you traveling?</h2>
+
+                    <div class="input-group">
+
+                        <label>Mode of Transport</label>
+
+                        <select id="transport-type">
+
+                            <option value="">Select Method</option>
+
+                            <option value="Flight">Flight</option>
+
+                            <option value="Train">Train</option>
+
+                            <option value="Bus">Bus</option>
+
+                            <option value="Car">Car / Bike</option>
+
+                            <option value="Cruise">Cruise Ship / Ferry</option>
+
+                            <option value="Other">Other</option>
+
+                        </select>
+
+                    </div>
+
+                    <div id="dynamic-transport-form" class="dynamic-area">
+
+                        </div>
+
+                </div>
+
+
+
+                <div class="step hidden fade-in" data-step="3">
+
+                    <h2>Who's joining?</h2>
+
+                    <div class="input-group">
+
+                        <label>Number of Members</label>
+
+                        <input type="number" id="member-count" min="1" value="1">
+
+                    </div>
+
+                    <div id="members-list" class="dynamic-area scrollable">
+
+                        </div>
+
+                </div>
+
+
+
+                <div class="step hidden fade-in" data-step="4">
+
+                    <h2>Staying somewhere?</h2>
+
+                    <div class="toggle-container">
+
+                        <span>No</span>
+
+                        <label class="switch">
+
+                            <input type="checkbox" id="has-hotel">
+
+                            <span class="slider"></span>
+
+                        </label>
+
+                        <span>Yes</span>
+
+                    </div>
+
+                    <div id="hotel-form" class="dynamic-area hidden">
+
+                        <div class="input-group"><label>Hotel Name</label><input type="text" id="hotel-name"></div>
+
+                        <div class="grid-2">
+
+                            <div class="input-group"><label>Check-in</label><input type="date" id="hotel-in"></div>
+
+                            <div class="input-group"><label>Check-out</label><input type="date" id="hotel-out"></div>
+
+                        </div>
+
+                        <div class="input-group"><label>Address</label><input type="text" id="hotel-address"></div>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="step hidden fade-in" data-step="5">
+
+                    <h2>Financial Planning</h2>
+
+                    <div class="grid-2">
+
+                        <div class="input-group"><label>Total Budget</label><input type="number" id="budget-total" placeholder="0.00"></div>
+
+                        <div class="input-group"><label>Transport Cost</label><input type="number" id="budget-transport" class="expense-input" placeholder="0.00"></div>
+
+                        <div class="input-group"><label>Hotel Cost</label><input type="number" id="budget-hotel" class="expense-input" placeholder="0.00"></div>
+
+                        <div class="input-group"><label>Food Budget</label><input type="number" id="budget-food" class="expense-input" placeholder="0.00"></div>
+
+                        <div class="input-group"><label>Other Expenses</label><input type="number" id="budget-other" class="expense-input" placeholder="0.00"></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="wizard-footer">
+
+                <button id="prev-btn" class="btn secondary hidden">Back</button>
+
+                <button id="next-btn" class="btn primary">Continue</button>
+
+            </div>
+
+        </section>
+
+
+
+        <section id="dashboard" class="hidden">
+
+            <header class="dash-navbar">
+
+                <div class="brand">
+
+                    <span class="logo-dot"></span>
+
+                    <h1 id="dash-trip-name">My Awesome Trip</h1>
+
+                </div>
+
+                <div class="dash-meta">
+
+                    <span id="dash-dates" class="meta-date">Loading Dates...</span>
+
+                    <button id="reset-trip" class="btn-icon-danger" title="Reset Trip">
+
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M9 3v1H4v2h1v13a2 2 0 002 2h10a2 2 0 002-2V6h1V4h-5V3H9zM7 6h10v13H7V6zm2 2v9h2V8H9zm4 0v9h2V8h-2z"/></svg>
+
+                    </button>
+
+                </div>
+
+            </header>
+
+
+
+            <div class="dashboard-layout">
+
+                <aside class="dash-sidebar">
+
+                    <div class="glass-card countdown-hero">
+
+                        <p class="label">Journey Begins In</p>
+
+                        <h2 id="days-left">00</h2>
+
+                        <p class="unit">Days</p>
+
+                    </div>
+
+                    
+
+                    <div class="glass-card budget-widget">
+
+                        <div class="widget-header">
+
+                            <h3>Budget Status</h3>
+
+                            <button class="edit-trigger" data-step="5">Manage</button>
+
+                        </div>
+
+                        <div class="progress-circle-container">
+
+                            <svg viewBox="0 0 36 36" class="circular-chart primary">
+
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+
+                                <path id="budget-stroke" class="circle" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+
+                                <text x="18" y="20.35" class="percentage" id="budget-percent">0%</text>
+
+                            </svg>
+
+                        </div>
+
+                        <div class="budget-legend">
+
+                            <div class="leg-item"><span>Used</span><b id="dash-used-budget">$0</b></div>
+
+                            <div class="leg-item"><span>Left</span><b id="dash-rem-budget">$0</b></div>
+
+                        </div>
+
+                    </div>
+
+                </aside>
+
+
+
+                <div class="dash-main">
+
+                    <div class="card-row">
+
+                        <div class="glass-card info-card">
+
+                            <div class="card-head">
+
+                                <div class="icon-wrap transport-icon">✈️</div>
+
+                                <button class="edit-trigger" data-step="2">Edit</button>
+
+                            </div>
+
+                            <h4>Transport Details</h4>
+
+                            <div id="dash-transport-content" class="card-body">
+
+                                </div>
+
+                        </div>
+
+
+
+                        <div class="glass-card info-card">
+
+                            <div class="card-head">
+
+                                <div class="icon-wrap hotel-icon">🏨</div>
+
+                                <button class="edit-trigger" data-step="4">Edit</button>
+
+                            </div>
+
+                            <h4>Accommodation</h4>
+
+                            <div id="dash-hotel-content" class="card-body">
+
+                                </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="glass-card members-card">
+
+                        <div class="card-head">
+
+                            <h4>Travel Companions</h4>
+
+                            <button class="edit-trigger" data-step="3">Manage Members</button>
+
+                        </div>
+
+                        <div id="dash-members-content" class="member-grid">
+
+                            </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <script src="orbit-script.js"></script>
+
+</body>
+
+</html>
