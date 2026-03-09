@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TripCart | Platinum Luxury Edition</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-dashboard">
+
+    <div id="auth-overlay" class="modal-overlay" style="display: none;">
+        <div class="auth-card luxury-glass">
+            <div class="logo-box primary-gradient"><i data-lucide="shopping-cart"></i></div>
+            <h2>TripCart Platinum</h2>
+            <p>Your high-fidelity companion for the Katra Trek 2026</p>
+            <button class="btn btn-primary" id="setup-trip-btn" style="width: 100%; margin-top: 1rem;">
+                <i data-lucide="play"></i> Initialize Expedition
+            </button>
+        </div>
+    </div>
+
+    <aside class="sidebar luxury-glass">
+        <div class="logo">
+            <div class="logo-box primary-gradient"><i data-lucide="shopping-cart"></i></div> 
+            <span>TripCart</span>
+        </div>
+
+        <nav>
+            <button class="nav-link active" onclick="showSection('dashboard')">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </button>
+            <button class="nav-link" onclick="showSection('expenses')">
+                <i data-lucide="receipt"></i> Expenses
+            </button>
+            <button class="nav-link" onclick="showSection('balance')">
+                <i data-lucide="scale"></i> Split Sheet
+            </button>
+            <button class="nav-link" onclick="showSection('members')">
+                <i data-lucide="users"></i> Squad
+            </button>
+            <button class="nav-link" onclick="showSection('profile')">
+                <i data-lucide="settings"></i> System
+            </button>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <p>TripCart V25.0 Platinum</p>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <div class="header-text">
+                <h1 id="section-title">Dashboard</h1>
+                <p id="trip-subtitle">Katra Expedition 2026</p>
+            </div>
+            <div class="header-actions" id="desktop-action-container"></div>
+        </header>
+
+        <section id="dashboard-section" class="section-content">
+            <div class="stats-grid premium-quad-grid">
+                <div class="stat-card primary-gradient">
+                    <div class="card-glass-overlay"></div>
+                    <div class="stat-header">
+                        <p class="stat-label">Total Spend</p>
+                        <span class="verified-badge"><i data-lucide="shield-check"></i> Verified</span>
+                    </div>
+                    <div class="stat-value" id="total-expense-val">₹0</div>
+                    <div class="progress-mini-container">
+                        <div class="progress-bar" id="budget-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="stat-card luxury-card">
+                    <p class="stat-label">Velocity</p>
+                    <div class="stat-value-mid" id="daily-velocity-val">₹0</div>
+                    <p class="stat-sub-text">Avg / Day</p>
+                </div>
+
+                <div class="stat-card luxury-card">
+                    <p class="stat-label">Lead</p>
+                    <div class="spender-profile">
+                        <div class="mini-avatar primary-gradient" id="top-spender-avatar">?</div>
+                        <div class="stat-value-sm" id="top-spender-name">N/A</div>
+                    </div>
+                </div>
+
+                <div class="stat-card luxury-card action-card" onclick="openModal('expenseModal')">
+                    <div class="action-circle primary-gradient">
+                        <i data-lucide="plus"></i>
+                    </div>
+                    <p class="stat-label">Quick Entry</p>
+                </div>
+            </div>
+
+            <div class="panel activity-panel luxury-shadow">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="pulse-icon"></div>
+                        <span>Live Activity Feed</span>
+                    </div>
+                </div>
+                <div class="activity-scroll-container">
+                    <div id="activity-feed" class="activity-list timeline-style">
+                        <p class="empty-msg">Waiting for TripCart telemetry...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="expenses-section" class="section-content hidden">
+            <div class="table-container luxury-glass">
+                <table id="expenses-table">
+                    <thead>
+                        <tr><th>Bill Detail</th><th class="hide-mobile">Payer</th><th>Amount</th><th>Category</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="expenses-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="balance-section" class="section-content hidden">
+            <div id="balance-grid" class="balance-grid"></div>
+        </section>
+
+        <section id="members-section" class="section-content hidden">
+            <div class="group-header-info">
+                <div class="group-meta">
+                    <span class="member-count-badge" id="member-count-val">0 Members</span>
+                    <p>Managing the Katra core squad</p>
+                </div>
+            </div>
+            <div id="members-grid" class="premium-member-grid"></div>
+        </section>
+
+        <section id="profile-section" class="section-content hidden">
+            <div class="profile-container">
+                </div>
+        </section>
+    </main>
+
+    <nav class="mobile-nav luxury-glass">
+        <button class="m-nav-item active" onclick="showSection('dashboard')"><i data-lucide="layout-grid"></i><span>Home</span></button>
+        <button class="m-nav-item" onclick="showSection('expenses')"><i data-lucide="receipt"></i><span>Bills</span></button>
+        <button class="m-nav-item" onclick="showSection('balance')"><i data-lucide="scale"></i><span>Split</span></button>
+        <button class="m-nav-item" onclick="showSection('members')"><i data-lucide="users"></i><span>Squad</span></button>
+        <button class="m-nav-item" onclick="showSection('profile')"><i data-lucide="settings"></i><span>System</span></button>
+    </nav>
+
+    <div class="modal" id="expenseModal">
+        <div class="modal-content luxury-solid-card">
+            <div class="modal-handle-bar"></div>
+            <div class="modal-smart-header">
+                <div class="modal-title-zone">
+                    <h2 class="premium-title">New Bill Entry</h2>
+                    <p class="premium-subtitle">Synchronizing to Expedition Feed</p>
+                </div>
+                <div class="live-telemetry-chip">
+                    <span id="live-split-preview">₹0.00 / Person</span>
+                </div>
+            </div>
+        
+            <form id="expense-form" class="smart-form-engine">
+                <div class="form-section-modern">
+                    <label class="logic-label">Bill Description</label>
+                    <div class="input-stack-premium">
+                        <div class="icon-indicator" id="desc-icon-box"><i data-lucide="tag"></i></div>
+                        <div class="field-logic">
+                            <input type="text" id="exp-title" placeholder="What was this for?" required oninput="Logic.updateSmartIcon(this.value)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-modern">
+                    <label class="logic-label">Classification</label>
+                    <div class="category-grid-modern">
+                        <button type="button" class="cat-tab active" onclick="selectCategory('Food', this)"><i data-lucide="utensils"></i><span>Food</span></button>
+                        <button type="button" class="cat-tab" onclick="selectCategory('Travel', this)"><i data-lucide="car"></i><span>Travel</span></button>
+                        <button type="button" class="cat-tab" onclick="selectCategory('Stay', this)"><i data-lucide="hotel"></i><span>Stay</span></button>
+                        <button type="button" class="cat-tab" onclick="selectCategory('Others', this)"><i data-lucide="box"></i><span>Others</span></button>
+                    </div>
+                    <input type="hidden" id="exp-category" value="Food">
+                </div>
+
+                <div class="form-section-modern">
+                    <div class="label-row-flex">
+                        <label class="logic-label">Squad Included</label>
+                        <button type="button" class="action-link-sm" onclick="Logic.selectAllSquad()">Select All</button>
+                    </div>
+                    <div id="member-inclusion-list" class="squad-scroll-engine"></div>
+                    <p class="input-hint">Amount split among selected members.</p>
+                </div>
+
+                <div class="form-section-modern">
+                    <label class="logic-label">Total Value (₹)</label>
+                    <div class="money-input-field">
+                        <span class="currency-symbol-modern">₹</span>
+                        <input type="number" id="exp-amount" placeholder="0.00" step="any" required oninput="Logic.updateLiveSplit()">
+                    </div>
+                </div>
+
+                <div class="form-section-modern">
+                    <label class="logic-label">Payer Identity</label>
+                    <div class="payer-select-box">
+                        <i data-lucide="credit-card" class="payer-icon"></i>
+                        <select id="exp-payer" required></select>
+                    </div>
+                </div>
+
+                <div class="modal-footer-actions">
+                    <button type="button" class="btn-cancel-luxury" onclick="closeModal('expenseModal')">Discard</button>
+                    <button type="submit" class="btn-sync-luxury">Sync Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="memberModal">
+        <div class="modal-content luxury-solid-card" style="max-width: 380px;">
+            <div class="modal-handle-bar"></div>
+            <h2 class="premium-title">Register Participant</h2>
+            <div class="input-stack-premium">
+                <div class="icon-indicator"><i data-lucide="user-plus"></i></div>
+                <div class="field-logic"><input type="text" id="new-member-name" placeholder="Full Name" required></div>
+            </div>
+            <div class="modal-footer-actions" style="margin-top: 25px;">
+                <button class="btn-cancel-luxury" onclick="closeModal('memberModal')">Cancel</button>
+                <button class="btn-sync-luxury" onclick="Logic.submitMember()">Enroll</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Global Lucide Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
