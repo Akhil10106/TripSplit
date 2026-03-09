@@ -1,3443 +1,633 @@
-/* ================================================================
-TRIPSPLIT PLATINUM DESIGN SYSTEM v25.0
-Architecture: Hybrid Atomic-Modular (HAM)
-Themes: Premium Light / Frosted Glass
-Updated: Timeline Activity UI & Advanced Scroll Engine
-================================================================
-*/
+"use strict";
 
-/* --- 1. DESIGN TOKENS & SYSTEM VARIABLES --- */
-:root {
-    /* Prime Colors */
-    --p-h: 221;
-    --p-s: 83%;
-    --p-l: 53%;
-    --primary: hsl(var(--p-h), var(--p-s), var(--p-l));
-    --primary-light: hsl(var(--p-h), var(--p-s), 65%);
-    --primary-dark: hsl(var(--p-h), var(--p-s), 40%);
-    --primary-soft: hsl(var(--p-h), var(--p-s), 96%);
-    --primary-glass: hsla(var(--p-h), var(--p-s), var(--p-l), 0.08);
-    
-    /* Functional Semantic Palette */
-    --success: #10b981;
-    --success-soft: #ecfdf5;
-    --success-text: #065f46;
-    
-    --danger: #ef4444;
-    --danger-soft: #fef2f2;
-    --danger-text: #991b1b;
-    
-    --warning: #f59e0b;
-    --warning-soft: #fffbeb;
-    --warning-text: #92400e;
+// --- 1. GLOBAL STATE & SYSTEM CONFIGURATION ---
+let deferredPrompt; 
+let members = JSON.parse(localStorage.getItem('tripcart_members')) || [];
+let expenses = JSON.parse(localStorage.getItem('tripcart_expenses')) || [];
+let allLogs = JSON.parse(localStorage.getItem('tripcart_logs')) || [];
 
-    --info: #3b82f6;
-    --info-soft: #eff6ff;
-
-    /* Neural Backgrounds & Neutrals */
-    --bg-main: #f8fafc;
-    --bg-surface: #ffffff;
-    --bg-glass: rgba(255, 255, 255, 0.75);
-    
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --text-light: #94a3b8;
-    
-    --border-base: #e2e8f0;
-    --border-light: #f1f5f9;
-
-    /* Advanced Elevation Shadows */
-    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.04), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-    --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
-    --shadow-p: 0 10px 15px -3px hsla(var(--p-h), var(--p-s), var(--p-l), 0.25);
-
-    /* Geometry */
-    --radius-sm: 8px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
-    --radius-xl: 32px;
-    --radius-full: 9999px;
-
-    /* Transitions */
-    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* --- 2. RESETS & NORMALIZATION --- */
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-html {
-    scroll-behavior: smooth;
-    text-size-adjust: 100%;
-}
-
-body {
-    background-color: var(--bg-main);
-    color: var(--text-main);
-    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
-    line-height: 1.6;
-    min-height: 100vh;
-    display: flex;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-}
-
-/* --- 3. THE SMART SIDEBAR (DESKTOP) --- */
-.sidebar {
-    width: 300px;
-    background: var(--bg-surface);
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    padding: 2.5rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid var(--border-base);
-    z-index: 1000;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 4rem;
-}
-
-.logo-box {
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    box-shadow: var(--shadow-p);
-}
-
-.logo span {
-    font-size: 1.6rem;
-    font-weight: 900;
-    letter-spacing: -1.5px;
-    color: var(--text-main);
-}
-
-.nav-link {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 20px;
-    border-radius: var(--radius-md);
-    color: var(--text-muted);
-    font-weight: 700;
-    text-decoration: none;
-    border: 2px solid transparent;
-    transition: var(--transition-base);
-    margin-bottom: 0.75rem;
-    cursor: pointer;
-    background: transparent;
-    width: 100%;
-    border: none;
-}
-
-.nav-link:hover {
-    background: var(--primary-soft);
-    color: var(--primary);
-    transform: translateX(8px);
-}
-
-.nav-link.active {
-    background: var(--primary);
-    color: white;
-    box-shadow: var(--shadow-p);
-}
-
-.sidebar-footer {
-    margin-top: auto;
-    padding-top: 2rem;
-    border-top: 1px solid var(--border-light);
-    color: var(--text-light);
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-/* --- 4. MAIN LAYOUT ENGINE --- */
-.main-content {
-    flex: 1;
-    margin-left: 300px;
-    padding: 4rem 5rem;
-    max-width: 1600px;
-    width: calc(100% - 300px);
-}
-
-.header {
-    margin-bottom: 4rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.header-text h1 {
-    font-size: 2.8rem;
-    font-weight: 900;
-    letter-spacing: -2px;
-    line-height: 1;
-    margin-bottom: 0.5rem;
-}
-
-.header-text p {
-    color: var(--text-muted);
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-/* --- 5. BENTO GRID STATS --- */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-bottom: 4rem;
-}
-
-.stat-card {
-    background: var(--bg-surface);
-    padding: 2.5rem;
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--border-light);
-    box-shadow: var(--shadow-md);
-    transition: var(--transition-bounce);
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card:hover {
-    transform: translateY(-10px);
-    box-shadow: var(--shadow-xl);
-}
-
-.stat-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100px;
-    height: 100px;
-    background: var(--primary-glass);
-    border-radius: 0 0 0 100%;
-    z-index: 1;
-}
-
-.stat-label {
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    font-weight: 900;
-    letter-spacing: 1.5px;
-    color: var(--text-muted);
-    margin-bottom: 1rem;
-    display: block;
-}
-
-.stat-value {
-    font-size: 3rem;
-    font-weight: 900;
-    color: var(--text-main);
-    z-index: 2;
-    position: relative;
-}
-
-.stat-card.clickable { cursor: pointer; }
-
-/* --- 6. ADVANCED MEMBER LEDGER CARDS --- */
-.balance-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    gap: 2.5rem;
-}
-
-.member-ledger-card {
-    background: var(--bg-surface);
-    border-radius: var(--radius-xl);
-    padding: 2.5rem;
-    border: 1px solid var(--border-light);
-    box-shadow: var(--shadow-md);
-    display: flex;
-    flex-direction: column;
-    transition: var(--transition-base);
-}
-
-.member-ledger-card:hover {
-    box-shadow: var(--shadow-lg);
-    border-color: var(--primary-light);
-}
-
-.ledger-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.member-avatar {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, var(--primary-soft), #fff);
-    color: var(--primary);
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 1.8rem;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-light);
-}
-
-.badge {
-    padding: 8px 16px;
-    border-radius: var(--radius-full);
-    font-size: 0.75rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.badge-success { background: var(--success-soft); color: var(--success-text); }
-.badge-travel { background: var(--danger-soft); color: var(--danger-text); }
-
-.ledger-summary-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.summary-item {
-    background: var(--bg-main);
-    padding: 1.5rem;
-    border-radius: var(--radius-md);
-    text-align: center;
-    border: 1px solid var(--border-light);
-}
-
-.summary-item.spent {
-    background: var(--primary-soft);
-    color: var(--primary-dark);
-}
-
-.summary-item small {
-    display: block;
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-}
-
-.summary-item span {
-    font-size: 1.4rem;
-    font-weight: 900;
-}
-
-.ledger-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 2rem;
-}
-
-.ledger-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 18px;
-    background: #fff;
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
-    transition: var(--transition-fast);
-}
-
-.ledger-row:hover { background: var(--bg-main); }
-
-/* --- 7. BUTTON SYSTEM --- */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 16px 28px;
-    border-radius: var(--radius-md);
-    font-weight: 800;
-    cursor: pointer;
-    border: none;
-    transition: var(--transition-bounce);
-    font-size: 1rem;
-    outline: none;
-}
-
-.btn-primary {
-    background: var(--primary);
-    color: white;
-    box-shadow: var(--shadow-p);
-}
-
-.btn-primary:hover {
-    background: var(--primary-dark);
-    transform: scale(1.05);
-}
-
-.btn-white {
-    background: white;
-    color: var(--text-main);
-    border: 1px solid var(--border-base);
-}
-
-.btn-card-download {
-    width: 100%;
-    background: var(--bg-main);
-    color: var(--text-main);
-    border: 1px solid var(--border-base);
-}
-
-.btn-card-download:hover {
-    background: var(--text-main);
-    color: white;
-}
-
-/* --- 8. DASHBOARD ACTIVITY FEED (TIMELINE UI) --- */
-.activity-panel {
-    padding: 2.5rem !important;
-    position: relative;
-    overflow: hidden;
-}
-
-.status-indicator {
-    animation: indicator-pulse 2s infinite;
-}
-
-@keyframes indicator-pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.4; }
-    100% { opacity: 1; }
-}
-
-.activity-scroll-container {
-    max-height: 420px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-base) transparent;
-}
-
-/* Timeline Style Thread */
-.timeline-style {
-    position: relative;
-    border-left: 2px solid var(--border-light);
-    margin-left: 1.2rem;
-    padding-left: 1.8rem;
-    padding-top: 10px;
-}
-
-.activity-item {
-    position: relative;
-    margin-bottom: 1.25rem;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
-    transition: var(--transition-base);
-    box-shadow: var(--shadow-sm);
-}
-
-.activity-item::before {
-    content: '';
-    position: absolute;
-    left: -2.35rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 12px;
-    height: 12px;
-    background: white;
-    border: 3px solid var(--primary);
-    border-radius: 50%;
-    z-index: 2;
-}
-
-.activity-item:hover {
-    transform: translateX(8px);
-    border-color: var(--primary-light);
-    box-shadow: var(--shadow-md);
-}
-
-.activity-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-/* Category Semantic Colors */
-.activity-icon.food { background: #fff1f2; color: #e11d48; }
-.activity-icon.travel { background: #eff6ff; color: #2563eb; }
-.activity-icon.stay { background: #f0fdf4; color: #16a34a; }
-.activity-icon.others { background: #f5f3ff; color: #7c3aed; }
-.activity-icon.member { background: #fffbeb; color: #d97706; }
-.activity-icon.system { background: #f1f5f9; color: #475569; }
-
-/* --- 9. MOBILE NAVIGATION --- */
-.mobile-nav { display: none; }
-
-@media (max-width: 1024px) {
-    .sidebar { display: none; }
-    .main-content {
-        margin-left: 0;
-        padding: 2rem 1.25rem 120px;
-        width: 100%;
+const CONFIG = {
+    STORAGE_PREFIX: 'tripcart_',
+    TARGET_BUDGET: 40000,
+    THEMES: {
+        'dashboard': 'bg-dashboard',
+        'expenses': 'bg-expenses',
+        'balance': 'bg-balance',
+        'members': 'bg-members',
+        'profile': 'bg-profile'
+    },
+    ICONS: {
+        'Food': 'utensils',
+        'Travel': 'car',
+        'Stay': 'hotel',
+        'Others': 'shopping-bag',
+        'member': 'user-plus',
+        'system': 'cpu',
+        'image': 'camera'
+    },
+    KEYWORDS: {
+        food: ['dinner', 'lunch', 'breakfast', 'maggi', 'cafe', 'food', 'tea', 'coffee', 'eat', 'restaurant'],
+        car: ['taxi', 'cab', 'uber', 'train', 'auto', 'ride', 'travel', 'bus', 'flight', 'petrol'],
+        hotel: ['stay', 'room', 'hotel', 'lodge', 'camp', 'homestay', 'night'],
+        ticket: ['pass', 'entry', 'darshan', 'ticket', 'booking', 'event']
     }
-    .mobile-nav {
-        display: flex;
-        position: fixed;
-        bottom: 24px;
-        left: 20px;
-        right: 20px;
-        background: var(--bg-glass);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        padding: 12px;
-        border-radius: var(--radius-xl);
-        justify-content: space-around;
-        box-shadow: var(--shadow-xl);
-        z-index: 2000;
+};
+
+// --- 2. BOOT SEQUENCE & PWA LIFECYCLE ---
+const PWAManager = (() => {
+    const init = () => {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('🛡️ TripCart: Service Worker Active ->', reg.scope))
+                    .catch(err => console.error('⚠️ TripCart: SW Registration Failure', err));
+            });
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('✅ TripCart: Deployment Perimeter Cleared.');
+            if (!document.getElementById('profile-section').classList.contains('hidden')) {
+                UI.renderProfile();
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            deferredPrompt = null;
+            UI.logActivity('System Deployed to Native Mode', 'system', 'shield-check');
+            alert("TripCart Platinum has been successfully deployed to your device.");
+        });
+    };
+
+    const isStandalone = () => {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    };
+
+    return { init, isStandalone };
+})();
+
+// --- 3. PERSISTENCE ENGINE ---
+const DataManager = {
+    save: (key, data) => {
+        localStorage.setItem(`${CONFIG.STORAGE_PREFIX}${key}`, JSON.stringify(data));
+    },
+    purge: () => {
+        if (confirm("CRITICAL: This will permanently delete all TripCart expedition logs. Proceed?")) {
+            localStorage.clear();
+            location.reload();
+        }
     }
-    .m-nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        background: transparent;
-        border: none;
-        color: var(--text-muted);
-        font-size: 0.65rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .m-nav-item.active { color: var(--primary); }
-    .header-text h1 { font-size: 2.1rem; }
-    .stats-grid { gap: 1rem; }
-}
-
-/* --- 10. ADVANCED TABLES & MODALS --- */
-.table-container {
-    overflow-x: auto;
-    border-radius: var(--radius-xl);
-    background: white;
-    border: 1px solid var(--border-light);
-    box-shadow: var(--shadow-md);
-}
-
-table { width: 100%; border-collapse: collapse; text-align: left; }
-th { background: var(--bg-main); padding: 18px; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; }
-td { padding: 18px; border-bottom: 1px solid var(--border-light); font-weight: 700; font-size: 0.9rem; }
-
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(12px);
-    z-index: 5000;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.modal-content {
-    background: white;
-    width: 100%;
-    max-width: 520px;
-    max-height: 85vh;
-    overflow-y: auto;
-    border-radius: var(--radius-xl);
-    padding: 2.5rem;
-    box-shadow: var(--shadow-xl);
-    animation: modal-pop 0.4s var(--transition-bounce);
-    position: relative;
-}
-
-@keyframes modal-pop {
-    from { transform: scale(0.9) translateY(30px); opacity: 0; }
-    to { transform: scale(1) translateY(0); opacity: 1; }
-}
-
-.modal-handle {
-    width: 45px;
-    height: 5px;
-    background: var(--border-base);
-    border-radius: 10px;
-    margin: -10px auto 25px;
-}
-
-/* --- 11. FORM ELEMENTS --- */
-.category-pill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-.pill { background: white; border: 2px solid var(--border-light); padding: 12px; border-radius: var(--radius-md); font-weight: 800; cursor: pointer; transition: var(--transition-base); }
-.pill.active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
-
-input, select {
-    width: 100%;
-    padding: 14px 18px;
-    border-radius: var(--radius-md);
-    border: 2px solid var(--border-light);
-    background: var(--bg-main);
-    font-size: 1rem;
-    font-weight: 700;
-    transition: var(--transition-base);
-    outline: none;
-}
-
-input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px var(--primary-glass); }
-
-/* --- 12. UTILITIES & ANIMATIONS --- */
-.hidden { display: none !important; }
-.text-get { color: var(--success); }
-.text-give { color: var(--danger); }
-
-.animate-in {
-    animation: slide-up 0.5s ease-out forwards;
-}
-
-@keyframes slide-up {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-/* CUSTOM SCROLLBAR ENGINE */
-.activity-scroll-container::-webkit-scrollbar { width: 5px; }
-.activity-scroll-container::-webkit-scrollbar-track { background: transparent; }
-.activity-scroll-container::-webkit-scrollbar-thumb { background: var(--border-base); border-radius: 10px; }
-.activity-scroll-container:hover::-webkit-scrollbar-thumb { background: var(--primary-light); }
-
-/* ================================================================
-   TRIPSPLIT PLATINUM DESIGN SYSTEM v25.0
-   Architecture: Hybrid Atomic-Modular (HAM)
-   Themes: Premium Light / Frosted Glass / Timeline Activity
-   ================================================================ */
-
-/* --- 1. DESIGN TOKENS & SYSTEM VARIABLES --- */
-:root {
-    /* Prime Colors */
-    --p-h: 221;
-    --p-s: 83%;
-    --p-l: 53%;
-    --primary: hsl(var(--p-h), var(--p-s), var(--p-l));
-    --primary-light: hsl(var(--p-h), var(--p-s), 65%);
-    --primary-dark: hsl(var(--p-h), var(--p-s), 40%);
-    --primary-soft: hsl(var(--p-h), var(--p-s), 96%);
-    --primary-glass: hsla(var(--p-h), var(--p-s), var(--p-l), 0.08);
-    
-    /* Functional Semantic Palette */
-    --success: #10b981;
-    --success-soft: #ecfdf5;
-    --success-text: #065f46;
-    
-    --danger: #ef4444;
-    --danger-soft: #fef2f2;
-    --danger-text: #991b1b;
-    
-    --warning: #f59e0b;
-    --warning-soft: #fffbeb;
-    --warning-text: #92400e;
-
-    /* Neutrals */
-    --bg-main: #f8fafc;
-    --bg-surface: #ffffff;
-    --bg-glass: rgba(255, 255, 255, 0.75);
-    
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --text-light: #94a3b8;
-    
-    --border-base: #e2e8f0;
-    --border-light: #f1f5f9;
-
-    /* Elevation */
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.04);
-    --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
-    --shadow-p: 0 10px 15px -3px hsla(var(--p-h), var(--p-s), var(--p-l), 0.25);
-
-    /* Geometry */
-    --radius-sm: 8px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
-    --radius-xl: 32px;
-    --radius-full: 9999px;
-
-    /* Transitions */
-    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* --- 2. GLOBAL RESETS --- */
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    background-color: var(--bg-main);
-    color: var(--text-main);
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    line-height: 1.6;
-    min-height: 100vh;
-    display: flex;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-}
-
-/* --- 3. SIDEBAR (DESKTOP) --- */
-.sidebar {
-    width: 300px;
-    background: var(--bg-surface);
-    height: 100vh;
-    position: fixed;
-    padding: 2.5rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid var(--border-base);
-    z-index: 1000;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 4rem;
-}
-
-.logo-box {
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
-    width: 48px; height: 48px;
-    border-radius: var(--radius-md);
-    display: flex; align-items: center; justify-content: center;
-    color: white; box-shadow: var(--shadow-p);
-}
-
-.logo span { font-size: 1.6rem; font-weight: 900; letter-spacing: -1.5px; }
-
-.nav-link {
-    display: flex; align-items: center; gap: 14px;
-    padding: 14px 20px; border-radius: var(--radius-md);
-    color: var(--text-muted); font-weight: 700;
-    transition: var(--transition-base); margin-bottom: 0.5rem;
-    cursor: pointer; background: transparent; border: none; width: 100%;
-}
-
-.nav-link:hover { background: var(--primary-soft); color: var(--primary); transform: translateX(5px); }
-.nav-link.active { background: var(--primary); color: white; box-shadow: var(--shadow-p); }
-
-/* --- 4. MAIN CONTENT --- */
-.main-content {
-    flex: 1; margin-left: 300px;
-    padding: 4rem 5rem; width: calc(100% - 300px);
-}
-
-.header { margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: center; }
-.header-text h1 { font-size: 2.5rem; font-weight: 900; letter-spacing: -1.5px; }
-
-/* --- 5. BENTO STATS & PANELS --- */
-.stats-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem; margin-bottom: 3rem;
-}
-
-.stat-card {
-    background: var(--bg-surface); padding: 2rem;
-    border-radius: var(--radius-xl); border: 1px solid var(--border-light);
-    box-shadow: var(--shadow-sm); transition: var(--transition-bounce);
-}
-
-.stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
-
-.stat-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; }
-.stat-value { font-size: 2.5rem; font-weight: 900; margin-top: 0.5rem; }
-
-.panel {
-    background: var(--bg-surface); border-radius: var(--radius-xl);
-    padding: 2.5rem; border: 1px solid var(--border-light); box-shadow: var(--shadow-md);
-}
-
-.panel-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.25rem; margin-bottom: 1.5rem; }
-
-/* --- 6. TIMELINE ACTIVITY FEED & SCROLL ENGINE --- */
-.activity-panel { position: relative; overflow: hidden; }
-
-.activity-scroll-container {
-    max-height: 400px; overflow-y: auto;
-    padding-right: 10px; scrollbar-width: thin;
-    scrollbar-color: var(--border-base) transparent;
-}
-
-/* Chrome/Safari Scrollbar */
-.activity-scroll-container::-webkit-scrollbar { width: 4px; }
-.activity-scroll-container::-webkit-scrollbar-thumb { background: var(--border-base); border-radius: 10px; }
-.activity-scroll-container:hover::-webkit-scrollbar-thumb { background: var(--primary-light); }
-
-.timeline-style {
-    position: relative; border-left: 2px solid var(--border-light);
-    margin-left: 1.5rem; padding-left: 1.5rem;
-}
-
-.activity-item {
-    position: relative; margin-bottom: 1rem;
-    background: var(--bg-main); border-radius: var(--radius-lg);
-    padding: 1rem; border: 1px solid transparent; transition: var(--transition-base);
-}
-
-.activity-item::before {
-    content: ''; position: absolute; left: -1.95rem; top: 50%;
-    transform: translateY(-50%); width: 10px; height: 10px;
-    background: white; border: 2.5px solid var(--primary); border-radius: 50%;
-}
-
-.activity-icon {
-    width: 40px; height: 40px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-}
-
-.activity-icon.food { background: #fff1f2; color: #e11d48; }
-.activity-icon.travel { background: #eff6ff; color: #2563eb; }
-.activity-icon.stay { background: #f0fdf4; color: #16a34a; }
-.activity-icon.member { background: #fffbeb; color: #d97706; }
-.activity-icon.others { background: #f5f3ff; color: #7c3aed; }
-
-/* --- 7. SETTINGS & PROFILE UI --- */
-.profile-hero {
-    text-align: center; padding: 3rem;
-    background: linear-gradient(135deg, #fff, var(--primary-soft));
-    border-radius: var(--radius-xl); border: 1px solid var(--border-light);
-    margin-bottom: 2rem;
-}
-
-.settings-highlight-panel {
-    border: 2px solid var(--primary-light) !important;
-    background: linear-gradient(to bottom right, #fff, var(--primary-soft)) !important;
-}
-
-.btn-install-large { width: 100%; padding: 1.25rem; font-size: 1.1rem; }
-
-.btn-reset-danger {
-    width: 100%; margin-top: 2rem; background: transparent;
-    color: var(--danger); border: 2px solid var(--danger-soft);
-}
-
-.btn-reset-danger:hover { background: var(--danger); color: white; border-color: var(--danger); }
-
-/* --- 8. LEDGER & SPLIT CARDS --- */
-.balance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; }
-
-.member-ledger-card {
-    background: white; border-radius: var(--radius-xl); padding: 2rem;
-    border: 1px solid var(--border-light); box-shadow: var(--shadow-md);
-}
-
-.ledger-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
-.summary-item { background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); text-align: center; }
-.summary-item span { font-size: 1.25rem; font-weight: 800; display: block; }
-
-/* --- 9. BUTTONS & INPUTS --- */
-.btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    gap: 8px; padding: 12px 24px; border-radius: var(--radius-md);
-    font-weight: 700; cursor: pointer; border: none; transition: var(--transition-bounce);
-}
-
-.btn-primary { background: var(--primary); color: white; box-shadow: var(--shadow-p); }
-.btn-primary:hover { transform: scale(1.02); }
-
-input, select {
-    width: 100%; padding: 14px; border-radius: var(--radius-md);
-    border: 2px solid var(--border-light); background: var(--bg-main);
-    font-weight: 600; outline: none; transition: var(--transition-base);
-}
-
-input:focus { border-color: var(--primary); background: white; }
-
-.pill {
-    padding: 12px; border: 2px solid var(--border-light); border-radius: var(--radius-md);
-    background: white; cursor: pointer; font-weight: 700;
-}
-.pill.active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
-
-/* --- 10. MOBILE NAV & RESPONSIVE --- */
-@media (max-width: 1024px) {
-    .sidebar { display: none; }
-    .main-content { margin-left: 0; width: 100%; padding: 2rem 1rem 100px; }
-    
-    .mobile-nav {
-        display: flex; position: fixed; bottom: 20px; left: 15px; right: 15px;
-        background: var(--bg-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        padding: 12px; border-radius: var(--radius-xl); border: 1px solid rgba(255,255,255,0.3);
-        justify-content: space-around; box-shadow: var(--shadow-xl); z-index: 2000;
-    }
-    
-    .m-nav-item {
-        display: flex; flex-direction: column; align-items: center; gap: 4px;
-        background: transparent; border: none; color: var(--text-muted);
-        font-size: 0.65rem; font-weight: 800;
-    }
-    .m-nav-item.active { color: var(--primary); }
-    .header-text h1 { font-size: 2rem; }
-}
-
-/* --- 11. TABLES & MODALS --- */
-.table-container { overflow-x: auto; border-radius: var(--radius-xl); background: white; border: 1px solid var(--border-light); }
-table { width: 100%; border-collapse: collapse; }
-th { background: var(--bg-main); padding: 15px; font-size: 0.7rem; text-transform: uppercase; font-weight: 800; }
-td { padding: 15px; border-bottom: 1px solid var(--border-light); font-weight: 600; }
-
-.modal {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(10px); z-index: 5000; align-items: center; justify-content: center; padding: 20px;
-}
-
-.modal-content {
-    background: white; width: 100%; max-width: 500px; padding: 2.5rem;
-    border-radius: var(--radius-xl); animation: slideUp 0.4s ease;
-}
-
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-/* --- 12. UTILS --- */
-.hidden { display: none !important; }
-.text-get { color: var(--success); }
-.text-give { color: var(--danger); }
-.animate-in { animation: slideUp 0.5s ease forwards; }
-
-/* ================================================================
-   NEW BILL POPUP (EXPENSE MODAL) PREMIUM UI
-   ================================================================ */
-
-/* Modal Content Scrollability */
-#expenseModal .modal-content {
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-}
-
-#expense-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-/* Category Pill Grid Enhancement */
-.category-pill-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-top: 5px;
-}
-
-.pill {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: var(--bg-main);
-    border: 2px solid var(--border-light);
-    padding: 12px;
-    border-radius: var(--radius-md);
-    font-weight: 700;
-    font-size: 0.9rem;
-    transition: var(--transition-bounce);
-    cursor: pointer;
-}
-
-.pill.active {
-    background: var(--primary-soft);
-    border-color: var(--primary);
-    color: var(--primary);
-    transform: scale(1.02);
-    box-shadow: var(--shadow-sm);
-}
-
-/* Member Amount List (The dynamic rows) */
-.member-input-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 10px;
-    padding: 5px;
-}
-
-.member-amount-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--bg-main);
-    padding: 10px 15px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-light);
-    transition: var(--transition-fast);
-}
-
-.member-amount-row:focus-within {
-    background: white;
-    border-color: var(--primary-light);
-    box-shadow: var(--shadow-sm);
-}
-
-.member-amount-row span {
-    font-weight: 700;
-    color: var(--text-main);
-    font-size: 0.95rem;
-}
-
-.m-amt-input {
-    width: 100px !important;
-    padding: 8px 12px !important;
-    text-align: right;
-    font-family: 'Inter', monospace;
-    font-weight: 800;
-    color: var(--primary-dark);
-    border: 2px solid transparent !important;
-    background: rgba(0,0,0,0.03);
-}
-
-.m-amt-input:focus {
-    background: white !important;
-    border-color: var(--primary) !important;
-}
-
-/* Total Badge UI */
-.auto-sum-badge {
-    align-self: flex-end;
-    margin-top: 10px;
-    background: var(--primary);
-    color: white;
-    padding: 8px 16px;
-    border-radius: var(--radius-full);
-    font-weight: 900;
-    font-size: 0.85rem;
-    box-shadow: var(--shadow-p);
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.auto-sum-badge::before {
-    content: '💰';
-}
-
-/* Who Paid Dropdown */
-#exp-payer {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 15px center;
-    background-size: 18px;
-    padding-right: 45px;
-    cursor: pointer;
-}
-
-/* Modal Buttons Container */
-.modal-btns {
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: 12px;
-    margin-top: 1rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border-light);
-}
-
-.btn-white {
-    background: var(--bg-main);
-    color: var(--text-muted);
-}
-
-.btn-white:hover {
-    background: var(--border-base);
-    color: var(--text-main);
-}
-
-/* ================================================================
-   PREMIUM GROUP & MEMBER MANAGEMENT UI
-   ================================================================ */
-
-.group-header-info {
-    margin-bottom: 2rem;
-    padding: 0 0.5rem;
-}
-
-.member-count-badge {
-    background: var(--primary-glass);
-    color: var(--primary);
-    padding: 6px 16px;
-    border-radius: var(--radius-full);
-    font-weight: 800;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    border: 1px solid var(--primary-light);
-}
-
-.group-meta p {
-    margin-top: 10px;
-    color: var(--text-muted);
-    font-weight: 600;
-}
-
-/* THE PREMIUM GRID */
-.premium-member-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-}
-
-/* THE GLASS CARD */
-.member-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-xl);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    transition: var(--transition-bounce);
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-}
-
-.member-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, var(--primary-glass) 0%, transparent 70%);
-    opacity: 0;
-    transition: var(--transition-base);
-}
-
-.member-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    border-color: var(--primary-light);
-    box-shadow: var(--shadow-xl);
-}
-
-.member-card:hover::before {
-    opacity: 1;
-}
-
-/* PREMIUM AVATARS */
-.member-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    font-weight: 900;
-    margin-bottom: 1rem;
-    box-shadow: var(--shadow-p);
-    position: relative;
-    z-index: 2;
-    border: 4px solid white;
-}
-
-.member-card b {
-    font-size: 1.2rem;
-    font-weight: 900;
-    color: var(--text-main);
-    letter-spacing: -0.5px;
-    z-index: 2;
-}
-
-/* DELETE BUTTON (SUBTLE UNTIL HOVER) */
-.member-card .btn-delete {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    width: 35px;
-    height: 35px;
-    border-radius: var(--radius-md);
-    background: var(--danger-soft);
-    color: var(--danger);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transform: scale(0.8);
-    transition: var(--transition-bounce);
-    cursor: pointer;
-    border: none;
-    z-index: 10;
-}
-
-.member-card:hover .btn-delete {
-    opacity: 1;
-    transform: scale(1);
-}
-
-.member-card .btn-delete:hover {
-    background: var(--danger);
-    color: white;
-}
-
-/* ADD FRIEND BUTTON CARD */
-.add-friend-card {
-    border: 2px dashed var(--primary-light) !important;
-    background: var(--primary-soft) !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    min-height: 180px;
-    transition: var(--transition-bounce);
-}
-
-.add-friend-card:hover {
-    background: white !important;
-    border-style: solid !important;
-    border-color: var(--primary) !important;
-}
-
-.add-friend-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    color: var(--primary);
-}
-
-.add-friend-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: var(--radius-full);
-    background: var(--primary);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: var(--shadow-p);
-}
-
-.add-friend-card span {
-    font-weight: 800;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-}
-
-/* --- LUXURY BENTO GRID --- */
-.premium-quad-grid {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr 0.8fr;
-    gap: 1.5rem;
-}
-
-.luxury-card {
-    background: white;
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.primary-gradient {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: white !important;
-}
-
-.primary-gradient .stat-label { color: rgba(255,255,255,0.8); }
-.primary-gradient .stat-value { color: white; }
-
-/* PROGRESS BAR UI */
-.progress-container {
-    width: 100%;
-    height: 8px;
-    background: var(--bg-main);
-    border-radius: 10px;
-    margin: 15px 0;
-    overflow: hidden;
-}
-
-.progress-bar {
-    height: 100%;
-    background: var(--primary);
-    border-radius: 10px;
-    transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* SPENDER PROFILE UI */
-.spender-profile {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 10px;
-}
-
-.mini-avatar {
-    width: 35px;
-    height: 35px;
-    background: var(--primary-soft);
-    color: var(--primary);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-}
-
-/* QUICK ACTION (+) TAB */
-.action-card {
-    background: var(--primary-soft);
-    border: 2px dashed var(--primary-light);
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.action-card:hover {
-    background: var(--primary);
-    border-style: solid;
-}
-
-.action-card:hover .action-circle { background: white; color: var(--primary); }
-.action-card:hover .stat-label { color: white; }
-
-.action-circle {
-    width: 50px;
-    height: 50px;
-    background: var(--primary);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
-    box-shadow: var(--shadow-p);
-}
-
-/* LIVE PULSE ICON */
-.pulse-icon {
-    width: 8px;
-    height: 8px;
-    background: var(--success);
-    border-radius: 50%;
-    position: relative;
-}
-
-.pulse-icon::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: var(--success);
-    animation: pulse-ring 1.5s infinite;
-}
-
-@keyframes pulse-ring {
-    0% { transform: scale(1); opacity: 0.7; }
-    100% { transform: scale(3); opacity: 0; }
-}
-
-/* RESPONSIVE QUAD GRID */
-@media (max-width: 1200px) {
-    .premium-quad-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-@media (max-width: 600px) {
-    .premium-quad-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* LUXURY VELOCITY CARD STYLES */
-.card-header-flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.stat-value-mid {
-    font-size: 1.8rem;
-    font-weight: 900;
-    color: var(--text-main);
-    margin-top: 10px;
-}
-
-.stat-sub-text {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--text-light);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.icon-tiny {
-    width: 16px;
-    height: 16px;
-}
-
-/* DECORATIVE SPARKLINE */
-.sparkline-mini {
-    display: flex;
-    gap: 4px;
-    margin-top: 15px;
-    align-items: flex-end;
-}
-
-.spark-dot {
-    width: 4px;
-    height: 4px;
-    background: var(--border-base);
-    border-radius: 50%;
-}
-
-.spark-dot.active {
-    background: var(--primary);
-    box-shadow: 0 0 8px var(--primary-light);
-    transform: scale(1.5);
-}
-/* SQUAD TOGGLE GRID */
-.squad-toggle-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-top: 5px;
-}
-
-.squad-chip {
-    padding: 10px 14px;
-    background: var(--bg-main);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.85rem;
-    font-weight: 700;
-}
-
-.squad-chip input {
-    display: none; /* Hide standard checkbox */
-}
-
-.squad-chip.selected {
-    background: var(--primary-soft);
-    border-color: var(--primary);
-    color: var(--primary);
-}
-
-.squad-chip i {
-    width: 14px;
-    height: 14px;
-    opacity: 0.3;
-}
-
-.squad-chip.selected i {
-    opacity: 1;
-}
-
-/* Helper Text */
-.input-hint {
-    font-size: 0.7rem;
-    color: var(--text-light);
-    margin-top: 5px;
-    font-weight: 600;
-}
-/* Card Action Row for Export/Share */
-.card-action-row .btn {
-    padding: 10px 15px !important;
-    font-size: 0.8rem !important;
-    border-radius: var(--radius-md) !important;
-}
-
-.card-action-row .btn i {
-    width: 16px;
-    height: 16px;
-}
-
-/* Ensure the card doesn't look "cut off" during image export */
-.member-ledger-card {
-    background: white; /* Required for html-to-image to have solid background */
-    z-index: 1;
-}
-
-/* Loading state for export (optional) */
-.exporting {
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-/* --- LUXURY AMBIENT ENGINE --- */
-:root {
-    /* Existing tokens remain... */
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.4);
-}
-
-body {
-    background-color: #f0f4f8; /* Soft base */
-    transition: background 0.8s ease-in-out;
-    position: relative;
-    overflow-x: hidden;
-}
-
-/* The Animated Ambient Blur */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: -1;
-    filter: blur(100px);
-    opacity: 0.6;
-    transition: all 1s ease-in-out;
-}
-
-/* Page Specific Atmospheres */
-body.bg-dashboard::before {
-    background: radial-gradient(circle at 10% 20%, #3b82f6 0%, #60a5fa 30%, #f0f4f8 70%);
-}
-
-body.bg-expenses::before {
-    background: radial-gradient(circle at 90% 10%, #10b981 0%, #d1fae5 40%, #f0f4f8 80%);
-}
-
-body.bg-balance::before {
-    background: radial-gradient(circle at 50% 50%, #f59e0b 0%, #fef3c7 40%, #f0f4f8 90%);
-}
-
-body.bg-members::before {
-    background: radial-gradient(circle at 20% 80%, #8b5cf6 0%, #ede9fe 50%, #f0f4f8 100%);
-}
-
-body.bg-profile::before {
-    background: radial-gradient(circle at 100% 100%, #64748b 0%, #f1f5f9 60%, #f0f4f8 100%);
-}
-
-/* Premium Panel Upgrades (Glassmorphism) */
-.panel, .stat-card, .member-card, .member-ledger-card, .table-container {
-    background: var(--glass-bg) !important;
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border: 1px solid var(--glass-border) !important;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
-}
-
-/* Luxury Primary Card remains solid for impact */
-.primary-gradient {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
-    backdrop-filter: none !important;
-}
-
-/* Sidebar & Nav Glass Effect */
-.sidebar {
-    background: rgba(255, 255, 255, 0.8) !important;
-    backdrop-filter: blur(20px);
-}
-
-.mobile-nav {
-    background: rgba(255, 255, 255, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-}
-
-/* --- LUXURY MODAL REINVENTED --- */
-.luxury-glass {
-    background: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(30px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 32px 32px 0 0 !important;
-    padding: 2rem !important;
-}
-
-.modal-header-premium {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.title-cluster h2 {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: var(--primary-dark);
-    margin-bottom: 4px;
-}
-
-.live-indicator {
-    background: var(--primary-soft);
-    color: var(--primary);
-    padding: 4px 12px;
-    border-radius: 99px;
-    font-size: 0.75rem;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-/* SMART INPUTS */
-.input-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: #f8fafc;
-    padding: 12px 16px;
-    border-radius: 20px;
-    margin-bottom: 1.5rem;
-    border: 1px solid transparent;
-    transition: all 0.3s ease;
-}
-
-.input-wrapper:focus-within {
-    background: white;
-    border-color: var(--primary-light);
-    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.05);
-}
-
-.input-icon-box {
-    width: 40px;
-    height: 40px;
-    background: white;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--primary);
-    box-shadow: var(--shadow-sm);
-}
-
-/* VALUE INPUT */
-.value-input-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem 0;
-    margin-bottom: 1rem;
-}
-
-.currency-symbol {
-    font-size: 2.5rem;
-    font-weight: 900;
-    color: var(--primary);
-    margin-right: 10px;
-}
-
-.value-input-container input {
-    border: none !important;
-    background: transparent !important;
-    font-size: 3rem !important;
-    font-weight: 900 !important;
-    width: 200px !important;
-    color: var(--text-main) !important;
-    text-align: left !important;
-    padding: 0 !important;
-}
-
-/* LUXURY SQUAD CHIPS */
-.squad-selection-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.squad-chip {
-    padding: 8px 16px !important;
-    border-radius: 16px !important;
-    background: white !important;
-    border: 2px solid #f1f5f9 !important;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-}
-
-.squad-chip.selected {
-    background: var(--primary) !important;
-    border-color: var(--primary) !important;
-    color: white !important;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgba(37, 99, 235, 0.2);
-}
-
-/* PREMIUM BUTTONS */
-.modal-btns-premium {
-    display: grid;
-    grid-template-columns: 1fr 1.8fr;
-    gap: 15px;
-    margin-top: 2rem;
-}
-
-.btn-luxury-primary {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 16px;
-    border-radius: 20px;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    cursor: pointer;
-    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
-}
-
-.btn-luxury-outline {
-    background: transparent;
-    border: 2px solid #e2e8f0;
-    color: var(--text-muted);
-    padding: 16px;
-    border-radius: 20px;
-    font-weight: 700;
-}
-/* --- TRIP CART SOLID PREMIUM MODAL --- */
-.luxury-glass {
-    background: #ffffff !important; /* Solid white for a clean, expensive look */
-    border-radius: 40px 40px 0 0 !important; /* Extra rounded top corners */
-    border: none !important;
-    box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.15) !important;
-    padding: 2.5rem !important;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.modal-handle {
-    width: 50px;
-    height: 6px;
-    background: #e2e8f0;
-    border-radius: 10px;
-    margin: 0 auto 1.5rem auto;
-}
-
-/* HIGH-IMPACT VALUE INPUT */
-.value-input-container {
-    background: #f1f5f9;
-    padding: 2rem;
-    border-radius: 28px;
-    margin: 1.5rem 0;
-    text-align: center;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-}
-
-.value-input-container:focus-within {
-    background: #ffffff;
-    border-color: var(--primary);
-    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1);
-}
-
-.currency-symbol {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--primary);
-    vertical-align: middle;
-}
-
-.value-input-container input {
-    font-size: 3.5rem !important;
-    font-weight: 900 !important;
-    color: #1e293b !important;
-    width: 80% !important;
-    border: none !important;
-    background: transparent !important;
-    outline: none !important;
-    padding: 0 !important;
-    margin-left: 10px;
-}
-
-/* LUXURY SQUAD SELECTION */
-.squad-selection-container {
-    display: flex;
-    overflow-x: auto; /* Horizontal scroll for a modern feel */
-    gap: 12px;
-    padding: 10px 0;
-    scrollbar-width: none;
-}
-
-.squad-chip {
-    flex: 0 0 auto;
-    padding: 12px 24px !important;
-    background: #f8fafc !important;
-    color: #64748b !important;
-    border: 2px solid #f1f5f9 !important;
-    border-radius: 20px !important;
-    font-weight: 700 !important;
-    cursor: pointer;
-    transition: all 0.2s ease !important;
-}
-
-.squad-chip.selected {
-    background: #1e293b !important; /* Deep dark selected state */
-    color: #ffffff !important;
-    border-color: #1e293b !important;
-    transform: scale(1.05);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* PREMIUM FORM WRAPPERS */
-.input-wrapper {
-    background: #f8fafc;
-    border: 2px solid #f1f5f9;
-    border-radius: 20px;
-    padding: 12px 18px;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.input-icon-box {
-    color: var(--primary);
-    background: #ffffff;
-    padding: 10px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
-
-.btn-luxury-primary {
-    background: #1e293b !important; /* Solid dark premium button */
-    height: 65px;
-    border-radius: 22px !important;
-    font-size: 1.1rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2) !important;
-}
-
-.pill-inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-}
-
-/* --- TRIPCART PREMIUM POP-UP REDESIGN --- */
-
-/* 1. The Overlay: Deep Dim for Focus */
-.modal {
-    background: rgba(15, 23, 42, 0.7) !important; /* Deep slate overlay */
-    backdrop-filter: blur(8px);
-    display: none;
-    align-items: flex-end; /* Mobile-first: slide from bottom */
-    justify-content: center;
-    z-index: 1000;
-}
-
-@media (min-width: 768px) {
-    .modal { align-items: center; } /* Center on desktop */
-}
-
-/* 2. The Main Modal Card: Solid, Crisp, & Modern */
-.modal-content.luxury-glass {
-    background: #ffffff !important;
-    width: 100%;
-    max-width: 500px;
-    border-radius: 32px 32px 0 0 !important; /* Elegant rounded top */
-    padding: 30px !important;
-    box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.2) !important;
-    position: relative;
-    border: none !important;
-}
-
-@media (min-width: 768px) {
-    .modal-content.luxury-glass {
-        border-radius: 32px !important;
-        box-shadow: 0 30px 100px rgba(0, 0, 0, 0.3) !important;
-    }
-}
-
-/* 3. Modal Handle: Visual Cue for Sliding */
-.modal-handle {
-    width: 45px;
-    height: 5px;
-    background: #e2e8f0;
-    border-radius: 10px;
-    margin: -10px auto 25px auto;
-}
-
-/* 4. Live Preview Tag: The "Magic" element */
-#live-split-preview {
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
-    background: #f1f5f9 !important;
-    color: #334155 !important;
-    border: 1px solid #e2e8f0;
-    padding: 6px 16px;
-    border-radius: 12px;
-    display: inline-block;
-    margin-top: 8px;
-}
-
-/* 5. Currency Input Area: Clean & Gigantic */
-.value-input-container {
-    background: #f8fafc;
-    border-radius: 24px;
-    padding: 30px 20px;
-    margin: 20px 0;
-    transition: all 0.3s ease;
-    border: 1px solid #f1f5f9;
-}
-
-.value-input-container:focus-within {
-    background: #ffffff;
-    border-color: #3b82f6;
-    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.1);
-}
-
-.value-input-container input {
-    font-size: 4rem !important;
-    font-weight: 800 !important;
-    color: #0f172a !important;
-    border: none !important;
-    background: transparent !important;
-    outline: none !important;
-    width: 85% !important;
-    padding: 0 !important;
-}
-
-/* 6. Squad Chips: Minimalist Buttons */
-.squad-selection-container {
-    display: flex;
-    gap: 10px;
-    padding: 10px 0;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-}
-
-.squad-chip {
-    flex: 0 0 auto;
-    padding: 12px 22px !important;
-    background: #ffffff !important;
-    border: 1.5px solid #e2e8f0 !important;
-    border-radius: 18px !important;
-    color: #64748b !important;
-    font-weight: 700 !important;
-    font-size: 0.9rem !important;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-.squad-chip.selected {
-    background: #0f172a !important; /* Deep black/slate */
-    border-color: #0f172a !important;
-    color: #ffffff !important;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
-}
-
-/* 7. Input Wrappers (Description/Payer) */
-.input-wrapper {
-    background: #ffffff;
-    border: 1.5px solid #f1f5f9;
-    border-radius: 18px;
-    padding: 14px 18px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: 0.2s;
-}
-
-.input-wrapper:focus-within {
-    border-color: #cbd5e1;
-}
-
-.input-icon-box {
-    color: #3b82f6;
-    opacity: 0.8;
-}
-
-/* 8. The Ultimate Scrollbar: Apple-Style Modern */
-.squad-selection-container::-webkit-scrollbar,
-.ledger-list::-webkit-scrollbar {
-    height: 4px;
-    width: 4px;
-}
-
-.squad-selection-container::-webkit-scrollbar-track,
-.ledger-list::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.squad-selection-container::-webkit-scrollbar-thumb,
-.ledger-list::-webkit-scrollbar-thumb {
-    background: #cbd5e1; /* Subtle slate color */
-    border-radius: 20px;
-}
-
-.squad-selection-container::-webkit-scrollbar-thumb:hover,
-.ledger-list::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-}
-
-/* 9. Buttons: Premium Interaction */
-.btn-luxury-primary {
-    background: #3b82f6 !important; /* TripCart Blue */
-    color: #ffffff !important;
-    border: none;
-    border-radius: 20px !important;
-    font-weight: 800;
-    font-size: 1rem;
-    height: 60px;
-    width: 100%;
-    cursor: pointer;
-    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3) !important;
-    transition: all 0.3s ease;
-}
-
-.btn-luxury-primary:active {
-    transform: scale(0.97);
-    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.2) !important;
-}
-
-.btn-luxury-outline {
-    background: #ffffff !important;
-    color: #94a3b8 !important;
-    border: 1.5px solid #f1f5f9 !important;
-    border-radius: 20px !important;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.btn-luxury-outline:hover {
-    background: #f8fafc !important;
-    color: #64748b !important;
-}
-
-/* Extra Polish for Form Labels */
-.luxury-input-group label {
-    font-size: 0.75rem;
-    font-weight: 800;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-left: 5px;
-}
-
-/* --- TRIPCART PREMIUM REFINED MODAL --- */
-
-/* 1. Modal Container: Balanced & Centered */
-.modal {
-    background: rgba(15, 23, 42, 0.6) !important;
-    backdrop-filter: blur(10px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal-content.luxury-glass {
-    background: #ffffff !important;
-    width: 90%;
-    max-width: 420px; /* Precise, mobile-optimized width */
-    border-radius: 28px !important;
-    padding: 24px !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-    border: 1px solid rgba(0, 0, 0, 0.05) !important;
-}
-
-/* 2. Header & Live Tag */
-.modal-handle {
-    width: 40px;
-    height: 4px;
-    background: #f1f5f9;
-    border-radius: 10px;
-    margin: -8px auto 16px auto;
-}
-
-#live-split-preview {
-    font-size: 0.75rem;
-    font-weight: 700;
-    background: #eff6ff !important; /* Soft TripCart Blue */
-    color: #2563eb !important;
-    padding: 4px 12px;
-    border-radius: 8px;
-    margin-top: 6px;
-}
-
-/* 3. Value Input: Normal Scale, Bold Impact */
-.value-input-container {
-    background: #f8fafc;
-    border-radius: 18px;
-    padding: 16px;
-    margin: 16px 0;
-    border: 1px solid #f1f5f9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.value-input-container:focus-within {
-    background: #ffffff;
-    border-color: #3b82f6;
-}
-
-.currency-symbol {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #64748b;
-}
-
-.value-input-container input {
-    font-size: 1.75rem !important; /* Normal, readable size */
-    font-weight: 800 !important;
-    color: #1e293b !important;
-    border: none !important;
-    background: transparent !important;
-    outline: none !important;
-    width: 140px !important;
-    padding: 0 0 0 8px !important;
-}
-
-/* 4. Squad Chips: Modern Pill Style */
-.squad-selection-container {
-    display: flex;
-    gap: 8px;
-    padding: 8px 0;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-}
-
-.squad-chip {
-    flex: 0 0 auto;
-    padding: 8px 16px !important;
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 12px !important;
-    color: #475569 !important;
-    font-weight: 600 !important;
-    font-size: 0.85rem !important;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.squad-chip.selected {
-    background: #1e293b !important; /* TripCart Slate */
-    border-color: #1e293b !important;
-    color: #ffffff !important;
-}
-
-/* 5. Custom Rebranding Scrollbar */
-.squad-selection-container::-webkit-scrollbar {
-    height: 4px;
-}
-
-.squad-selection-container::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 10px;
-}
-
-.squad-selection-container::-webkit-scrollbar-thumb {
-    background: #cbd5e1; /* Matches website slate */
-    border-radius: 10px;
-}
-
-.squad-selection-container::-webkit-scrollbar-thumb:hover {
-    background: #3b82f6; /* Pops blue on hover */
-}
-
-/* 6. Form Field Wrappers */
-.input-wrapper {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 10px 14px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.input-icon-box {
-    color: #3b82f6;
-    width: 18px;
-    height: 18px;
-}
-
-.input-wrapper input, .input-wrapper select {
-    font-size: 0.9rem !important;
-    font-weight: 600;
-    color: #334155;
-    border: none !important;
-    outline: none !important;
-    background: transparent !important;
-    width: 100%;
-}
-
-/* 7. Action Buttons: Refined Dimensions */
-.btn-luxury-primary {
-    background: #1e293b !important;
-    color: #ffffff !important;
-    border-radius: 14px !important;
-    font-weight: 700;
-    font-size: 0.9rem;
-    height: 48px;
-    width: 100%;
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 4px 12px rgba(30, 41, 59, 0.15);
-    transition: all 0.2s ease;
-}
-
-.btn-luxury-primary:hover {
-    background: #334155 !important;
-    transform: translateY(-1px);
-}
-
-.btn-luxury-outline {
-    background: #ffffff !important;
-    color: #64748b !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    font-weight: 700;
-    font-size: 0.85rem;
-    height: 48px;
-    padding: 0 16px;
-    cursor: pointer;
-}
-
-/* Labels */
-.luxury-input-group label {
-    font-size: 0.7rem;
-    font-weight: 800;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-    display: block;
-}
-
-/* --- TRIPCART REFINED MODAL CSS --- */
-
-.modal-content.luxury-glass {
-    background: #ffffff !important;
-    width: 90%;
-    max-width: 400px; /* Precise width */
-    border-radius: 24px !important;
-    padding: 24px !important;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2) !important;
-    border: 1px solid #f1f5f9 !important;
-}
-
-.modal-header-compact {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.modal-header-compact h2 {
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: #1e293b;
-}
-
-#live-split-preview {
-    font-size: 0.7rem;
-    font-weight: 800;
-    background: #eff6ff;
-    color: #2563eb;
-    padding: 4px 10px;
-    border-radius: 8px;
-    text-transform: uppercase;
-}
-
-/* INPUT SCALING */
-.luxury-input-group { margin-bottom: 16px; }
-.luxury-input-group label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #64748b;
-    margin-bottom: 8px;
-    display: block;
-}
-
-.input-wrapper {
-    background: #f8fafc;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 8px 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.input-wrapper input, .input-wrapper select {
-    border: none;
-    background: transparent;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #1e293b;
-    width: 100%;
-    outline: none;
-}
-
-/* CATEGORY PILLS */
-.category-pill-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-}
-
-.pill {
-    padding: 8px;
-    border-radius: 10px;
-    border: 1.5px solid #e2e8f0;
-    background: white;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.pill.active {
-    background: #1e293b;
-    color: white;
-    border-color: #1e293b;
-}
-
-/* SQUAD SELECTION & SCROLLBAR */
-.squad-selection-container {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 10px;
-}
-
-.squad-chip {
-    flex: 0 0 auto;
-    padding: 8px 16px;
-    background: #ffffff;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #475569;
-}
-
-.squad-chip.selected {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
-}
-
-/* CUSTOM SCROLLBAR - Matching Website Theme */
-.squad-selection-container::-webkit-scrollbar {
-    height: 4px;
-}
-
-.squad-selection-container::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 10px;
-}
-
-.squad-selection-container::-webkit-scrollbar-thumb {
-    background: #cbd5e1; /* Slate color */
-    border-radius: 10px;
-}
-
-.squad-selection-container::-webkit-scrollbar-thumb:hover {
-    background: #2563eb; /* Blue on hover */
-}
-
-/* VALUE INPUT */
-.value-input-container {
-    background: #f8fafc;
-    border-radius: 12px;
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    border: 1.5px solid #e2e8f0;
-}
-
-.value-input-container input {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #1e293b;
-    border: none;
-    background: transparent;
-    width: 100%;
-    margin-left: 10px;
-    outline: none;
-}
-
-.input-hint {
-    font-size: 0.65rem;
-    color: #94a3b8;
-    margin-top: 5px;
-    font-weight: 600;
-}
-
-/* BUTTONS */
-.modal-btns-premium {
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: 12px;
-    margin-top: 20px;
-}
-
-.btn-luxury-primary {
-    background: #1e293b;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-weight: 800;
-    font-size: 0.9rem;
-    height: 45px;
-}
-
-.btn-luxury-outline {
-    background: transparent;
-    border: 1.5px solid #e2e8f0;
-    color: #64748b;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 0.85rem;
-}
-
-/* --- TRIPCART ULTIMATE MODAL MASTERCLASS --- */
-
-.luxury-solid-card {
-    background: #ffffff !important;
-    border-radius: 32px 32px 0 0 !important;
-    padding: 30px !important;
-    box-shadow: 0 -30px 100px rgba(0, 0, 0, 0.25) !important;
-    border-top: 1px solid #f1f5f9 !important;
-    animation: slideUpModal 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideUpModal {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-}
-
-/* SMART HEADER */
-.modal-smart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 25px;
-}
-
-.premium-title { font-size: 1.4rem; font-weight: 900; color: #0f172a; margin: 0; }
-.premium-subtitle { font-size: 0.75rem; color: #94a3b8; font-weight: 600; margin: 2px 0 0 0; }
-
-.live-telemetry-chip {
-    background: #0f172a;
-    color: #ffffff;
-    padding: 6px 14px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 800;
-    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2);
-}
-
-/* FORM SECTIONS */
-.form-section-modern { margin-bottom: 20px; }
-.logic-label { font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; display: block; }
-
-/* INPUT STACK */
-.input-stack-premium {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: #f8fafc;
-    padding: 12px 18px;
-    border-radius: 20px;
-    border: 1.5px solid #f1f5f9;
-}
-
-.icon-indicator { color: #3b82f6; width: 20px; height: 20px; }
-.field-logic input { border: none; background: transparent; width: 100%; font-weight: 700; color: #1e293b; outline: none; }
-
-/* CATEGORY TABS */
-.category-grid-modern { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-.cat-tab {
-    background: #ffffff;
-    border: 1.5px solid #f1f5f9;
-    padding: 12px 5px;
-    border-radius: 18px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.cat-tab i { width: 18px; height: 18px; color: #64748b; }
-.cat-tab span { font-size: 0.7rem; font-weight: 800; color: #64748b; }
-.cat-tab.active { background: #eff6ff; border-color: #3b82f6; }
-.cat-tab.active i, .cat-tab.active span { color: #3b82f6; }
-
-/* SQUAD ENGINE & CUSTOM SCROLLBAR */
-.squad-scroll-engine {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding: 5px 0 15px 0;
-}
-.squad-scroll-engine::-webkit-scrollbar { height: 5px; }
-.squad-scroll-engine::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
-
-/* MONEY FIELD */
-.money-input-field {
-    background: #0f172a;
-    border-radius: 20px;
-    padding: 15px 25px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-.currency-symbol-modern { color: #3b82f6; font-size: 1.5rem; font-weight: 900; }
-.money-input-field input {
-    background: transparent;
-    border: none;
-    color: #ffffff;
-    font-size: 2rem;
-    font-weight: 900;
-    width: 100%;
-    outline: none;
-}
-
-/* PAYER SELECT */
-.payer-select-box {
-    background: #ffffff;
-    border: 1.5px solid #f1f5f9;
-    border-radius: 18px;
-    padding: 12px 18px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.payer-icon { color: #3b82f6; width: 18px; }
-.payer-select-box select { border: none; width: 100%; font-weight: 700; color: #1e293b; outline: none; }
-
-/* FOOTER ACTIONS */
-.modal-footer-actions {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 15px;
-    margin-top: 30px;
-}
-.btn-cancel-luxury { background: #f1f5f9; border: none; border-radius: 18px; font-weight: 800; color: #64748b; font-size: 0.9rem; cursor: pointer; }
-.btn-sync-luxury {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 18px;
-    font-weight: 800;
-    height: 55px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
-}
-
-
-
-/* ================================================================
-   TRIPCART PLATINUM v25.0 | MASTER STYLESHEET
-   Architecture: Hybrid Atomic-Modular (HAM)
-   Updated: 2026 Katra Expedition Edition
-   ================================================================ */
-
-/* --- 1. CORE SYSTEM VARIABLES --- */
-:root {
-    --p-h: 221; --p-s: 83%; --p-l: 53%;
-    --primary: hsl(var(--p-h), var(--p-s), var(--p-l));
-    --primary-dark: hsl(var(--p-h), var(--p-s), 40%);
-    --primary-soft: hsl(var(--p-h), var(--p-s), 96%);
-    --primary-glass: hsla(var(--p-h), var(--p-s), var(--p-l), 0.1);
-    
-    --bg-dark: #0f172a;
-    --bg-surface: #ffffff;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    
-    --radius-md: 16px;
-    --radius-xl: 32px;
-    
-    --shadow-p: 0 10px 25px -3px hsla(var(--p-h), var(--p-s), var(--p-l), 0.3);
-    --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* --- 2. LUXURY AMBIENT ENGINE --- */
-body {
-    background: #f8fafc;
-    color: var(--text-main);
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    margin: 0;
-    overflow-x: hidden;
-    min-height: 100vh;
-}
-
-/* Dynamic Background Blurs */
-body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    filter: blur(100px);
-    opacity: 0.5;
-    background: radial-gradient(circle at 10% 20%, #3b82f6 0%, #a855f7 30%, #f8fafc 70%);
-}
-
-/* --- 3. LAYOUT ARCHITECTURE --- */
-.main-content {
-    margin-left: 300px;
-    padding: 3rem;
-    transition: all 0.3s ease;
-}
-
-@media (max-width: 1024px) {
-    .main-content { margin-left: 0; padding: 1.5rem 1rem 120px; }
-    .sidebar { display: none; }
-}
-
-/* --- 4. BENTO GRID & LUXURY CARDS --- */
-.premium-quad-grid {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr 0.8fr;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.luxury-card {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: var(--radius-xl);
-    padding: 2rem;
-    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
-    transition: var(--transition-bounce);
-}
-
-.primary-gradient {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
-    color: white !important;
-}
-
-/* --- 5. THE ULTIMATE MODAL (SOLID PREMIUM) --- */
-.modal-content.luxury-solid-card {
-    background: #ffffff !important;
-    border-radius: 32px 32px 0 0 !important;
-    padding: 30px !important;
-    box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.15) !important;
-    border: none !important;
-    max-width: 500px;
-    width: 100%;
-}
-
-/* Money Input Logic */
-.money-input-field {
-    background: #0f172a;
-    border-radius: 20px;
-    padding: 15px 25px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
-}
-
-.money-input-field input {
-    background: transparent;
-    border: none;
-    color: #ffffff;
-    font-size: 2.2rem;
-    font-weight: 900;
-    width: 100%;
-    outline: none;
-    font-family: 'Inter', monospace;
-}
-
-/* --- 6. SQUAD ENGINE (MOBILE OPTIMIZED) --- */
-.squad-scroll-engine {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding: 10px 0;
-    scrollbar-width: none; /* Firefox */
-}
-
-.squad-scroll-engine::-webkit-scrollbar { display: none; } /* Chrome/Safari */
-
-.squad-chip {
-    flex: 0 0 auto;
-    padding: 12px 20px;
-    background: #f8fafc;
-    border: 1.5px solid #f1f5f9;
-    border-radius: 18px;
-    font-weight: 700;
-    color: #64748b;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.squad-chip.selected {
-    background: #0f172a;
-    color: white;
-    border-color: #0f172a;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-}
-
-/* --- 7. TIMELINE & ACTIVITY FEED --- */
-.timeline-style {
-    position: relative;
-    border-left: 2px solid #f1f5f9;
-    margin-left: 1rem;
-    padding-left: 1.5rem;
-}
-
-.activity-item {
-    background: white;
-    border-radius: var(--radius-md);
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    border: 1px solid #f1f5f9;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-}
-
-.activity-item::before {
-    content: '';
-    position: absolute;
-    left: -1.9rem;
-    top: 50%;
-    width: 10px; height: 10px;
-    background: white;
-    border: 2px solid var(--primary);
-    border-radius: 50%;
-}
-
-/* --- 8. NAVIGATION (SIDEBAR & MOBILE) --- */
-.mobile-nav {
-    display: flex;
-    position: fixed;
-    bottom: 20px; left: 20px; right: 20px;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
-    padding: 12px;
-    justify-content: space-around;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.1);
-    z-index: 2000;
-    border: 1px solid rgba(255,255,255,0.4);
-}
-
-.m-nav-item {
-    background: transparent; border: none;
-    display: flex; flex-direction: column; align-items: center;
-    gap: 4px; color: var(--text-muted); font-weight: 800;
-    font-size: 0.65rem; text-transform: uppercase;
-}
-
-.m-nav-item.active { color: var(--primary); }
-
-/* --- 9. ANIMATIONS & UTILS --- */
-@keyframes slideUp {
-    from { transform: translateY(100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.modal-content { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-
-.pulse-icon::after {
-    content: ''; position: absolute; inset: 0;
-    border-radius: 50%; background: #10b981;
-    animation: pulse-ring 2s infinite;
-}
-
-@keyframes pulse-ring {
-    0% { transform: scale(1); opacity: 0.7; }
-    100% { transform: scale(2.5); opacity: 0; }
-}
-
-/* --- MODAL WRAPPER --- */
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(8px);
-    z-index: 5000;
-    align-items: flex-end; /* Slides from bottom on mobile */
-    justify-content: center;
-}
-
-@media (min-width: 768px) {
-    .modal { align-items: center; padding: 20px; }
-}
-
-/* --- MODAL CARD --- */
-.luxury-solid-card {
-    background: #ffffff;
-    width: 100%;
-    max-width: 520px;
-    padding: 2rem;
-    border-radius: 32px 32px 0 0; /* Bottom sheet style */
-    box-shadow: 0 -20px 50px rgba(0,0,0,0.15);
-    max-height: 92vh;
-    overflow-y: auto;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@media (min-width: 768px) {
-    .luxury-solid-card { border-radius: 28px; }
-}
-
-/* --- HEADER & LIVE TAG --- */
-.modal-smart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1.5rem;
-}
-
-.premium-title { font-size: 1.4rem; font-weight: 900; color: #0f172a; margin: 0; }
-.premium-subtitle { font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-top: 2px; }
-
-.live-telemetry-chip {
-    background: #0f172a;
-    color: #fff;
-    padding: 6px 14px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 800;
-}
-
-/* --- CATEGORY TABS (4-Column Grid) --- */
-.category-grid-modern {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-}
-
-.cat-tab {
-    background: #f8fafc;
-    border: 1.5px solid #f1f5f9;
-    padding: 12px 5px;
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.cat-tab.active {
-    background: #eff6ff;
-    border-color: #3b82f6;
-    color: #3b82f6;
-}
-
-/* --- SQUAD SCROLL ENGINE --- */
-.squad-scroll-engine {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding: 10px 0;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-}
-
-.squad-chip {
-    flex: 0 0 auto;
-    padding: 10px 18px;
-    background: #f1f5f9;
-    border-radius: 14px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #475569;
-    transition: 0.2s;
-}
-
-.squad-chip.selected {
-    background: #1e293b;
-    color: white;
-}
-
-/* --- TWO-COLUMN ROW (DESKTOP ONLY) --- */
-.form-row-split {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-}
-
-@media (min-width: 600px) {
-    .form-row-split { grid-template-columns: 1.2fr 1fr; }
-}
-
-/* --- MONEY INPUT --- */
-.money-input-field {
-    background: #0f172a;
-    border-radius: 18px;
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.currency-symbol-modern { color: #3b82f6; font-size: 1.4rem; font-weight: 900; }
-
-.money-input-field input {
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 1.6rem;
-    font-weight: 900;
-    width: 100%;
-    outline: none;
-}
-
-/* --- ACTION BUTTONS --- */
-.modal-footer-actions {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 12px;
-    margin-top: 2rem;
-}
-
-.btn-sync-luxury {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 16px;
-    height: 54px;
-    font-weight: 800;
-    font-size: 1rem;
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
-}
-
-.btn-cancel-luxury {
-    background: #f1f5f9;
-    border: none;
-    border-radius: 16px;
-    font-weight: 700;
-    color: #64748b;
-}
-
-/* --- UTILS --- */
-.logic-label { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
-.label-row-flex { display: flex; justify-content: space-between; align-items: center; }
-.action-link-sm { background: none; border: none; color: #3b82f6; font-size: 0.75rem; font-weight: 800; cursor: pointer; }
-.input-hint { font-size: 0.7rem; color: #94a3b8; margin-top: 6px; font-weight: 500; }
-.modal-handle { width: 40px; height: 5px; background: #e2e8f0; border-radius: 10px; margin: -10px auto 20px auto; }
-
-/* --- BENTO GRID RESPONSIVENESS --- */
-.premium-quad-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* Desktop default */
-    gap: 1.25rem;
-}
-
-@media (max-width: 768px) {
-    .premium-quad-grid {
-        grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
-        gap: 0.75rem;
-    }
-
-    /* Make Total Spend take the top row entirely */
-    .stat-card.primary-gradient {
-        grid-column: span 2;
-        padding: 1.5rem;
-    }
-
-    /* Font Scaling for Mobile to prevent overflow */
-    .stat-value {
-        font-size: 2.2rem !important; /* Slightly smaller for mobile */
-    }
-
-    .stat-value-mid {
-        font-size: 1.4rem !important;
-    }
-
-    .stat-label {
-        font-size: 0.65rem !important;
-        letter-spacing: 0.5px;
-    }
-}
-
-/* --- DESIGN POLISH --- */
-.stat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.verified-badge {
-    font-size: 0.6rem;
-    background: rgba(255,255,255,0.2);
-    padding: 2px 8px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.progress-mini-container {
-    height: 4px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 10px;
-    margin-top: 1rem;
-    overflow: hidden;
-}
-
-.progress-bar {
-    height: 100%;
-    background: #fff;
-    box-shadow: 0 0 10px rgba(255,255,255,0.5);
-}
-
-/* --- TRIPCART PLATINUM FLOATING PLATE NAV --- */
-:root {
-    --nav-bg: rgba(15, 23, 42, 0.8);
-    --nav-glass: blur(24px) saturate(210%);
-    --nav-border: rgba(255, 255, 255, 0.08);
-    --active-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-}
-
-.mobile-nav {
-    display: none; /* Hidden on Desktop */
-}
-
-@media (max-width: 1024px) {
-    .mobile-nav {
-        display: flex;
-        position: fixed;
-        bottom: 30px; /* Floating away from bottom edge */
-        left: 20px;
-        right: 20px;
-        height: 74px;
-        background: var(--nav-bg);
-        backdrop-filter: var(--nav-glass);
-        -webkit-backdrop-filter: var(--nav-glass);
-        border: 1px solid var(--nav-border);
-        border-radius: 28px; /* Ultra-rounded pill shape */
-        padding: 0 10px;
-        justify-content: space-around;
-        align-items: center;
-        box-shadow: 
-            0 20px 40px rgba(0, 0, 0, 0.4),
-            inset 0 1px 1px rgba(255, 255, 255, 0.1);
-        z-index: 5000;
-        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .m-nav-item {
-        position: relative;
-        flex: 1;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        border: none;
-        color: #94a3b8;
-        gap: 6px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    /* The Animated Active "Glow" Indicator */
-    .m-nav-item.active {
-        color: #fff;
-    }
-
-    .m-nav-item.active i {
-        transform: translateY(-4px);
-        color: #fff;
-        filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.8));
-    }
-
-    .m-nav-item.active::after {
-        content: '';
-        position: absolute;
-        bottom: 12px;
-        width: 6px;
-        height: 6px;
-        background: #a855f7;
-        border-radius: 50%;
-        box-shadow: 0 0 12px #a855f7;
-        animation: activePulse 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .m-nav-item i {
-        width: 22px;
-        height: 22px;
-        transition: transform 0.3s ease, color 0.3s ease;
-    }
-
-    .m-nav-item span {
-        font-size: 0.65rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        opacity: 0.7;
-    }
-
-    .m-nav-item.active span {
-        opacity: 1;
-        color: #fff;
-    }
-}
-
-/* Entry Animation for the Plate */
-@keyframes slideUpPlate {
-    from { transform: translateY(100px) scale(0.9); opacity: 0; }
-    to { transform: translateY(0) scale(1); opacity: 1; }
-}
-
-.mobile-nav {
-    animation: slideUpPlate 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Pulse for the active dot */
-@keyframes activePulse {
-    0% { transform: scale(0); }
-    100% { transform: scale(1); }
-}
-
-/* Hide Nav when modal is open to keep UI clean */
-body.modal-open .mobile-nav {
-    transform: translateY(150px);
-}
-
-/* --- 1. DESKTOP SIDEBAR (Static) --- */
-.sidebar {
-    width: 300px;
-    background: var(--bg-surface);
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    padding: 2.5rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid var(--border-base);
-    z-index: 1000;
-}
-
-/* --- 2. MOBILE FLOATING PLATE (Responsive) --- */
-/* We hide it by default for desktop */
-.mobile-nav {
-    display: none;
-}
-
-/* --- 3. THE "SUPERB" MOBILE MEDIA QUERY --- */
-@media (max-width: 1024px) {
-    /* Hide the sidebar on mobile to make room */
-    .sidebar {
-        display: none !important;
-    }
-
-    /* Shift main content to full width since sidebar is gone */
-    .main-content {
-        margin-left: 0 !important;
-        width: 100% !important;
-        padding-bottom: 120px !important; /* Space so content isn't hidden by the floating bar */
-    }
-
-    /* THE FLOATING PLATE REVEAL */
-    .mobile-nav {
-        display: flex; /* Show only on mobile */
-        position: fixed;
-        bottom: 30px; 
-        left: 20px;
-        right: 20px;
-        height: 74px;
-        background: rgba(255, 255, 255, 0.75); /* Frosted Glass */
-        backdrop-filter: blur(25px) saturate(200%);
-        -webkit-backdrop-filter: blur(25px) saturate(200%);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        border-radius: 28px;
-        padding: 0 10px;
-        justify-content: space-around;
-        align-items: center;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        z-index: 5000;
-        animation: slideUpPlate 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    .m-nav-item {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        border: none;
-        color: #94a3b8;
-        gap: 5px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* Active State: Floating Glow */
-    .m-nav-item.active {
-        color: #3b82f6; /* TripCart Blue */
-        transform: translateY(-5px);
-    }
-
-    .m-nav-item.active i {
-        filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
-    }
-
-    .m-nav-item span {
-        font-size: 0.6rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-}
-
-/* --- 4. ANIMATIONS --- */
-@keyframes slideUpPlate {
-    from { transform: translateY(100px) scale(0.9); opacity: 0; }
-    to { transform: translateY(0) scale(1); opacity: 1; }
-}
-
-/* ================================================================
-   TRIPCART PLATINUM: AURORA FLOATING PLATE v25.0.9
-   ================================================================ */
-
-:root {
-    /* Aurora System Colors */
-    --nav-bg: #0f172a; /* Deep Slate/Sapphire */
-    --nav-border: rgba(99, 102, 241, 0.3); /* Indigo Glow */
-    --accent-aurora: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-    --active-text: #ffffff;
-    --inactive-text: #64748b;
-}
-
-/* 1. Desktop Neutralization (Hide Sidebar on Mobile / Hide Nav on Desktop) */
-.mobile-nav {
-    display: none;
-}
-
-@media (max-width: 1024px) {
-    /* THE SUPERB COLORED FLOATING PLATE */
-    .mobile-nav {
-        display: flex;
-        position: fixed;
-        bottom: 30px; 
-        left: 20px;
-        right: 20px;
-        height: 76px;
+};
+
+// --- 4. CORE UI & RENDERING CONTROLLER ---
+const UI = {
+    showSection: (sectionId) => {
+        document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden'));
+        document.querySelectorAll('.nav-link, .m-nav-item').forEach(n => n.classList.remove('active'));
         
-        /* High-Impact Colorful Base */
-        background: var(--nav-bg);
-        border: 2px solid var(--nav-border);
-        border-radius: 30px;
-        padding: 0 15px;
-        justify-content: space-around;
-        align-items: center;
+        document.body.classList.remove('bg-dashboard', 'bg-expenses', 'bg-balance', 'bg-members', 'bg-profile');
+        document.body.classList.add(CONFIG.THEMES[sectionId] || 'bg-dashboard');
+
+        const target = document.getElementById(`${sectionId}-section`);
+        if (target) target.classList.remove('hidden');
+
+        document.querySelectorAll(`[onclick="showSection('${sectionId}')"]`).forEach(el => el.classList.add('active'));
+        document.getElementById('section-title').innerText = UI.mapTitle(sectionId);
+
+        const desktopAction = document.getElementById('desktop-action-container');
+        if (desktopAction) {
+            desktopAction.innerHTML = '';
+            if (sectionId === 'expenses') {
+                desktopAction.innerHTML = `<button class="btn btn-primary" onclick="UI.openModal('expenseModal')"><i data-lucide="plus"></i> New Bill</button>`;
+            } else if (sectionId === 'members') {
+                desktopAction.innerHTML = `<button class="btn btn-primary" onclick="UI.openModal('memberModal')"><i data-lucide="user-plus"></i> Enroll Participant</button>`;
+            }
+        }
+
+        UI.executeRenderer(sectionId);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        lucide.createIcons();
+    },
+
+    mapTitle: (id) => ({
+        'dashboard': 'Dashboard', 'expenses': 'Expenses', 
+        'balance': 'Split Sheet', 'members': 'Squad Control', 'profile': 'Settings'
+    }[id] || 'TripCart'),
+
+    executeRenderer: (id) => {
+        const renderers = {
+            'dashboard': UI.refreshDashboard,
+            'balance': UI.renderBalanceSheet,
+            'members': UI.renderMembersGrid,
+            'profile': UI.renderProfile,
+            'expenses': UI.renderExpensesTable
+        };
+        if (renderers[id]) renderers[id]();
+    },
+
+    refreshDashboard: () => {
+        const totalSpent = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+        const totalEl = document.getElementById('total-expense-val');
+        if (totalEl) totalEl.innerText = `₹${totalSpent.toLocaleString('en-IN')}`;
+
+        const velocityEl = document.getElementById('daily-velocity-val');
+        if (velocityEl) {
+            if (expenses.length === 0) velocityEl.innerText = "₹0";
+            else {
+                const firstExp = Math.min(...expenses.map(e => e.time));
+                const days = Math.ceil(Math.abs(Date.now() - firstExp) / (1000 * 60 * 60 * 24)) || 1;
+                velocityEl.innerText = `₹${Math.round(totalSpent / days).toLocaleString('en-IN')}`;
+            }
+        }
+
+        const nameEl = document.getElementById('top-spender-name');
+        const avatarEl = document.getElementById('top-spender-avatar');
+        if (nameEl && avatarEl) {
+            if (expenses.length === 0) {
+                nameEl.innerText = "None"; avatarEl.innerText = "?";
+            } else {
+                const map = {};
+                expenses.forEach(e => map[e.paidBy] = (map[e.paidBy] || 0) + e.amount);
+                const lead = Object.keys(map).reduce((a, b) => map[a] > map[b] ? a : b);
+                nameEl.innerText = lead; avatarEl.innerText = lead[0];
+            }
+        }
+        UI.renderActivityFeed();
+    },
+
+    renderBalanceSheet: () => {
+        const grid = document.getElementById('balance-grid');
+        if (!grid) return;
         
-        /* Multi-Layered Glow Shadow */
-        box-shadow: 
-            0 15px 35px rgba(0, 0, 0, 0.4),
-            0 0 15px rgba(99, 102, 241, 0.2),
-            inset 0 1px 1px rgba(255, 255, 255, 0.1);
-            
-        z-index: 5000;
-        animation: auroraSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+        grid.innerHTML = members.map((member, index) => {
+            let paidOut = 0, credits = [], debts = [];
+            expenses.forEach(exp => {
+                const share = exp.amount / exp.participants.length;
+                if (exp.paidBy === member.name) {
+                    paidOut += exp.amount;
+                    exp.participants.forEach(p => { if (p !== member.name) credits.push({ from: p, amount: share }); });
+                } else if (exp.participants.includes(member.name)) {
+                    debts.push({ to: exp.paidBy, amount: share });
+                }
+            });
 
-    /* Navigation Items */
-    .m-nav-item {
-        position: relative;
-        flex: 1;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        border: none;
-        color: var(--inactive-text);
-        gap: 4px;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        -webkit-tap-highlight-color: transparent;
-    }
+            const net = credits.reduce((s, c) => s + c.amount, 0) - debts.reduce((s, d) => s + d.amount, 0);
+            const cardId = `ledger-card-${index}`;
 
-    /* Active State: The Aurora Explosion */
-    .m-nav-item.active {
-        color: var(--active-text);
-    }
+            return `
+                <div class="member-ledger-card animate-in" id="${cardId}">
+                    <div class="ledger-header">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="member-avatar primary-gradient">${member.name[0]}</div>
+                            <h3 style="margin:0; font-weight:800; color:#0f172a;">${member.name}</h3>
+                        </div>
+                        <div class="badge ${net >= 0 ? 'badge-success' : 'badge-travel'}">${net >= 0 ? 'COLLECTING' : 'PAYING'}</div>
+                    </div>
+                    <div class="ledger-summary-grid">
+                        <div class="summary-item"><small>Outbound</small><span>₹${Math.round(paidOut)}</span></div>
+                        <div class="summary-item"><small>Net Payload</small><span class="${net >= 0 ? 'text-get' : 'text-give'}">₹${Math.round(Math.abs(net))}</span></div>
+                    </div>
+                    <div class="ledger-list">
+                        ${credits.length === 0 && debts.length === 0 ? '<p class="empty-msg" style="padding:10px;">Ledger Neutral</p>' : ''}
+                        ${credits.map(c => `<div class="ledger-row"><span>Get from ${c.from}</span><span class="text-get">+₹${Math.round(c.amount)}</span></div>`).join('')}
+                        ${debts.map(d => `<div class="ledger-row"><span>Pay to ${d.to}</span><span class="text-give">-₹${Math.round(d.amount)}</span></div>`).join('')}
+                    </div>
+                    <div class="card-action-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top: 15px;">
+                        <button class="btn btn-card-download" onclick="Logic.exportCardAsImage('${cardId}', '${member.name}')">
+                            <i data-lucide="image"></i> Save Card
+                        </button>
+                        <button class="btn btn-primary" style="background:#25D366; border:none;" onclick="Logic.shareWhatsApp('${member.name}', ${net})">
+                            <i data-lucide="share-2"></i> WhatsApp
+                        </button>
+                    </div>
+                </div>`;
+        }).join('');
+        lucide.createIcons();
+    },
 
-    /* Icon Neon Glow */
-    .m-nav-item.active i {
-        transform: translateY(-10px) scale(1.2);
-        background: var(--accent-aurora);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.6));
-    }
+    renderExpensesTable: () => {
+        const tbody = document.getElementById('expenses-tbody');
+        if (!tbody) return;
+        if (expenses.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No transactions found in TripCart.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = expenses.map((e, idx) => `
+            <tr class="table-row-hover">
+                <td><b>${e.title}</b><br><small>${new Date(e.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small></td>
+                <td class="hide-mobile"><b>${e.paidBy}</b></td>
+                <td><b>₹${e.amount.toLocaleString()}</b></td>
+                <td><span class="badge">${e.category}</span></td>
+                <td><button class="btn" style="color:var(--danger); padding:5px;" onclick="Logic.deleteExpense(${idx})"><i data-lucide="trash-2"></i></button></td>
+            </tr>`).reverse().join('');
+        lucide.createIcons();
+    },
 
-    /* The Animated Under-Glow Pill */
-    .m-nav-item.active::before {
-        content: '';
-        position: absolute;
-        bottom: 12px;
-        width: 35px;
-        height: 4px;
-        background: var(--accent-aurora);
-        border-radius: 10px;
-        box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
-        animation: pillExpand 0.4s ease-out;
-    }
+    renderMembersGrid: () => {
+        const grid = document.getElementById('members-grid');
+        if (!grid) return;
+        const countBadge = document.getElementById('member-count-val');
+        if (countBadge) countBadge.innerText = `${members.length} Members`;
 
-    .m-nav-item span {
-        font-size: 0.6rem;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        opacity: 0.5;
-        transition: 0.3s;
-    }
+        grid.innerHTML = members.map((m, idx) => `
+            <div class="member-card animate-in" style="animation-delay: ${idx * 0.05}s">
+                <button class="btn-delete" onclick="Logic.deleteMember(${idx})"><i data-lucide="user-x"></i></button>
+                <div class="member-avatar primary-gradient">${m.name[0]}</div>
+                <b>${m.name}</b>
+                <div style="margin-top: 5px; font-size: 0.75rem; color: var(--text-light); font-weight: 700;">REG: #${m.id.toString().slice(-4)}</div>
+            </div>`).join('') + `
+            <div class="member-card add-friend-card" onclick="UI.openModal('memberModal')">
+                <div class="add-friend-content">
+                    <div class="add-friend-icon primary-gradient"><i data-lucide="plus"></i></div>
+                    <span>Register Member</span>
+                </div>
+            </div>`;
+        lucide.createIcons();
+    },
 
-    .m-nav-item.active span {
-        opacity: 1;
-        transform: translateY(2px);
-        background: var(--accent-aurora);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-}
+    renderProfile: () => {
+        const container = document.querySelector('.profile-container');
+        if (!container) return;
+        const isStandalone = PWAManager.isStandalone();
 
-/* --- ANIMATION ORCHESTRATION --- */
-@keyframes auroraSlideUp {
-    from { 
-        transform: translateY(120px) rotateX(20deg); 
-        opacity: 0; 
-    }
-    to { 
-        transform: translateY(0) rotateX(0deg); 
-        opacity: 1; 
-    }
-}
+        container.innerHTML = `
+            <div class="profile-hero">
+                <h2>${localStorage.getItem('tripcart_tripName') || 'TripCart'}</h2>
+                <div class="badge-success">Platinum v25.0 Stable</div>
+            </div>
 
-@keyframes pillExpand {
-    0% { width: 0; opacity: 0; }
-    100% { width: 35px; opacity: 1; }
-}
+            <div class="panel luxury-shadow" style="background:#fff !important; border-radius: 24px; margin-bottom: 20px;">
+                <div class="panel-title"><i data-lucide="file-text"></i> Full Expedition Dossier</div>
+                <p>Generate and download a complete high-fidelity PDF report of all trip data, including member spending and settlement logic.</p>
+                <button class="btn btn-primary" style="width: 100%; background: #0f172a; color: white;" onclick="Logic.exportFullPDF()">
+                    <i data-lucide="download"></i> Download Complete PDF
+                </button>
+            </div>
 
-/* ================================================================
-   TRIPCART PLATINUM: AURORA FLOATING PLATE v25.0.9 (COLOR EDIT)
-   ================================================================ */
-
-:root {
-    --nav-bg: #0f172a; /* Deep Sapphire Base */
-    --accent-aurora: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-    --inactive-text: #64748b;
-}
-
-@media (max-width: 1024px) {
-    .mobile-nav {
-        display: flex;
-        position: fixed;
-        bottom: 30px; 
-        left: 20px;
-        right: 20px;
-        height: 76px;
-        background: var(--nav-bg);
-        border: 2px solid rgba(99, 102, 241, 0.2);
-        border-radius: 30px;
-        padding: 0 15px;
-        justify-content: space-around;
-        align-items: center;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-        z-index: 5000;
-        animation: auroraSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    .m-nav-item {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        background: transparent;
-        border: none;
-    }
-
-    /* --- THE SUPERB COLOR TEXT LOGIC --- */
-    .m-nav-item span {
-        font-size: 0.65rem;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--inactive-text); /* Inactive color */
-        transition: all 0.3s ease;
-    }
-
-    /* Active State: Text Gradient Reveal */
-    .m-nav-item.active span {
-        /* Apply Aurora Gradient to Text */
-        background: var(--accent-aurora);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+            <div class="panel luxury-shadow" style="background:#fff !important; border-radius: 24px;">
+                <div class="panel-title"><i data-lucide="smartphone"></i> App Deployment</div>
+                ${isStandalone ? 
+                    `<p style="color: var(--success); font-weight: 800;">✅ Standalone Perimeter Active</p>
+                     <p>TripCart is running in high-performance native mode.</p>` :
+                    `<p>Deploy TripCart to home screen for offline mountain access.</p>
+                     <button class="btn btn-primary btn-install-large" id="install-app-btn" 
+                        style="${deferredPrompt ? 'opacity: 1;' : 'opacity: 0.6;'}">
+                        <i data-lucide="download-cloud"></i> ${deferredPrompt ? 'Deploy TripCart' : 'System Locked'}
+                     </button>`
+                }
+            </div>
+            <button class="btn btn-reset-danger" onclick="DataManager.purge()"><i data-lucide="refresh-ccw"></i> Purge All Trip Data</button>`;
         
-        /* Subtle Lift & Glow */
-        transform: translateY(2px);
-        opacity: 1;
-        filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.4));
-    }
+        const btn = document.getElementById('install-app-btn');
+        if (btn && deferredPrompt) {
+            btn.onclick = async () => {
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                UI.renderProfile();
+            };
+        }
+        lucide.createIcons();
+    },
 
-    /* Active State: Icon Gradient Reveal */
-    .m-nav-item.active i {
-        transform: translateY(-10px) scale(1.2);
-        background: var(--accent-aurora);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.6));
-    }
+    logActivity: (text, cat, icon, amount = '') => {
+        allLogs.unshift({ text, cat, icon, amount, time: Date.now() });
+        if (allLogs.length > 30) allLogs.pop();
+        DataManager.save('logs', allLogs);
+        UI.renderActivityFeed();
+    },
 
-    /* Active Indicator (Glowing Pill) */
-    .m-nav-item.active::before {
-        content: '';
-        position: absolute;
-        bottom: 10px;
-        width: 30px;
-        height: 3px;
-        background: var(--accent-aurora);
-        border-radius: 10px;
-        box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
-    }
-}
+    renderActivityFeed: () => {
+        const feed = document.getElementById('activity-feed');
+        if (!feed) return;
+        if (allLogs.length === 0) {
+            feed.innerHTML = '<p class="empty-msg">Awaiting transaction telemetry...</p>';
+            return;
+        }
+        feed.innerHTML = allLogs.map(l => `
+            <div class="activity-item animate-in">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="activity-icon ${l.cat || 'system'}"><i data-lucide="${l.icon || 'activity'}"></i></div>
+                    <div style="flex:1;">
+                        <p style="margin:0; font-size: 0.9rem; font-weight:600;">${l.text || 'Telemetry Update'}</p>
+                        <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                           ${l.amount ? `<span class="badge" style="background:var(--primary-soft); color:var(--primary); font-size: 0.65rem;">${l.amount}</span>` : ''}
+                           <span style="font-size: 0.7rem; color: var(--text-light); font-weight: 600;">${UI.formatTime(l.time)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`).join('');
+        lucide.createIcons();
+    },
 
-/* Entry Animation */
-@keyframes auroraSlideUp {
-    from { transform: translateY(120px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
+    formatTime: (ts) => {
+        const diff = Math.floor((Date.now() - ts) / 1000);
+        if (diff < 60) return 'Just now';
+        if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+        return new Date(ts).toLocaleDateString();
+    },
+
+    openModal: (id) => {
+        const modal = document.getElementById(id);
+        if (!modal) return;
+        modal.style.display = 'flex';
+        if (id === 'expenseModal') Logic.prepareExpenseModal();
+    },
+    closeModal: (id) => {
+        const m = document.getElementById(id);
+        if (m) m.style.display = 'none';
+    }
+};
+
+// --- 5. BUSINESS LOGIC & DATA PROCESSING PIPELINE ---
+const Logic = {
+    /**
+     * PDF EXPORT ENGINE
+     */
+    exportFullPDF: () => {
+        if (!window.jspdf) {
+            alert("PDF Engine is still loading. Please wait a moment.");
+            return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const tripName = localStorage.getItem('tripcart_tripName') || "Katra Expedition 2026";
+        const totalSpent = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+
+        // --- 1. SET HEADER & STYLING ---
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(22);
+        doc.setTextColor(30, 41, 59);
+        doc.text("TRIPCART PLATINUM DOSSIER", 14, 22);
+        
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Expedition: ${tripName}`, 14, 30);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 36);
+        doc.text(`Total Expedition Spend: RS ${totalSpent.toLocaleString()}`, 14, 42);
+
+        // --- 2. SQUAD SPENDING SUMMARY ---
+        const memberSpendData = members.map(m => {
+            const spent = expenses.filter(e => e.paidBy === m.name).reduce((s, e) => s + e.amount, 0);
+            return [m.name, `RS ${spent.toLocaleString()}`];
+        });
+
+        doc.autoTable({
+            startY: 50,
+            head: [['Squad Member', 'Total Paid Out']],
+            body: memberSpendData,
+            theme: 'striped',
+            headStyles: { fillColor: [37, 99, 235] }
+        });
+
+        // --- 3. SETTLEMENT MATRIX ---
+        let balances = {};
+        members.forEach(m => balances[m.name] = 0);
+        expenses.forEach(exp => {
+            const share = exp.amount / exp.participants.length;
+            balances[exp.paidBy] += exp.amount;
+            exp.participants.forEach(p => balances[p] -= share);
+        });
+
+        let debtors = [], creditors = [];
+        for (let name in balances) {
+            if (balances[name] < -0.1) debtors.push({ name, amount: Math.abs(balances[name]) });
+            else if (balances[name] > 0.1) creditors.push({ name, amount: balances[name] });
+        }
+
+        let settlementRows = [];
+        debtors.forEach(d => {
+            creditors.forEach(c => {
+                if (d.amount > 0 && c.amount > 0) {
+                    let payment = Math.min(d.amount, c.amount);
+                    settlementRows.push([d.name, c.name, `RS ${Math.round(payment).toLocaleString()}`]);
+                    d.amount -= payment;
+                    c.amount -= payment;
+                }
+            });
+        });
+
+        doc.setFont("helvetica", "bold");
+        doc.text("SETTLEMENT PLAN", 14, doc.lastAutoTable.finalY + 15);
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 20,
+            head: [['From (Debtor)', 'To (Creditor)', 'Amount to Pay']],
+            body: settlementRows.length ? settlementRows : [['-', '-', 'All Settled']],
+            theme: 'grid',
+            headStyles: { fillColor: [15, 23, 42] }
+        });
+
+        // --- 4. TRANSACTION LOG ---
+        doc.setFont("helvetica", "bold");
+        doc.text("COMPLETE TRANSACTION LOG", 14, doc.lastAutoTable.finalY + 15);
+        const historyRows = expenses.map(e => [
+            new Date(e.time).toLocaleDateString(),
+            e.title,
+            e.category,
+            e.paidBy,
+            `RS ${e.amount.toLocaleString()}`
+        ]);
+
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 20,
+            head: [['Date', 'Description', 'Category', 'Payer', 'Amount']],
+            body: historyRows,
+            theme: 'striped',
+            headStyles: { fillColor: [100, 116, 139] }
+        });
+
+        doc.save(`TripCart_Full_Report_${tripName.replace(/\s+/g, '_')}.pdf`);
+        UI.logActivity("Full Expedition PDF Generated", "system", "file-text");
+    },
+
+    prepareExpenseModal: () => {
+        const container = document.getElementById('member-inclusion-list');
+        if (!container) return;
+        container.innerHTML = members.map(m => `
+            <label class="squad-chip selected" onclick="Logic.toggleSquadChip(this)">
+                <input type="checkbox" name="participants" value="${m.name}" checked style="display:none">
+                <span>${m.name}</span>
+            </label>
+        `).join('');
+        const payerSelect = document.getElementById('exp-payer');
+        if (payerSelect) {
+            payerSelect.innerHTML = members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+        }
+        document.getElementById('exp-amount').value = "";
+        document.getElementById('exp-title').value = "";
+        Logic.updateSmartIcon("");
+        Logic.updateLiveSplit();
+        setTimeout(() => document.getElementById('exp-title').focus(), 400);
+        lucide.createIcons();
+    },
+
+    toggleSquadChip: (el) => {
+        const cb = el.querySelector('input');
+        setTimeout(() => { 
+            el.classList.toggle('selected', cb.checked); 
+            Logic.updateLiveSplit(); 
+        }, 10);
+    },
+
+    selectAllSquad: () => {
+        document.querySelectorAll('.squad-chip').forEach(chip => {
+            chip.querySelector('input').checked = true;
+            chip.classList.add('selected');
+        });
+        Logic.updateLiveSplit();
+    },
+
+    updateSmartIcon: (text) => {
+        const iconBox = document.getElementById('desc-icon-box');
+        if (!iconBox) return;
+        const inputVal = text.toLowerCase();
+        let iconName = 'tag';
+        for (let key in CONFIG.KEYWORDS) {
+            if (CONFIG.KEYWORDS[key].some(word => inputVal.includes(word))) {
+                iconName = CONFIG.ICONS[key.charAt(0).toUpperCase() + key.slice(1)] || key;
+                if(key === 'food') iconName = 'utensils';
+                if(key === 'car') iconName = 'car';
+                if(key === 'ticket') iconName = 'ticket';
+                break;
+            }
+        }
+        iconBox.innerHTML = `<i data-lucide="${iconName}"></i>`;
+        lucide.createIcons();
+    },
+
+    updateLiveSplit: () => {
+        const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
+        const selectedCount = document.querySelectorAll('input[name="participants"]:checked').length;
+        const previewEl = document.getElementById('live-split-preview');
+        if (previewEl) {
+            if (selectedCount > 0 && amount > 0) {
+                const perPerson = (amount / selectedCount).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                previewEl.innerText = `₹${perPerson} / Person`;
+                previewEl.style.background = "#2563eb"; 
+            } else {
+                previewEl.innerText = "₹0 / Person";
+                previewEl.style.background = "#0f172a";
+            }
+        }
+    },
+
+    submitExpense: (e) => {
+        e.preventDefault();
+        const title = document.getElementById('exp-title').value.trim();
+        const cat = document.getElementById('exp-category').value;
+        const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
+        const paidBy = document.getElementById('exp-payer').value;
+        const participants = Array.from(document.querySelectorAll('input[name="participants"]:checked')).map(cb => cb.value);
+        if (amount <= 0 || participants.length === 0) {
+            alert("Entry Failure: Amount and participants must be defined.");
+            return;
+        }
+        const entry = { 
+            id: Date.now(), title: title || `${cat} Bill`, amount, 
+            paidBy, category: cat, participants, time: Date.now() 
+        };
+        expenses.push(entry);
+        DataManager.save('expenses', expenses);
+        UI.logActivity(`Synced <strong>${title || cat}</strong>`, cat.toLowerCase(), CONFIG.ICONS[cat], `₹${amount}`);
+        UI.closeModal('expenseModal');
+        e.target.reset();
+        UI.showSection('dashboard');
+    },
+
+    submitMember: () => {
+        const el = document.getElementById('new-member-name');
+        if (!el) return;
+        const name = el.value.trim();
+        if (!name) return;
+        if (members.find(m => m.name.toLowerCase() === name.toLowerCase())) {
+            alert("Conflict: Member already identified in database.");
+            return;
+        }
+        members.push({ name, id: Date.now() });
+        DataManager.save('members', members);
+        UI.logActivity(`Enrolled <strong>${name}</strong> to Squad`, 'member', 'user-plus');
+        el.value = '';
+        UI.closeModal('memberModal');
+        UI.renderMembersGrid();
+        UI.refreshDashboard();
+    },
+
+    deleteExpense: (idx) => {
+        if (confirm("Confirm Purge: Discard this TripCart telemetry packet?")) {
+            const removed = expenses.splice(expenses.length - 1 - idx, 1)[0];
+            DataManager.save('expenses', expenses);
+            UI.logActivity(`Purged <strong>${removed.title}</strong>`, 'system', 'trash-2');
+            UI.renderExpensesTable();
+            UI.refreshDashboard();
+        }
+    },
+
+    deleteMember: (idx) => {
+        if (confirm("DANGER: Subject removal destabilizes historical splits. Proceed?")) {
+            members.splice(idx, 1);
+            DataManager.save('members', members);
+            UI.renderMembersGrid();
+            UI.refreshDashboard();
+        }
+    },
+
+    exportCardAsImage: (cardId, name) => {
+        const node = document.getElementById(cardId);
+        if (!node || typeof htmlToImage === 'undefined') {
+            alert("Export System Error: Dependency Offline.");
+            return;
+        }
+        htmlToImage.toPng(node, { backgroundColor: '#f8fafc', pixelRatio: 3, cacheBust: true })
+        .then(dataUrl => {
+            const link = document.createElement('a');
+            link.download = `TripCart_Report_${name}.png`;
+            link.href = dataUrl;
+            link.click();
+            UI.logActivity(`Exported Retina Card for ${name}`, 'image', 'camera');
+        })
+        .catch(() => alert("Peripheral failure during rendering."));
+    },
+
+    shareWhatsApp: (name, net) => {
+        const status = net >= 0 ? "collect" : "pay";
+        const text = `*TripCart Platinum Intelligence*%0A*Member:* ${name}%0A*Status:* To ${status} ₹${Math.round(Math.abs(net))}%0A*Trek:* Katra 2026%0A_Generated via TripCart Platinum_`;
+        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    }
+};
+
+// --- 6. GLOBAL BRIDGE & INITIALIZATION ---
+window.selectCategory = (cat, btn) => {
+    document.querySelectorAll('.pill, .cat-tab').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const input = document.getElementById('exp-category');
+    if (input) input.value = cat;
+};
+
+window.showSection = UI.showSection;
+window.openModal = UI.openModal;
+window.closeModal = UI.closeModal;
+window.Logic = Logic;
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 TripCart Platinum: Initializing Monolithic Engine...');
+    PWAManager.init();
+    const tripName = localStorage.getItem('tripcart_tripName');
+    if (!tripName && members.length === 0) {
+        document.getElementById('auth-overlay').style.display = 'flex';
+        document.getElementById('setup-trip-btn').onclick = () => {
+            const name = prompt("Expedition Identification Perimeter:", "Katra Trip 2026");
+            if (name) {
+                localStorage.setItem('tripcart_tripName', name);
+                location.reload();
+            }
+        };
+    } else {
+        const sub = document.getElementById('trip-subtitle');
+        if (sub) sub.innerText = tripName || "Expedition 2026";
+        UI.showSection('dashboard');
+    }
+    const expForm = document.getElementById('expense-form');
+    if (expForm) expForm.onsubmit = Logic.submitExpense;
+});
