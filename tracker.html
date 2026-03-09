@@ -18,6 +18,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Ensuring Sidebar Layout supports the new Return button */
+        .sidebar { display: flex; flex-direction: column; height: 100vh; }
+        .sidebar nav { flex: 1; }
+        .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .btn-return { 
+            display: flex; align-items: center; gap: 10px; width: 100%; 
+            padding: 12px; border-radius: 12px; border: 1px dashed var(--accent);
+            background: rgba(244, 63, 94, 0.05); cursor: pointer; transition: 0.3s;
+            font-weight: 700; font-size: 0.85rem; margin-bottom: 15px;
+        }
+        .btn-return:hover { background: var(--accent); color: white !important; }
+    </style>
 </head>
 <body class="bg-dashboard">
 
@@ -57,7 +70,10 @@
         </nav>
         
         <div class="sidebar-footer">
-            <p>TripCart V25.0 Platinum</p>
+            <button class="btn-return" onclick="window.location.href='orbit.html'" style="color: var(--accent);">
+                <i data-lucide="arrow-left-circle"></i> Back to Planner
+            </button>
+            <p style="font-size: 0.7rem; opacity: 0.6; text-align: center;">TripCart V25.0 Platinum Edition</p>
         </div>
     </aside>
 
@@ -91,7 +107,7 @@
                 </div>
 
                 <div class="stat-card luxury-card">
-                    <p class="stat-label">Lead</p>
+                    <p class="stat-label">Lead Spender</p>
                     <div class="spender-profile">
                         <div class="mini-avatar primary-gradient" id="top-spender-avatar">?</div>
                         <div class="stat-value-sm" id="top-spender-name">N/A</div>
@@ -140,7 +156,7 @@
             <div class="group-header-info">
                 <div class="group-meta">
                     <span class="member-count-badge" id="member-count-val">0 Members</span>
-                    <p>Managing the Katra core squad</p>
+                    <p>Managing the core squad roster</p>
                 </div>
             </div>
             <div id="members-grid" class="premium-member-grid"></div>
@@ -201,7 +217,6 @@
                         <button type="button" class="action-link-sm" onclick="Logic.selectAllSquad()">Select All</button>
                     </div>
                     <div id="member-inclusion-list" class="squad-scroll-engine"></div>
-                    <p class="input-hint">Amount split among selected members.</p>
                 </div>
 
                 <div class="form-section-modern">
@@ -245,7 +260,7 @@
 
     <script src="script.js"></script>
     <script>
-        // Global Lucide Initialization
+        // System-wide Lucide Initialization
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof lucide !== 'undefined') lucide.createIcons();
         });
