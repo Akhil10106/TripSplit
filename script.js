@@ -1,693 +1,638 @@
-/* script.js */
-const firebaseConfig = {
-    apiKey: "AIzaSyCpLtdJ4lACW9pNn8fAUmooooqzh_5TIO4",
-    authDomain: "trip-ddc48.firebaseapp.com",
-    databaseURL: "https://trip-ddc48-default-rtdb.firebaseio.com",
-    projectId: "trip-ddc48",
-    storageBucket: "trip-ddc48.firebasestorage.app"
-};
+"use strict";
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const auth = firebase.auth();
-const provider = new firebase.auth.GoogleAuthProvider();
+// --- 1. GLOBAL STATE & SYSTEM CONFIGURATION ---
+let deferredPrompt; 
 
-// App State
-let currentGroupId = null;
-let groupMembers = [];
-let isAdmin = false;
-let currentGroupExpenses = {};
-let currentBalances = {};
-let selectedTier = '';
+// SYNCHRONIZED KEYS: Matching Orbit's bridge logic
+let members = JSON.parse(localStorage.getItem('tripcart_members')) || [];
+let expenses = JSON.parse(localStorage.getItem('tripcart_expenses')) || [];
+let allLogs = JSON.parse(localStorage.getItem('tripcart_logs')) || [];
 
-const OWNER_EMAIL = "akhilgoel@example.com";
-
-// Service Worker
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(err => console.debug("Offline mode disabled", err));
-    });
-}
-
-// Utility: Toast
-function showToast(msg) {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    const toast = document.createElement('div');
-    toast.className = 'silk-toast';
-    toast.innerText = msg;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 400);
-    }, 3000);
-}
-
-// Auth Observer
-auth.onAuthStateChanged(async (user) => {
-    const authScreen = document.getElementById('auth-screen');
-    const appContent = document.getElementById('app-content');
-    
-    if (user) {
-        document.getElementById('user-photo').src = user.photoURL || '';
-        document.getElementById('profile-img-large').src = user.photoURL || '';
-        document.getElementById('profile-name-large').innerText = user.displayName || 'User';
-        document.getElementById('profile-email-large').innerText = user.email || '';
-        
-        document.getElementById('login-container').classList.add('hidden');
-        document.getElementById('group-discovery').classList.remove('hidden');
-        
-        checkSubscriptionStatus(user.uid);
-        
-        if (user.email && user.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
-            document.getElementById('admin-vault-wrapper').classList.remove('hidden');
-            listenForSubscriptionRequests();
-        }
-        
-        discoverGroups(user.email.toLowerCase());
-    } else {
-        authScreen.style.display = 'flex';
-        appContent.classList.add('hidden');
-        document.getElementById('login-container').classList.remove('hidden');
-        document.getElementById('group-discovery').classList.add('hidden');
-    }
-});
-
-// UI: View Management
-window.showView = (viewId) => {
-    document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active-view'));
-    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-    
-    const target = document.getElementById(viewId);
-    if (target) target.classList.add('active-view');
-    
-    // Update Nav UI
-    if (viewId === 'main-dashboard') document.getElementById('nav-home')?.classList.add('active');
-    if (viewId === 'plans-page') document.getElementById('nav-plans')?.classList.add('active');
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-// Subscription Logic
-function checkSubscriptionStatus(uid) {
-    db.ref(`active_subscriptions/${uid}`).once('value', snapshot => {
-        if (!snapshot.exists()) {
-            setTimeout(() => {
-                document.getElementById('subscription-nag-modal').style.display = 'flex';
-            }, 2000);
-        }
-    });
-}
-
-window.redirectToPlans = () => {
-    hideModals();
-    showView('plans-page');
-};
-
-window.openPayment = (tier, price) => {
-    const MY_UPI_ID = "akhilgoel985-2@okaxis";
-    const MY_NAME = "Akhil Goel";
-    
-    selectedTier = tier;
-    document.getElementById('paying-tier-name').innerText = tier;
-    document.getElementById('qr-price-display').innerText = price;
-    
-    const upiLink = `upi://pay?pa=${MY_UPI_ID}&pn=${encodeURIComponent(MY_NAME)}&am=${price}&cu=INR&tn=TripSplit_${tier.replace(/\s/g, '')}`;
-    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiLink)}&bgcolor=ffffff&color=0f172a`;
-    
-    document.getElementById('payment-qr').src = qrImageUrl;
-    document.getElementById('manual-payment-gateway').classList.remove('hidden');
-    
-    setTimeout(() => {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }, 100);
-};
-
-window.submitPaymentRequest = async () => {
-    const txId = document.getElementById('tx-id-input').value.trim();
-    if (!txId) { showToast("Missing Transaction ID"); return; }
-    
-    const user = auth.currentUser;
-    if (!user) return;
-
-    try {
-        await db.ref('subscription_requests').push({
-            userEmail: user.email.toLowerCase(),
-            userName: user.displayName,
-            tier: selectedTier,
-            transactionId: txId,
-            status: 'pending',
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        });
-        showToast("Ticket Raised. Verification Pending.");
-        document.getElementById('tx-id-input').value = '';
-        document.getElementById('manual-payment-gateway').classList.add('hidden');
-    } catch (e) {
-        showToast("Network Error. Try again.");
+const CONFIG = {
+    STORAGE_PREFIX: 'tripcart_',
+    TARGET_BUDGET: 40000,
+    THEMES: {
+        'dashboard': 'bg-dashboard',
+        'expenses': 'bg-expenses',
+        'balance': 'bg-balance',
+        'members': 'bg-members',
+        'profile': 'bg-profile'
+    },
+    ICONS: {
+        'Food': 'utensils',
+        'Travel': 'car',
+        'Stay': 'hotel',
+        'Others': 'shopping-bag',
+        'member': 'user-plus',
+        'system': 'cpu',
+        'image': 'camera'
+    },
+    KEYWORDS: {
+        food: ['dinner', 'lunch', 'breakfast', 'maggi', 'cafe', 'food', 'tea', 'coffee', 'eat', 'restaurant'],
+        car: ['taxi', 'cab', 'uber', 'train', 'auto', 'ride', 'travel', 'bus', 'flight', 'petrol'],
+        hotel: ['stay', 'room', 'hotel', 'lodge', 'camp', 'homestay', 'night'],
+        ticket: ['pass', 'entry', 'darshan', 'ticket', 'booking', 'event']
     }
 };
 
-// Admin Vault
-function listenForSubscriptionRequests() {
-    db.ref('subscription_requests').on('value', snap => {
-        const list = document.getElementById('admin-subscription-list');
-        if (!list) return;
-        list.innerHTML = '';
-        
-        if (!snap.exists()) {
-            list.innerHTML = '<p class="text-center py-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">No pending audits</p>';
-            return;
-        }
-        
-        snap.forEach(req => {
-            const data = req.val();
-            const card = document.createElement('div');
-            card.className = 'p-5 bg-white rounded-2xl border border-slate-100 shadow-sm';
-            card.innerHTML = `
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <p class="font-bold text-slate-900">${data.userName}</p>
-                        <p class="text-[10px] text-slate-400 font-medium">${data.userEmail}</p>
-                    </div>
-                    <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[9px] font-bold uppercase">${data.tier}</span>
-                </div>
-                <div class="bg-slate-50 p-4 rounded-xl mb-4 text-center">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">UTR Reference</p>
-                    <p class="text-xs font-black tracking-widest text-indigo-600 select-all">${data.transactionId}</p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="resolveSubscription('${req.key}', true, '${data.userEmail}')" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold text-[10px] uppercase">Approve</button>
-                    <button onclick="resolveSubscription('${req.key}', false)" class="flex-1 bg-rose-50 text-rose-500 py-3 rounded-xl font-bold text-[10px] uppercase">Decline</button>
-                </div>
-            `;
-            list.appendChild(card);
-        });
-    });
-}
-
-window.resolveSubscription = async (key, approved, email) => {
-    try {
-        if (approved) showToast("Granting Access...");
-        await db.ref(`subscription_requests/${key}`).remove();
-    } catch (e) {
-        showToast("Action Failed");
-    }
-};
-
-// Core Group Logic
-function discoverGroups(email) {
-    db.ref('groups').on('value', (snap) => {
-        const list = document.getElementById('my-groups-list');
-        if (!list) return;
-        list.innerHTML = '';
-        
-        if (!snap.exists()) {
-            list.innerHTML = '<p class="text-center py-10 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">No Active Circles</p>';
-            return;
+// --- 2. BOOT SEQUENCE & PWA LIFECYCLE ---
+const PWAManager = (() => {
+    const init = () => {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('🛡️ TripCart: Service Worker Active ->', reg.scope))
+                    .catch(err => console.error('⚠️ TripCart: SW Registration Failure', err));
+            });
         }
 
-        let found = false;
-        snap.forEach(child => {
-            const group = child.val();
-            const members = group.members || [];
-            if (members.some(m => m.email && m.email.toLowerCase() === email)) {
-                found = true;
-                const id = child.key;
-                const isAdminOfGroup = group.admin && group.admin.toLowerCase() === email;
-                
-                const item = document.createElement('div');
-                item.className = 'silk-card p-5 bg-white flex justify-between items-center hover:border-indigo-200 transition-all group-item cursor-pointer';
-                item.onclick = () => startApp(id, group.name);
-                item.innerHTML = `
-                    <div class="flex-1">
-                        <h4 class="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">${group.name}</h4>
-                        <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest">${id}</p>
-                    </div>
-                    <button onclick="event.stopPropagation(); openDeleteWarning('${id}', '${group.name}', ${isAdminOfGroup})" class="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-rose-500 transition-colors">
-                        <i class="fa-solid fa-trash-can text-sm"></i>
-                    </button>
-                `;
-                list.appendChild(item);
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('✅ TripCart: Deployment Perimeter Cleared.');
+            if (!document.getElementById('profile-section').classList.contains('hidden')) {
+                UI.renderProfile();
             }
         });
-        
-        if (!found) {
-            list.innerHTML = '<p class="text-center py-10 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Join or Create a Circle</p>';
-        }
-    });
-}
 
-window.startApp = (id, name) => {
-    currentGroupId = id;
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app-content').classList.remove('hidden');
-    document.getElementById('display-group-name').innerText = name;
-    document.getElementById('group-id-short').innerText = id;
-    document.getElementById('settings-id-display').innerText = id;
-    document.getElementById('profile-id-display').innerText = id;
-
-    // Reset UI
-    showView('main-dashboard');
-
-    db.ref(`groups/${id}`).on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-
-        groupMembers = data.members || [];
-        currentGroupExpenses = data.expenses || {};
-        isAdmin = (data.admin && data.admin.toLowerCase() === auth.currentUser.email.toLowerCase());
-
-        document.getElementById('profile-account-type').innerText = isAdmin ? "Administrator" : "Circle Member";
-        document.getElementById('admin-tools-wrapper').classList.toggle('hidden', !isAdmin);
-        document.getElementById('admin-tickets-wrapper').classList.toggle('hidden', !isAdmin);
-        
-        renderUI(currentGroupExpenses);
-        renderSettingsMembers(data.admin);
-        if (isAdmin) listenForTickets(id);
-    });
-};
-
-function renderUI(expenses) {
-    // Render Multi-select logic
-    const selectors = document.getElementById('split-selectors');
-    selectors.innerHTML = groupMembers.map((m, i) => `
-        <button onclick="this.classList.toggle('active-chip')" data-name="${m.name}" class="member-chip active-chip theme-${i % 4}">
-            <i class="fa-solid fa-check text-[8px]"></i> ${m.name}
-        </button>
-    `).join('');
-
-    let total = 0;
-    let balances = {};
-    groupMembers.forEach(m => balances[m.name] = 0);
-
-    const feed = document.getElementById('activity-feed');
-    feed.innerHTML = '';
-
-    const sortedEntries = Object.entries(expenses).reverse();
-
-    if (sortedEntries.length === 0) {
-        feed.innerHTML = `
-            <div class="text-center py-20 opacity-30">
-                <i class="fa-solid fa-receipt text-5xl mb-4"></i>
-                <p class="text-xs font-bold uppercase tracking-widest">No entries found</p>
-            </div>`;
-    }
-
-    sortedEntries.forEach(([key, exp]) => {
-        let badgeHTML = '';
-        if (exp.type === 'settlement') {
-            balances[exp.payer] = (balances[exp.payer] || 0) - exp.amount;
-            badgeHTML = `<span class="mini-badge bg-emerald-100 text-emerald-700">Payment from ${exp.payer}</span>`;
-        } else {
-            total += exp.amount;
-            const split = Math.round((exp.amount / (exp.involved?.length || 1)) * 100) / 100;
-            exp.involved?.forEach(name => {
-                if (balances.hasOwnProperty(name)) balances[name] += split;
-            });
-            badgeHTML = exp.involved ? exp.involved.map(n => `
-                <span class="mini-badge bg-white shadow-sm border border-slate-100 text-slate-500">
-                    ${n}: <span class="text-indigo-600">₹${Math.round(split)}</span>
-                </span>
-            `).join('') : '';
-        }
-
-        const item = document.createElement('div');
-        item.className = `p-6 ${exp.type === 'settlement' ? 'bg-emerald-50/50 border-emerald-100' : 'bg-slate-50 border-slate-100'} border rounded-3xl flex flex-col transition-all hover:shadow-md`;
-        item.innerHTML = `
-            <div class="flex justify-between items-start mb-3">
-                <div>
-                    <h4 class="font-bold text-slate-800">${exp.title}</h4>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${exp.date || 'Today'} &bull; by ${exp.by || 'Admin'}</p>
-                </div>
-                <p class="text-xl font-black ${exp.type === 'settlement' ? 'text-emerald-600' : 'text-slate-900'}">₹${exp.amount.toLocaleString()}</p>
-            </div>
-            <div class="flex flex-wrap gap-1.5">${badgeHTML}</div>
-        `;
-        feed.appendChild(item);
-    });
-
-    document.getElementById('grand-total').innerText = "₹" + Math.round(total).toLocaleString();
-    
-    // Stats Grid
-    const statsGrid = document.getElementById('stats-grid');
-    let statsHTML = '';
-    
-    if (groupMembers.length <= 4) {
-        statsHTML = groupMembers.map((m, i) => `
-            <div class="silk-card p-6 theme-${i % 4} member-stat-card cursor-pointer" onclick="openMemberProfile('${m.name}', '${m.email}', ${i % 4})">
-                <p class="text-[10px] font-bold uppercase opacity-60 tracking-widest mb-1 truncate">${m.name}</p>
-                <p class="text-2xl font-black">₹${Math.round(balances[m.name] || 0)}</p>
-            </div>
-        `).join('');
-    } else {
-        statsHTML = groupMembers.slice(0, 3).map((m, i) => `
-            <div class="silk-card p-6 theme-${i % 4} member-stat-card cursor-pointer" onclick="openMemberProfile('${m.name}', '${m.email}', ${i % 4})">
-                <p class="text-[10px] font-bold uppercase opacity-60 tracking-widest mb-1 truncate">${m.name}</p>
-                <p class="text-2xl font-black">₹${Math.round(balances[m.name] || 0)}</p>
-            </div>
-        `).join('');
-        statsHTML += `
-            <div class="silk-card p-6 more-tile-creative text-white member-stat-card flex flex-col justify-center items-center text-center cursor-pointer shadow-xl border-none" onclick="openAllMembersDirectory()">
-                <div class="relative z-10">
-                    <p class="text-[9px] font-black uppercase tracking-widest opacity-60">Directory</p>
-                    <p class="text-2xl font-black">+${groupMembers.length - 3} More</p>
-                </div>
-            </div>
-        `;
-    }
-    statsGrid.innerHTML = statsHTML;
-    currentBalances = balances;
-    renderSettlementList(balances);
-}
-
-// Logic: Log Expense
-window.logExpense = () => {
-    const titleEl = document.getElementById('bill-title');
-    const amountEl = document.getElementById('bill-amount');
-    const title = titleEl.value.trim();
-    const amount = parseFloat(amountEl.value);
-    
-    const involved = Array.from(document.querySelectorAll('#split-selectors .active-chip'))
-        .map(btn => btn.dataset.name);
-
-    if (!title) { showToast("Missing Description"); return; }
-    if (isNaN(amount) || amount <= 0) { showToast("Invalid Amount"); return; }
-    if (involved.length === 0) { showToast("Select at least 1 member"); return; }
-
-    db.ref(`groups/${currentGroupId}/expenses`).push({
-        title,
-        amount,
-        involved,
-        by: auth.currentUser.displayName ? auth.currentUser.displayName.split(' ')[0] : 'Member',
-        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
-    }).then(() => {
-        titleEl.value = '';
-        amountEl.value = '';
-        showToast("Expense Recorded");
-    }).catch(() => showToast("Sync Error"));
-};
-
-// Logic: Settlement
-function renderSettlementList(balances) {
-    const list = document.getElementById('settlement-list');
-    if (!list) return;
-    
-    const relevant = groupMembers.filter(m => balances[m.name] > 0);
-    
-    if (relevant.length === 0) {
-        list.innerHTML = '<p class="text-center py-6 text-xs font-bold text-slate-400">Everyone is squared up!</p>';
-        return;
-    }
-
-    list.innerHTML = relevant.map(m => `
-        <div class="p-5 bg-slate-50/50 border border-slate-100 rounded-2xl flex justify-between items-center">
-            <div>
-                <p class="font-bold text-slate-900">${m.name}</p>
-                <p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Outstanding: ₹${Math.round(balances[m.name])}</p>
-            </div>
-            <button onclick="openSettleModal('${m.name}', ${balances[m.name]})" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-emerald-50">Settle</button>
-        </div>
-    `).join('');
-}
-
-window.openSettleModal = (name, bal) => {
-    document.getElementById('settle-user-name').innerText = name;
-    document.getElementById('settle-amount-input').value = Math.round(bal);
-    document.getElementById('settle-modal-overlay').style.display = 'flex';
-    
-    document.getElementById('confirm-settle-btn').onclick = () => {
-        const amt = parseFloat(document.getElementById('settle-amount-input').value);
-        if (amt > 0) {
-            db.ref(`groups/${currentGroupId}/expenses`).push({
-                title: `Settlement: ${name}`,
-                amount: amt,
-                type: 'settlement',
-                payer: name,
-                by: auth.currentUser.displayName.split(' ')[0],
-                date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
-            });
-            hideModals();
-            showToast("Settlement Synced");
-        }
+        window.addEventListener('appinstalled', () => {
+            deferredPrompt = null;
+            UI.logActivity('System Deployed to Native Mode', 'system', 'shield-check');
+            alert("TripCart Platinum has been successfully deployed to your device.");
+        });
     };
+
+    const isStandalone = () => {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    };
+
+    return { init, isStandalone };
+})();
+
+// --- 3. PERSISTENCE ENGINE ---
+const DataManager = {
+    save: (key, data) => {
+        localStorage.setItem(`${CONFIG.STORAGE_PREFIX}${key}`, JSON.stringify(data));
+    },
+    purge: () => {
+        if (confirm("CRITICAL: This will permanently delete all TripCart expedition logs. Proceed?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
 };
 
-// Admin: Tickets
-function listenForTickets(id) {
-    db.ref(`groups/${id}/tickets`).on('value', snap => {
-        const list = document.getElementById('ticket-list');
-        const dot = document.getElementById('admin-notif-dot');
-        if (!list) return;
-        list.innerHTML = '';
+// --- 4. CORE UI & RENDERING CONTROLLER ---
+const UI = {
+    showSection: (sectionId) => {
+        document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden'));
+        document.querySelectorAll('.nav-link, .m-nav-item').forEach(n => n.classList.remove('active'));
         
-        if (!snap.exists()) {
-            dot.classList.add('hidden');
-            list.innerHTML = '<p class="text-center py-4 text-xs font-bold text-slate-400">No join requests</p>';
+        document.body.classList.remove('bg-dashboard', 'bg-expenses', 'bg-balance', 'bg-members', 'bg-profile');
+        document.body.classList.add(CONFIG.THEMES[sectionId] || 'bg-dashboard');
+
+        const target = document.getElementById(`${sectionId}-section`);
+        if (target) target.classList.remove('hidden');
+
+        document.querySelectorAll(`[onclick="showSection('${sectionId}')"]`).forEach(el => el.classList.add('active'));
+        document.getElementById('section-title').innerText = UI.mapTitle(sectionId);
+
+        const desktopAction = document.getElementById('desktop-action-container');
+        if (desktopAction) {
+            desktopAction.innerHTML = '';
+            if (sectionId === 'expenses') {
+                desktopAction.innerHTML = `<button class="btn btn-primary" onclick="UI.openModal('expenseModal')"><i data-lucide="plus"></i> New Bill</button>`;
+            } else if (sectionId === 'members') {
+                desktopAction.innerHTML = `<button class="btn btn-primary" onclick="UI.openModal('memberModal')"><i data-lucide="user-plus"></i> Enroll Participant</button>`;
+            }
+        }
+
+        UI.executeRenderer(sectionId);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    },
+
+    mapTitle: (id) => ({
+        'dashboard': 'Dashboard', 'expenses': 'Expenses', 
+        'balance': 'Split Sheet', 'members': 'Squad Control', 'profile': 'Settings'
+    }[id] || 'TripCart'),
+
+    executeRenderer: (id) => {
+        const renderers = {
+            'dashboard': UI.refreshDashboard,
+            'balance': UI.renderBalanceSheet,
+            'members': UI.renderMembersGrid,
+            'profile': UI.renderProfile,
+            'expenses': UI.renderExpensesTable
+        };
+        if (renderers[id]) renderers[id]();
+    },
+
+    refreshDashboard: () => {
+        const totalSpent = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+        const totalEl = document.getElementById('total-expense-val');
+        if (totalEl) totalEl.innerText = `₹${totalSpent.toLocaleString('en-IN')}`;
+
+        const velocityEl = document.getElementById('daily-velocity-val');
+        if (velocityEl) {
+            if (expenses.length === 0) velocityEl.innerText = "₹0";
+            else {
+                const firstExp = Math.min(...expenses.map(e => e.time));
+                const days = Math.ceil(Math.abs(Date.now() - firstExp) / (1000 * 60 * 60 * 24)) || 1;
+                velocityEl.innerText = `₹${Math.round(totalSpent / days).toLocaleString('en-IN')}`;
+            }
+        }
+
+        const nameEl = document.getElementById('top-spender-name');
+        const avatarEl = document.getElementById('top-spender-avatar');
+        if (nameEl && avatarEl) {
+            if (expenses.length === 0) {
+                nameEl.innerText = "None"; avatarEl.innerText = "?";
+            } else {
+                const map = {};
+                expenses.forEach(e => map[e.paidBy] = (map[e.paidBy] || 0) + e.amount);
+                const lead = Object.keys(map).reduce((a, b) => map[a] > map[b] ? a : b);
+                nameEl.innerText = lead; avatarEl.innerText = lead[0];
+            }
+        }
+        UI.renderActivityFeed();
+    },
+
+    renderBalanceSheet: () => {
+        const grid = document.getElementById('balance-grid');
+        if (!grid) return;
+        
+        grid.innerHTML = members.map((member, index) => {
+            let paidOut = 0, credits = [], debts = [];
+            expenses.forEach(exp => {
+                const share = exp.amount / exp.participants.length;
+                if (exp.paidBy === member.name) {
+                    paidOut += exp.amount;
+                    exp.participants.forEach(p => { if (p !== member.name) credits.push({ from: p, amount: share }); });
+                } else if (exp.participants.includes(member.name)) {
+                    debts.push({ to: exp.paidBy, amount: share });
+                }
+            });
+
+            const net = credits.reduce((s, c) => s + c.amount, 0) - debts.reduce((s, d) => s + d.amount, 0);
+            const cardId = `ledger-card-${index}`;
+
+            return `
+                <div class="member-ledger-card animate-in" id="${cardId}">
+                    <div class="ledger-header">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="member-avatar primary-gradient">${member.name[0]}</div>
+                            <h3 style="margin:0; font-weight:800; color:#0f172a;">${member.name}</h3>
+                        </div>
+                        <div class="badge ${net >= 0 ? 'badge-success' : 'badge-travel'}">${net >= 0 ? 'COLLECTING' : 'PAYING'}</div>
+                    </div>
+                    <div class="ledger-summary-grid">
+                        <div class="summary-item"><small>Outbound</small><span>₹${Math.round(paidOut)}</span></div>
+                        <div class="summary-item"><small>Net Payload</small><span class="${net >= 0 ? 'text-get' : 'text-give'}">₹${Math.round(Math.abs(net))}</span></div>
+                    </div>
+                    <div class="ledger-list">
+                        ${credits.length === 0 && debts.length === 0 ? '<p class="empty-msg" style="padding:10px;">Ledger Neutral</p>' : ''}
+                        ${credits.map(c => `<div class="ledger-row"><span>Get from ${c.from}</span><span class="text-get">+₹${Math.round(c.amount)}</span></div>`).join('')}
+                        ${debts.map(d => `<div class="ledger-row"><span>Pay to ${d.to}</span><span class="text-give">-₹${Math.round(d.amount)}</span></div>`).join('')}
+                    </div>
+                    <div class="card-action-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top: 15px;">
+                        <button class="btn btn-card-download" onclick="Logic.exportCardAsImage('${cardId}', '${member.name}')">
+                            <i data-lucide="image"></i> Save Card
+                        </button>
+                        <button class="btn btn-primary" style="background:#25D366; border:none;" onclick="Logic.shareWhatsApp('${member.name}', ${net})">
+                            <i data-lucide="share-2"></i> WhatsApp
+                        </button>
+                    </div>
+                </div>`;
+        }).join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    },
+
+    renderExpensesTable: () => {
+        const tbody = document.getElementById('expenses-tbody');
+        if (!tbody) return;
+        if (expenses.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No transactions found in TripCart.</td></tr>';
             return;
         }
+        tbody.innerHTML = expenses.map((e, idx) => `
+            <tr class="table-row-hover">
+                <td><b>${e.title}</b><br><small>${new Date(e.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small></td>
+                <td class="hide-mobile"><b>${e.paidBy}</b></td>
+                <td><b>₹${e.amount.toLocaleString()}</b></td>
+                <td><span class="badge">${e.category}</span></td>
+                <td><button class="btn" style="color:var(--danger); padding:5px;" onclick="Logic.deleteExpense(${idx})"><i data-lucide="trash-2"></i></button></td>
+            </tr>`).reverse().join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    },
 
-        dot.classList.remove('hidden');
-        snap.forEach(ticket => {
-            const t = ticket.val();
-            const item = document.createElement('div');
-            item.className = 'p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex justify-between items-center';
-            item.innerHTML = `
-                <div>
-                    <p class="font-bold text-slate-900 text-sm">${t.name}</p>
-                    <p class="text-[9px] font-medium text-slate-400">${t.email}</p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="resolveTicket('${ticket.key}', true, '${t.name}', '${t.email}')" class="bg-indigo-600 text-white w-8 h-8 rounded-lg flex items-center justify-center transition-transform active:scale-90"><i class="fa-solid fa-check text-xs"></i></button>
-                    <button onclick="resolveTicket('${ticket.key}', false)" class="bg-rose-100 text-rose-500 w-8 h-8 rounded-lg flex items-center justify-center transition-transform active:scale-90"><i class="fa-solid fa-xmark text-xs"></i></button>
-                </div>
-            `;
-            list.appendChild(item);
-        });
-    });
-}
+    renderMembersGrid: () => {
+        const grid = document.getElementById('members-grid');
+        if (!grid) return;
+        const countBadge = document.getElementById('member-count-val');
+        if (countBadge) countBadge.innerText = `${members.length} Members`;
 
-window.resolveTicket = async (key, approved, name, email) => {
-    if (approved) {
-        const isAlreadyMember = groupMembers.some(m => m.email.toLowerCase() === email.toLowerCase());
-        if (!isAlreadyMember) {
-            const newMembers = [...groupMembers, { name: name.split(' ')[0], email: email.toLowerCase() }];
-            await db.ref(`groups/${currentGroupId}/members`).set(newMembers);
-            showToast(`Welcome, ${name}`);
+        grid.innerHTML = members.map((m, idx) => `
+            <div class="member-card animate-in" style="animation-delay: ${idx * 0.05}s">
+                <button class="btn-delete" onclick="Logic.deleteMember(${idx})"><i data-lucide="user-x"></i></button>
+                <div class="member-avatar primary-gradient">${m.name[0]}</div>
+                <b>${m.name}</b>
+                <div style="margin-top: 5px; font-size: 0.75rem; color: var(--text-light); font-weight: 700;">REG: #${m.id.toString().slice(-4)}</div>
+            </div>`).join('') + `
+            <div class="member-card add-friend-card" onclick="UI.openModal('memberModal')">
+                <div class="add-friend-content">
+                    <div class="add-friend-icon primary-gradient"><i data-lucide="plus"></i></div>
+                    <span>Register Member</span>
+                </div>
+            </div>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    },
+
+    renderProfile: () => {
+        const container = document.querySelector('.profile-container');
+        if (!container) return;
+        const isStandalone = PWAManager.isStandalone();
+
+        container.innerHTML = `
+            <div class="profile-hero">
+                <h2>${localStorage.getItem('tripcart_tripName') || 'TripCart'}</h2>
+                <div class="badge-success">Platinum v25.0 Stable</div>
+            </div>
+
+            <div class="panel luxury-shadow" style="background:#fff !important; border-radius: 24px; margin-bottom: 20px;">
+                <div class="panel-title"><i data-lucide="file-text"></i> Full Expedition Dossier</div>
+                <p>Generate and download a complete high-fidelity PDF report of all trip data, including member spending and settlement logic.</p>
+                <button class="btn btn-primary" style="width: 100%; background: #0f172a; color: white;" onclick="Logic.exportFullPDF()">
+                    <i data-lucide="download"></i> Download Complete PDF
+                </button>
+            </div>
+
+            <div class="panel luxury-shadow" style="background:#fff !important; border-radius: 24px;">
+                <div class="panel-title"><i data-lucide="smartphone"></i> App Deployment</div>
+                ${isStandalone ? 
+                    `<p style="color: var(--success); font-weight: 800;">✅ Standalone Perimeter Active</p>
+                     <p>TripCart is running in high-performance native mode.</p>` :
+                    `<p>Deploy TripCart to home screen for offline mountain access.</p>
+                     <button class="btn btn-primary btn-install-large" id="install-app-btn" 
+                        style="${deferredPrompt ? 'opacity: 1;' : 'opacity: 0.6;'}">
+                        <i data-lucide="download-cloud"></i> ${deferredPrompt ? 'Deploy TripCart' : 'System Locked'}
+                     </button>`
+                }
+            </div>
+            <button class="btn btn-reset-danger" onclick="DataManager.purge()"><i data-lucide="refresh-ccw"></i> Purge All Trip Data</button>`;
+        
+        const btn = document.getElementById('install-app-btn');
+        if (btn && deferredPrompt) {
+            btn.onclick = async () => {
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                UI.renderProfile();
+            };
         }
-    }
-    await db.ref(`groups/${currentGroupId}/tickets/${key}`).remove();
-};
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    },
 
-// Admin: Manual Member Add
-window.adminAddMember = async () => {
-    const nameInput = document.getElementById('new-mem-name');
-    const emailInput = document.getElementById('new-mem-email');
-    const name = nameInput.value.trim();
-    const email = emailInput.value.trim().toLowerCase();
+    logActivity: (text, cat, icon, amount = '') => {
+        allLogs.unshift({ text, cat, icon, amount, time: Date.now() });
+        if (allLogs.length > 30) allLogs.pop();
+        DataManager.save('logs', allLogs);
+        UI.renderActivityFeed();
+    },
 
-    if (!name || !email) { showToast("Required: Name & Email"); return; }
-    
-    const isAlreadyMember = groupMembers.some(m => m.email.toLowerCase() === email);
-    if (isAlreadyMember) { showToast("User already in circle"); return; }
-
-    const updated = [...groupMembers, { name: name.split(' ')[0], email: email }];
-    await db.ref(`groups/${currentGroupId}/members`).set(updated);
-    
-    nameInput.value = '';
-    emailInput.value = '';
-    showToast("Member Provisioned");
-    toggleCollapse('admin-tools-collapse');
-};
-
-// Settings: Member List
-function renderSettingsMembers(adminEmail) {
-    const list = document.getElementById('member-settings-list');
-    if (!list) return;
-    
-    list.innerHTML = groupMembers.map((m, i) => {
-        const isUserAdmin = m.email.toLowerCase() === adminEmail.toLowerCase();
-        return `
-            <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg theme-${i % 4} flex items-center justify-center font-bold text-[10px]">${m.name[0]}</div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <p class="font-bold text-slate-800 text-sm">${m.name}</p>
-                            ${isUserAdmin ? `<span class="bg-slate-900 text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter">Owner</span>` : ''}
+    renderActivityFeed: () => {
+        const feed = document.getElementById('activity-feed');
+        if (!feed) return;
+        if (allLogs.length === 0) {
+            feed.innerHTML = '<p class="empty-msg">Awaiting transaction telemetry...</p>';
+            return;
+        }
+        feed.innerHTML = allLogs.map(l => `
+            <div class="activity-item animate-in">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="activity-icon ${l.cat || 'system'}"><i data-lucide="${l.icon || 'activity'}"></i></div>
+                    <div style="flex:1;">
+                        <p style="margin:0; font-size: 0.9rem; font-weight:600;">${l.text || 'Telemetry Update'}</p>
+                        <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                           ${l.amount ? `<span class="badge" style="background:var(--primary-soft); color:var(--primary); font-size: 0.65rem;">${l.amount}</span>` : ''}
+                           <span style="font-size: 0.7rem; color: var(--text-light); font-weight: 600;">${UI.formatTime(l.time)}</span>
                         </div>
-                        <p class="text-[9px] font-medium text-slate-400 truncate max-w-[120px]">${m.email}</p>
                     </div>
                 </div>
-                <div class="flex gap-1">
-                    ${isAdmin && !isUserAdmin ? `
-                        <button onclick="transferAdmin('${m.email}')" class="w-8 h-8 flex items-center justify-center text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"><i class="fa-solid fa-crown text-xs"></i></button>
-                        <button onclick="adminRemoveMember(${i})" class="w-8 h-8 flex items-center justify-center text-rose-400 hover:bg-rose-50 rounded-lg transition-colors"><i class="fa-solid fa-user-minus text-xs"></i></button>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
-}
+            </div>`).join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    },
 
-// Directory Logic
-window.openAllMembersDirectory = () => {
-    const list = document.getElementById('full-directory-list');
-    list.innerHTML = groupMembers.map((m, i) => `
-        <div class="p-4 silk-card bg-white border border-slate-100 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition-all active:scale-[0.98]" onclick="openMemberProfile('${m.name}', '${m.email}', ${i % 4})">
-            <div class="w-12 h-12 rounded-2xl theme-${i % 4} flex items-center justify-center font-black text-lg shadow-inner">${m.name[0]}</div>
-            <div class="flex-1 overflow-hidden">
-                <p class="font-bold text-slate-900 truncate">${m.name}</p>
-                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest truncate">${m.email}</p>
-            </div>
-            <div class="text-right">
-                <p class="text-[9px] font-bold text-slate-300 uppercase mb-0.5">Balance</p>
-                <p class="font-black text-indigo-600">₹${Math.round(currentBalances[m.name] || 0)}</p>
-            </div>
-        </div>
-    `).join('');
-    document.getElementById('all-members-modal-overlay').style.display = 'flex';
+    formatTime: (ts) => {
+        const diff = Math.floor((Date.now() - ts) / 1000);
+        if (diff < 60) return 'Just now';
+        if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+        return new Date(ts).toLocaleDateString();
+    },
+
+    openModal: (id) => {
+        const modal = document.getElementById(id);
+        if (!modal) return;
+        modal.style.display = 'flex';
+        if (id === 'expenseModal') Logic.prepareExpenseModal();
+    },
+    closeModal: (id) => {
+        const m = document.getElementById(id);
+        if (m) m.style.display = 'none';
+    }
 };
 
-window.filterDirectory = () => {
-    const query = document.getElementById('member-search-input').value.toLowerCase();
-    const items = document.querySelectorAll('#full-directory-list > div');
-    items.forEach(item => {
-        const text = item.innerText.toLowerCase();
-        item.style.display = text.includes(query) ? 'flex' : 'none';
-    });
-};
-
-// Profile Logic
-window.openMemberProfile = (name, email, themeIdx) => {
-    hideModals();
-    const overlay = document.getElementById('member-modal-overlay');
-    document.getElementById('modal-member-name').innerText = name;
-    document.getElementById('modal-member-email').innerText = email;
-    document.getElementById('modal-member-balance').innerText = "₹" + Math.round(currentBalances[name] || 0);
-    
-    const iconWrapper = document.getElementById('modal-member-icon').parentElement;
-    iconWrapper.className = `w-24 h-24 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-4xl overflow-hidden border-4 border-white shadow-xl theme-${themeIdx}`;
-    
-    const hist = document.getElementById('member-contribution-list');
-    hist.innerHTML = '';
-    hist.style.display = 'none';
-    document.getElementById('contribution-toggle-text').innerText = 'View History';
-
-    Object.values(currentGroupExpenses).reverse().forEach(exp => {
-        if (exp.involved && exp.involved.includes(name)) {
-            const split = Math.round(exp.amount / exp.involved.length);
-            const div = document.createElement('div');
-            div.className = 'flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100';
-            div.innerHTML = `
-                <div class="text-left">
-                    <p class="text-xs font-bold text-slate-800">${exp.title}</p>
-                    <p class="text-[8px] font-bold text-slate-400 uppercase">${exp.date || 'Record'}</p>
-                </div>
-                <span class="text-xs font-black text-indigo-600">₹${split}</span>
-            `;
-            hist.appendChild(div);
+// --- 5. BUSINESS LOGIC & DATA PROCESSING PIPELINE ---
+const Logic = {
+    exportFullPDF: () => {
+        if (!window.jspdf) {
+            alert("PDF Engine is still loading. Please wait a moment.");
+            return;
         }
-    });
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const tripName = localStorage.getItem('tripcart_tripName') || "Katra Expedition 2026";
+        const totalSpent = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
-    overlay.style.display = 'flex';
-};
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(22);
+        doc.setTextColor(30, 41, 59);
+        doc.text("TRIPCART PLATINUM DOSSIER", 14, 22);
+        
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Expedition: ${tripName}`, 14, 30);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 36);
+        doc.text(`Total Expedition Spend: RS ${totalSpent.toLocaleString()}`, 14, 42);
 
-window.toggleMemberContribution = () => {
-    const el = document.getElementById('member-contribution-list');
-    const btnText = document.getElementById('contribution-toggle-text');
-    if (el.style.display === 'none') {
-        el.style.display = 'block';
-        btnText.innerText = 'Hide History';
-    } else {
-        el.style.display = 'none';
-        btnText.innerText = 'View History';
-    }
-};
-
-// Global Helpers
-window.hideModals = () => {
-    document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
-};
-
-window.copyGroupId = () => {
-    if (!currentGroupId) return;
-    navigator.clipboard.writeText(currentGroupId).then(() => showToast("Circle ID Copied"));
-};
-
-window.toggleCollapse = (id) => {
-    const el = document.getElementById(id);
-    const isHidden = (el.style.display === 'none' || el.style.display === '');
-    el.style.display = isHidden ? 'block' : 'none';
-};
-
-window.showJoinManual = () => {
-    document.getElementById('join-modal-overlay').style.display = 'flex';
-};
-
-window.showCreationPopup = () => {
-    document.getElementById('creation-modal-overlay').style.display = 'flex';
-};
-
-window.finalizeCreation = async () => {
-    const name = document.getElementById('pop-group-name').value.trim();
-    if (!name) { showToast("Circle name required"); return; }
-    
-    const user = auth.currentUser;
-    const id = "SPLIT-" + Math.random().toString(36).substr(2, 6).toUpperCase();
-    
-    try {
-        await db.ref(`groups/${id}`).set({
-            name: name,
-            members: [{ name: user.displayName.split(' ')[0], email: user.email.toLowerCase() }],
-            admin: user.email.toLowerCase(),
-            created: firebase.database.ServerValue.TIMESTAMP
+        const memberSpendData = members.map(m => {
+            const spent = expenses.filter(e => e.paidBy === m.name).reduce((s, e) => s + e.amount, 0);
+            return [m.name, `RS ${spent.toLocaleString()}`];
         });
-        hideModals();
-        showToast("Circle Initialized");
-        startApp(id, name);
-    } catch (e) {
-        showToast("Error creating circle");
-    }
-};
 
-window.requestJoinGroup = async () => {
-    const id = document.getElementById('manual-id').value.trim().toUpperCase();
-    if (!id) return;
-    
-    const snap = await db.ref(`groups/${id}`).get();
-    if (snap.exists()) {
-        const u = auth.currentUser;
-        await db.ref(`groups/${id}/tickets`).push({
-            name: u.displayName,
-            email: u.email.toLowerCase(),
-            timestamp: firebase.database.ServerValue.TIMESTAMP
+        doc.autoTable({
+            startY: 50,
+            head: [['Squad Member', 'Total Paid Out']],
+            body: memberSpendData,
+            theme: 'striped',
+            headStyles: { fillColor: [37, 99, 235] }
         });
-        showToast("Request Broadcasted");
-        hideModals();
-    } else {
-        showToast("Circle ID not found");
-    }
-};
 
-window.selectAllInvolved = () => {
-    const chips = document.querySelectorAll('#split-selectors .member-chip');
-    const allActive = Array.from(chips).every(c => c.classList.contains('active-chip'));
-    chips.forEach(c => {
-        if (allActive) c.classList.remove('active-chip');
-        else c.classList.add('active-chip');
-    });
-};
+        let balances = {};
+        members.forEach(m => balances[m.name] = 0);
+        expenses.forEach(exp => {
+            const share = exp.amount / exp.participants.length;
+            balances[exp.paidBy] += exp.amount;
+            exp.participants.forEach(p => balances[p] -= share);
+        });
 
-window.signOutNow = () => {
-    auth.signOut().then(() => location.reload());
-};
+        let debtors = [], creditors = [];
+        for (let name in balances) {
+            if (balances[name] < -0.1) debtors.push({ name, amount: Math.abs(balances[name]) });
+            else if (balances[name] > 0.1) creditors.push({ name, amount: balances[name] });
+        }
 
-document.getElementById('google-login-btn').onclick = () => auth.signInWithPopup(provider);
+        let settlementRows = [];
+        debtors.forEach(d => {
+            creditors.forEach(c => {
+                if (d.amount > 0 && c.amount > 0) {
+                    let payment = Math.min(d.amount, c.amount);
+                    settlementRows.push([d.name, c.name, `RS ${Math.round(payment).toLocaleString()}`]);
+                    d.amount -= payment;
+                    c.amount -= payment;
+                }
+            });
+        });
 
-// Prevent accidental navigation
-window.onpopstate = (e) => {
-    if (currentGroupId) {
+        doc.setFont("helvetica", "bold");
+        doc.text("SETTLEMENT PLAN", 14, doc.lastAutoTable.finalY + 15);
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 20,
+            head: [['From (Debtor)', 'To (Creditor)', 'Amount to Pay']],
+            body: settlementRows.length ? settlementRows : [['-', '-', 'All Settled']],
+            theme: 'grid',
+            headStyles: { fillColor: [15, 23, 42] }
+        });
+
+        const historyRows = expenses.map(e => [
+            new Date(e.time).toLocaleDateString(),
+            e.title,
+            e.category,
+            e.paidBy,
+            `RS ${e.amount.toLocaleString()}`
+        ]);
+
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 20,
+            head: [['Date', 'Description', 'Category', 'Payer', 'Amount']],
+            body: historyRows,
+            theme: 'striped',
+            headStyles: { fillColor: [100, 116, 139] }
+        });
+
+        doc.save(`TripCart_Full_Report_${tripName.replace(/\s+/g, '_')}.pdf`);
+        UI.logActivity("Full Expedition PDF Generated", "system", "file-text");
+    },
+
+    prepareExpenseModal: () => {
+        const container = document.getElementById('member-inclusion-list');
+        if (!container) return;
+        container.innerHTML = members.map(m => `
+            <label class="squad-chip selected" onclick="Logic.toggleSquadChip(this)">
+                <input type="checkbox" name="participants" value="${m.name}" checked style="display:none">
+                <span>${m.name}</span>
+            </label>
+        `).join('');
+        const payerSelect = document.getElementById('exp-payer');
+        if (payerSelect) {
+            payerSelect.innerHTML = members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+        }
+        document.getElementById('exp-amount').value = "";
+        document.getElementById('exp-title').value = "";
+        Logic.updateSmartIcon("");
+        Logic.updateLiveSplit();
+        setTimeout(() => document.getElementById('exp-title').focus(), 400);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    },
+
+    toggleSquadChip: (el) => {
+        const cb = el.querySelector('input');
+        setTimeout(() => { 
+            el.classList.toggle('selected', cb.checked); 
+            Logic.updateLiveSplit(); 
+        }, 10);
+    },
+
+    selectAllSquad: () => {
+        document.querySelectorAll('.squad-chip').forEach(chip => {
+            chip.querySelector('input').checked = true;
+            chip.classList.add('selected');
+        });
+        Logic.updateLiveSplit();
+    },
+
+    updateSmartIcon: (text) => {
+        const iconBox = document.getElementById('desc-icon-box');
+        if (!iconBox) return;
+        const inputVal = text.toLowerCase();
+        let iconName = 'tag';
+        for (let key in CONFIG.KEYWORDS) {
+            if (CONFIG.KEYWORDS[key].some(word => inputVal.includes(word))) {
+                iconName = CONFIG.ICONS[key.charAt(0).toUpperCase() + key.slice(1)] || key;
+                if(key === 'food') iconName = 'utensils';
+                if(key === 'car') iconName = 'car';
+                if(key === 'ticket') iconName = 'ticket';
+                break;
+            }
+        }
+        iconBox.innerHTML = `<i data-lucide="${iconName}"></i>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    },
+
+    updateLiveSplit: () => {
+        const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
+        const selectedCount = document.querySelectorAll('input[name="participants"]:checked').length;
+        const previewEl = document.getElementById('live-split-preview');
+        if (previewEl) {
+            if (selectedCount > 0 && amount > 0) {
+                const perPerson = (amount / selectedCount).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                previewEl.innerText = `₹${perPerson} / Person`;
+                previewEl.style.background = "#2563eb"; 
+            } else {
+                previewEl.innerText = "₹0 / Person";
+                previewEl.style.background = "#0f172a";
+            }
+        }
+    },
+
+    submitExpense: (e) => {
         e.preventDefault();
-        showView('main-dashboard');
+        const title = document.getElementById('exp-title').value.trim();
+        const cat = document.getElementById('exp-category').value;
+        const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
+        const paidBy = document.getElementById('exp-payer').value;
+        const participants = Array.from(document.querySelectorAll('input[name="participants"]:checked')).map(cb => cb.value);
+        if (amount <= 0 || participants.length === 0) {
+            alert("Entry Failure: Amount and participants must be defined.");
+            return;
+        }
+        const entry = { 
+            id: Date.now(), title: title || `${cat} Bill`, amount, 
+            paidBy, category: cat, participants, time: Date.now() 
+        };
+        expenses.push(entry);
+        DataManager.save('expenses', expenses);
+        UI.logActivity(`Synced <strong>${title || cat}</strong>`, cat.toLowerCase(), CONFIG.ICONS[cat], `₹${amount}`);
+        UI.closeModal('expenseModal');
+        e.target.reset();
+        UI.showSection('dashboard');
+    },
+
+    submitMember: () => {
+        const el = document.getElementById('new-member-name');
+        if (!el) return;
+        const name = el.value.trim();
+        if (!name) return;
+        if (members.find(m => m.name.toLowerCase() === name.toLowerCase())) {
+            alert("Conflict: Member already identified in database.");
+            return;
+        }
+        members.push({ name, id: Date.now() });
+        DataManager.save('members', members);
+        UI.logActivity(`Enrolled <strong>${name}</strong> to Squad`, 'member', 'user-plus');
+        el.value = '';
+        UI.closeModal('memberModal');
+        UI.renderMembersGrid();
+        UI.refreshDashboard();
+    },
+
+    deleteExpense: (idx) => {
+        if (confirm("Confirm Purge: Discard this TripCart telemetry packet?")) {
+            const removed = expenses.splice(expenses.length - 1 - idx, 1)[0];
+            DataManager.save('expenses', expenses);
+            UI.logActivity(`Purged <strong>${removed.title}</strong>`, 'system', 'trash-2');
+            UI.renderExpensesTable();
+            UI.refreshDashboard();
+        }
+    },
+
+    deleteMember: (idx) => {
+        if (confirm("DANGER: Subject removal destabilizes historical splits. Proceed?")) {
+            members.splice(idx, 1);
+            DataManager.save('members', members);
+            UI.renderMembersGrid();
+            UI.refreshDashboard();
+        }
+    },
+
+    exportCardAsImage: (cardId, name) => {
+        const node = document.getElementById(cardId);
+        if (!node || typeof htmlToImage === 'undefined') {
+            alert("Export System Error: Dependency Offline.");
+            return;
+        }
+        htmlToImage.toPng(node, { backgroundColor: '#f8fafc', pixelRatio: 3, cacheBust: true })
+        .then(dataUrl => {
+            const link = document.createElement('a');
+            link.download = `TripCart_Report_${name}.png`;
+            link.href = dataUrl;
+            link.click();
+            UI.logActivity(`Exported Retina Card for ${name}`, 'image', 'camera');
+        })
+        .catch(() => alert("Peripheral failure during rendering."));
+    },
+
+    shareWhatsApp: (name, net) => {
+        const status = net >= 0 ? "collect" : "pay";
+        const text = `*TripCart Platinum Intelligence*%0A*Member:* ${name}%0A*Status:* To ${status} ₹${Math.round(Math.abs(net))}%0A*Trek:* Katra 2026%0A_Generated via TripCart Platinum_`;
+        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
     }
 };
+
+// --- 6. GLOBAL BRIDGE & INITIALIZATION ---
+window.selectCategory = (cat, btn) => {
+    document.querySelectorAll('.pill, .cat-tab').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const input = document.getElementById('exp-category');
+    if (input) input.value = cat;
+};
+
+window.showSection = UI.showSection;
+window.openModal = UI.openModal;
+window.closeModal = UI.closeModal;
+window.Logic = Logic;
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 TripCart Platinum: Initializing Monolithic Engine...');
+    PWAManager.init();
+    
+    // Check for incoming data from Orbit via LocalStorage
+    const tripName = localStorage.getItem('tripcart_tripName');
+    
+    // UI logic to handle existing data or show setup
+    // Checking both tripName and member data to ensure a smooth transition from Orbit
+    if (!tripName && members.length === 0) {
+        // Only show overlay if Orbit hasn't sent data yet
+        document.getElementById('auth-overlay').style.display = 'flex';
+        document.getElementById('setup-trip-btn').onclick = () => {
+            const name = prompt("Expedition Identification Perimeter:", "Katra Trip 2026");
+            if (name) {
+                localStorage.setItem('tripcart_tripName', name);
+                location.reload();
+            }
+        };
+    } else {
+        // Data exists! Hide overlay and go straight to dashboard
+        const overlay = document.getElementById('auth-overlay');
+        if (overlay) overlay.style.display = 'none';
+        
+        const sub = document.getElementById('trip-subtitle');
+        if (sub) sub.innerText = tripName || "Expedition 2026";
+        
+        UI.showSection('dashboard');
+    }
+
+    const expForm = document.getElementById('expense-form');
+    if (expForm) expForm.onsubmit = Logic.submitExpense;
+});
