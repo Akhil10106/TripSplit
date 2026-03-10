@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
@@ -19,120 +19,36 @@
     
     <link rel="stylesheet" href="style.css">
     <style>
-        :root {
-            --primary-glow: conic-gradient(from 180deg at 50% 50%, #16abff33 0deg, #0885ff33 55deg, #54d6ff33 120deg, #0071ff33 160deg, transparent 360deg);
-            --luxury-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            overflow-x: hidden;
-            background-color: #0f172a;
-        }
-
-        /* Sidebar Styling */
-        .sidebar { 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-            border-right: 1px solid rgba(255,255,255,0.1);
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(20px);
-            position: fixed;
-            z-index: 1000;
-        }
-
-        .sidebar nav { flex: 1; padding: 20px 0; }
-
-        .sidebar-footer { 
-            margin-top: auto; 
-            padding: 20px; 
-            border-top: 1px solid rgba(255,255,255,0.05); 
-        }
-
-        /* Glassmorphism Return Button */
+        /* Maintaining your original sidebar layout exactly */
+        .sidebar { display: flex; flex-direction: column; height: 100vh; }
+        .sidebar nav { flex: 1; }
+        .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
         .btn-return { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            gap: 12px; 
-            width: 100%; 
-            padding: 16px; 
-            border-radius: 16px; 
-            border: 1px solid rgba(244, 63, 94, 0.3);
-            background: rgba(244, 63, 94, 0.1); 
-            cursor: pointer; 
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            font-weight: 800; 
-            font-size: 0.9rem; 
-            color: #fb7185;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
+            display: flex; align-items: center; gap: 10px; width: 100%; 
+            padding: 12px; border-radius: 12px; border: 1px dashed var(--accent);
+            background: rgba(244, 63, 94, 0.05); cursor: pointer; transition: 0.3s;
+            font-weight: 700; font-size: 0.85rem; margin-bottom: 15px;
         }
-
-        .btn-return:hover { 
-            background: #f43f5e; 
-            color: white !important; 
-            box-shadow: 0 0 20px rgba(244, 63, 94, 0.4);
-            transform: translateY(-2px);
-        }
-
-        /* Premium Nav Links */
-        .nav-link {
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .nav-link.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            height: 60%;
-            width: 4px;
-            background: var(--accent-gradient);
-            border-radius: 0 4px 4px 0;
-        }
-
-        /* Layout Fixes */
-        @media (min-width: 1025px) {
-            .main-content { margin-left: 280px; padding: 40px; }
-            .sidebar { width: 280px; }
-        }
-
-        /* Visual Polish */
-        .primary-gradient { background: var(--accent-gradient); }
-        .bg-dashboard::after {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--primary-glow);
-            z-index: -1;
-            pointer-events: none;
-        }
+        .btn-return:hover { background: var(--accent); color: white !important; }
     </style>
 </head>
 <body class="bg-dashboard">
 
     <div id="auth-overlay" class="modal-overlay" style="display: none;">
-        <div class="auth-card luxury-glass animate-in">
-            <div class="logo-box primary-gradient">
-                <i data-lucide="sparkles" style="color: white;"></i>
-            </div>
-            <h2 style="font-family: 'Outfit', sans-serif; font-weight: 800;">Authenticate</h2>
-            <p>Awaiting valid handshake from the Orbit Planner.</p>
-            <button class="btn btn-primary" onclick="window.location.href='index.html'" style="width: 100%; margin-top: 1.5rem; height: 55px;">
-                <i data-lucide="arrow-left"></i> Go to Planner
+        <div class="auth-card luxury-glass">
+            <div class="logo-box primary-gradient"><i data-lucide="shopping-cart"></i></div>
+            <h2>TripCart Platinum</h2>
+            <p>Awaiting Handshake from Orbit Planner...</p>
+            <button class="btn btn-primary" onclick="window.location.href='index.html'" style="width: 100%; margin-top: 1rem;">
+                <i data-lucide="play"></i> Go to Planner
             </button>
         </div>
     </div>
 
-    <aside class="sidebar">
-        <div class="logo" style="padding: 30px 20px;">
-            <div class="logo-box primary-gradient">
-                <i data-lucide="shopping-cart"></i>
-            </div> 
-            <span style="font-family: 'Outfit', sans-serif; font-weight: 800; color: white; font-size: 1.5rem;">TripCart</span>
+    <aside class="sidebar luxury-glass">
+        <div class="logo">
+            <div class="logo-box primary-gradient"><i data-lucide="shopping-cart"></i></div> 
+            <span>TripCart</span>
         </div>
 
         <nav>
@@ -154,20 +70,18 @@
         </nav>
         
         <div class="sidebar-footer">
-            <button class="btn-return" onclick="window.location.href='index.html'">
+            <button class="btn-return" onclick="window.location.href='index.html'" style="color: var(--accent);">
                 <i data-lucide="arrow-left-circle"></i> Back to Planner
             </button>
-            <p style="font-size: 0.65rem; opacity: 0.4; text-align: center; margin-top: 10px; color: white;">
-                PLATINUM v25.2.0 • MONOLITH CORE
-            </p>
+            <p style="font-size: 0.7rem; opacity: 0.6; text-align: center;">TripCart V25.0 Platinum Edition</p>
         </div>
     </aside>
 
     <main class="main-content">
         <header class="header">
             <div class="header-text">
-                <h1 id="section-title" style="font-family: 'Outfit', sans-serif; font-weight: 800; color: white;">Intelligence</h1>
-                <p id="trip-subtitle" style="color: #94a3b8; font-weight: 600;">Handshake Secure: Katra Trek 2026</p>
+                <h1 id="section-title">Dashboard</h1>
+                <p id="trip-subtitle">Syncing with Orbit...</p>
             </div>
             <div class="header-actions" id="desktop-action-container"></div>
         </header>
@@ -178,7 +92,7 @@
                     <div class="card-glass-overlay"></div>
                     <div class="stat-header">
                         <p class="stat-label">Total Spend</p>
-                        <span class="verified-badge"><i data-lucide="shield-check"></i> Secured</span>
+                        <span class="verified-badge"><i data-lucide="shield-check"></i> Verified</span>
                     </div>
                     <div class="stat-value" id="total-expense-val">₹0</div>
                     <div class="progress-mini-container">
@@ -187,24 +101,24 @@
                 </div>
 
                 <div class="stat-card luxury-card">
-                    <p class="stat-label">Daily Velocity</p>
+                    <p class="stat-label">Velocity</p>
                     <div class="stat-value-mid" id="daily-velocity-val">₹0</div>
-                    <p class="stat-sub-text">Average Rate</p>
+                    <p class="stat-sub-text">Avg / Day</p>
                 </div>
 
                 <div class="stat-card luxury-card">
-                    <p class="stat-label">Primary Spender</p>
+                    <p class="stat-label">Lead Spender</p>
                     <div class="spender-profile">
                         <div class="mini-avatar primary-gradient" id="top-spender-avatar">?</div>
                         <div class="stat-value-sm" id="top-spender-name">N/A</div>
                     </div>
                 </div>
 
-                <div class="stat-card luxury-card action-card pulse-hover" onclick="openModal('expenseModal')">
+                <div class="stat-card luxury-card action-card" onclick="openModal('expenseModal')">
                     <div class="action-circle primary-gradient">
                         <i data-lucide="plus"></i>
                     </div>
-                    <p class="stat-label">Log Bill</p>
+                    <p class="stat-label">Quick Entry</p>
                 </div>
             </div>
 
@@ -212,12 +126,12 @@
                 <div class="panel-header">
                     <div class="panel-title">
                         <div class="pulse-icon"></div>
-                        <span style="color: white;">Security Perimeter Feed</span>
+                        <span>Live Activity Feed</span>
                     </div>
                 </div>
                 <div class="activity-scroll-container">
                     <div id="activity-feed" class="activity-list timeline-style">
-                        <p class="empty-msg">Syncing telemetry data...</p>
+                        <p class="empty-msg">Waiting for telemetry...</p>
                     </div>
                 </div>
             </div>
@@ -227,13 +141,7 @@
             <div class="table-container luxury-glass">
                 <table id="expenses-table">
                     <thead>
-                        <tr>
-                            <th>Bill Detail</th>
-                            <th class="hide-mobile">Origin Payer</th>
-                            <th>Amount</th>
-                            <th>Category</th>
-                            <th>Action</th>
-                        </tr>
+                        <tr><th>Bill Detail</th><th class="hide-mobile">Payer</th><th>Amount</th><th>Category</th><th>Action</th></tr>
                     </thead>
                     <tbody id="expenses-tbody"></tbody>
                 </table>
@@ -247,24 +155,25 @@
         <section id="members-section" class="section-content hidden">
             <div class="group-header-info">
                 <div class="group-meta">
-                    <span class="member-count-badge" id="member-count-val">0 Active</span>
-                    <p style="color: #94a3b8;">Verifying expedition squad members...</p>
+                    <span class="member-count-badge" id="member-count-val">0 Members</span>
+                    <p>Managing the core squad roster</p>
                 </div>
             </div>
             <div id="members-grid" class="premium-member-grid"></div>
         </section>
 
         <section id="profile-section" class="section-content hidden">
-            <div class="profile-container"></div>
+            <div class="profile-container">
+                </div>
         </section>
     </main>
 
     <nav class="mobile-nav luxury-glass">
-        <button class="m-nav-item active" onclick="showSection('dashboard')"><i data-lucide="layout-grid"></i><span>Dash</span></button>
+        <button class="m-nav-item active" onclick="showSection('dashboard')"><i data-lucide="layout-grid"></i><span>Home</span></button>
         <button class="m-nav-item" onclick="showSection('expenses')"><i data-lucide="receipt"></i><span>Bills</span></button>
         <button class="m-nav-item" onclick="showSection('balance')"><i data-lucide="scale"></i><span>Split</span></button>
         <button class="m-nav-item" onclick="showSection('members')"><i data-lucide="users"></i><span>Squad</span></button>
-        <button class="m-nav-item" onclick="showSection('profile')"><i data-lucide="cpu"></i><span>Sys</span></button>
+        <button class="m-nav-item" onclick="showSection('profile')"><i data-lucide="settings"></i><span>System</span></button>
     </nav>
 
     <div class="modal" id="expenseModal">
@@ -272,21 +181,21 @@
             <div class="modal-handle-bar"></div>
             <div class="modal-smart-header">
                 <div class="modal-title-zone">
-                    <h2 class="premium-title">Sync Expense</h2>
-                    <p class="premium-subtitle">Registering telemetry to blockchain ledger</p>
+                    <h2 class="premium-title">New Bill Entry</h2>
+                    <p class="premium-subtitle">Synchronizing to Expedition Feed</p>
                 </div>
                 <div class="live-telemetry-chip">
-                    <span id="live-split-preview">₹0.00 / Head</span>
+                    <span id="live-split-preview">₹0.00 / Person</span>
                 </div>
             </div>
         
             <form id="expense-form" class="smart-form-engine">
                 <div class="form-section-modern">
-                    <label class="logic-label">Bill Alias</label>
+                    <label class="logic-label">Bill Description</label>
                     <div class="input-stack-premium">
                         <div class="icon-indicator" id="desc-icon-box"><i data-lucide="tag"></i></div>
                         <div class="field-logic">
-                            <input type="text" id="exp-title" placeholder="Description" required oninput="Logic.updateSmartIcon(this.value)">
+                            <input type="text" id="exp-title" placeholder="What was this for?" required oninput="window.Logic.updateSmartIcon(this.value)">
                         </div>
                     </div>
                 </div>
@@ -304,22 +213,22 @@
 
                 <div class="form-section-modern">
                     <div class="label-row-flex">
-                        <label class="logic-label">Included Subjects</label>
-                        <button type="button" class="action-link-sm" onclick="Logic.selectAllSquad()">Select All</button>
+                        <label class="logic-label">Squad Included</label>
+                        <button type="button" class="action-link-sm" onclick="window.Logic.selectAllSquad()">Select All</button>
                     </div>
                     <div id="member-inclusion-list" class="squad-scroll-engine"></div>
                 </div>
 
                 <div class="form-section-modern">
-                    <label class="logic-label">Valuation (₹)</label>
+                    <label class="logic-label">Total Value (₹)</label>
                     <div class="money-input-field">
                         <span class="currency-symbol-modern">₹</span>
-                        <input type="number" id="exp-amount" placeholder="0.00" step="any" required oninput="Logic.updateLiveSplit()">
+                        <input type="number" id="exp-amount" placeholder="0.00" step="any" required oninput="window.Logic.updateLiveSplit()">
                     </div>
                 </div>
 
                 <div class="form-section-modern">
-                    <label class="logic-label">Source Payer</label>
+                    <label class="logic-label">Payer Identity</label>
                     <div class="payer-select-box">
                         <i data-lucide="credit-card" class="payer-icon"></i>
                         <select id="exp-payer" required></select>
@@ -328,24 +237,23 @@
 
                 <div class="modal-footer-actions">
                     <button type="button" class="btn-cancel-luxury" onclick="closeModal('expenseModal')">Discard</button>
-                    <button type="submit" class="btn-sync-luxury">Sync Packet</button>
+                    <button type="submit" class="btn-sync-luxury">Sync Expense</button>
                 </div>
             </form>
         </div>
     </div>
 
     <div class="modal" id="memberModal">
-        <div class="modal-content luxury-solid-card" style="max-width: 400px;">
+        <div class="modal-content luxury-solid-card" style="max-width: 380px;">
             <div class="modal-handle-bar"></div>
-            <h2 class="premium-title">Enroll Subject</h2>
-            <p class="premium-subtitle">Adding new participant to expedition</p>
-            <div class="input-stack-premium" style="margin-top: 20px;">
+            <h2 class="premium-title">Register Participant</h2>
+            <div class="input-stack-premium">
                 <div class="icon-indicator"><i data-lucide="user-plus"></i></div>
-                <div class="field-logic"><input type="text" id="new-member-name" placeholder="Full Identity" required></div>
+                <div class="field-logic"><input type="text" id="new-member-name" placeholder="Full Name" required></div>
             </div>
-            <div class="modal-footer-actions">
+            <div class="modal-footer-actions" style="margin-top: 25px;">
                 <button class="btn-cancel-luxury" onclick="closeModal('memberModal')">Cancel</button>
-                <button class="btn-sync-luxury" onclick="Logic.submitMember()">Enroll</button>
+                <button class="btn-sync-luxury" onclick="window.Logic.submitMember()">Enroll</button>
             </div>
         </div>
     </div>
@@ -354,19 +262,6 @@
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof lucide !== 'undefined') lucide.createIcons();
-            
-            // Interaction Polish
-            const mainContent = document.querySelector('.main-content');
-            mainContent.addEventListener('scroll', () => {
-                const header = document.querySelector('.header');
-                if (mainContent.scrollTop > 20) {
-                    header.style.background = 'rgba(15, 23, 42, 0.9)';
-                    header.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
-                } else {
-                    header.style.background = 'transparent';
-                    header.style.boxShadow = 'none';
-                }
-            });
         });
     </script>
 </body>
