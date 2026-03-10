@@ -5,10 +5,10 @@
  * Environment: Secure Expedition Financial Perimeter
  * Redirection Policy: Hard-Locked to index.html for Purge & Unauthorized Access
  * * MODULE INDEX:
- * 1. System Configuration & Design Tokens
+ * 1. System Configuration & Global Tokens
  * 2. Perimeter Data State Management
  * 3. DOM Registry & Node Caching
- * 4. Data Integrity & Persistence Layer
+ * 4. Data Integrity & Persistence Layer (With Hard Redirection)
  * 5. Advanced Mathematical & Analytics Engine
  * 6. View Controller & Rendering Pipeline
  * 7. Business Logic & Transactional Safety
@@ -121,36 +121,37 @@
         }
     };
 
-    // --- 4. DATA INTEGRITY & PERSISTENCE ---
+    // --- 4. DATA INTEGRITY & PERSISTENCE LAYER ---
     const DataStore = {
         commit: (key, data) => {
             try {
                 localStorage.setItem(`tripcart_${key}`, JSON.stringify(data));
             } catch (e) {
                 console.error("Storage Perimeter Exhausted", e);
-                alert("Memory Warning: Local storage limit reached.");
             }
         },
 
         /**
-         * System Hard Purge
-         * Wipes memory and immediately teleports user back to Orbit Planner.
+         * System Hard Purge & Redirect
+         * Wipes hardware storage and clears session.
+         * FORCES REDIRECTION to Orbit Planner (index.html).
          */
         purge: () => {
-            const protocol = confirm("CRITICAL SECURITY OVERRIDE: This operation will permanently wipe all expedition telemetry and synchronized participant data. Return to Orbit Planner?");
+            const protocol = confirm("CRITICAL SECURITY OVERRIDE: This will wipe all trek data and return you to the Setup Wizard. Proceed?");
             if (protocol) {
-                // Wipe Local Perimeter
+                // 1. Wipe Hardware Storage Perimeter
                 localStorage.clear();
                 
-                // Clear Volatile Memory
+                // 2. Clear Runtime Memory State
                 state.members = [];
                 state.expenses = [];
                 state.logs = [];
                 
-                console.log("Perimeter Integrity Check: Cleared. Redirection Sequence Initialized.");
-                
-                // FORCE REDIRECT
-                window.location.href = CONFIG.PLANNER_URL;
+                console.log("Memory Purged. Executing Hard Redirection to Orbit Setup...");
+
+                // 3. Forced Redirect to Planner (index.html)
+                // We use replace() so the user cannot navigate 'back' to a dead session
+                window.location.replace(CONFIG.PLANNER_URL);
             }
         },
 
@@ -164,7 +165,7 @@
         }
     };
 
-    // --- 5. LOGIC & MATHEMATICAL ENGINE ---
+    // --- 5. ADVANCED MATHEMATICAL & ANALYTICS ENGINE ---
     const Analytics = {
         /**
          * Debt Minimization Matrix
@@ -226,22 +227,18 @@
         renderSection: (id) => {
             if (state.session.activeSection === id && Date.now() - state.meta.lastRender < CONFIG.RENDER_THROTTLE) return;
 
-            // Hide Current UI
             Object.values(DOM.sections).forEach(s => { if(s) s.classList.add('hidden'); });
             document.querySelectorAll('.nav-link, .m-nav-item').forEach(n => n.classList.remove('active'));
 
-            // Atmosphere Transition
             DOM.appBody.classList.remove('bg-dashboard', 'bg-expenses', 'bg-balance', 'bg-members', 'bg-profile');
             DOM.appBody.classList.add(CONFIG.THEMES[id]);
 
-            // Reveal Target Frame
             const target = DOM.sections[id];
             if (target) {
                 target.classList.remove('hidden');
                 target.classList.add('fade-in');
             }
             
-            // Sync Navigation UI
             document.querySelectorAll(`[onclick*="showSection('${id}')"]`).forEach(el => el.classList.add('active'));
             if (DOM.sectionTitle) DOM.sectionTitle.innerText = ViewController.getTitleLabel(id);
 
@@ -267,9 +264,6 @@
             }
         },
 
-        /**
-         * Frame-Based Value Animation Engine
-         */
         tweenNumber: (el, target) => {
             if (!el) return;
             let current = 0;
@@ -289,10 +283,8 @@
         drawIntelligenceCenter: () => {
             const data = DataStore.getAggregates();
             ViewController.tweenNumber(DOM.totalSpent, data.total);
-
             const velocity = Analytics.calculateDailyVelocity();
             if (DOM.velocity) DOM.velocity.innerText = Analytics.formatCurrency(velocity);
-
             const payers = Object.entries(data.payers);
             if (payers.length > 0) {
                 const lead = payers.sort((a, b) => b[1] - a[1])[0];
@@ -334,14 +326,12 @@
                     <td><div style="display:flex; align-items:center; gap:6px;"><div class="mini-avatar primary-gradient" style="width:20px; height:20px; font-size:0.6rem;">${e.paidBy[0]}</div> ${e.paidBy}</div></td>
                     <td><b>${Analytics.formatCurrency(e.amount)}</b></td>
                     <td><span class="badge" style="background:var(--primary-glass); color:var(--primary); font-size:0.6rem;">${e.category.toUpperCase()}</span></td>
-                    <td><button class="btn btn-delete-sm" onclick="Logic.removeBill(${i})"><i data-lucide="trash-2"></i></button></td>
+                    <td><button class="btn btn-delete-sm" onclick="window.Logic.removeBill(${i})"><i data-lucide="trash-2"></i></button></td>
                 </tr>`).reverse().join('');
         },
 
         drawSettlementMatrix: () => {
             if (!DOM.grids.balance) return;
-            const settlements = Analytics.solveSettlements();
-            
             DOM.grids.balance.innerHTML = state.members.map((m, idx) => {
                 let paid = 0, credits = 0, debts = 0;
                 state.expenses.forEach(e => {
@@ -355,7 +345,6 @@
                 });
                 const net = credits - debts;
                 const cardId = `member-card-${idx}`;
-
                 return `
                 <div class="member-ledger-card animate-in" id="${cardId}" style="animation-delay: ${idx * 0.1}s">
                     <div class="ledger-header">
@@ -371,8 +360,8 @@
                         <div class="summary-item"><small>Net Split</small><span class="${net >= 0 ? 'text-get' : 'text-give'}">${Analytics.formatCurrency(Math.abs(net))}</span></div>
                     </div>
                     <div class="card-action-row" style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        <button class="btn btn-card-download" onclick="Logic.captureSecurityCard('${cardId}', '${m.name}')">Save Image</button>
-                        <button class="btn btn-primary" onclick="Logic.broadcastWhatsApp('${m.name}', ${net})">WhatsApp</button>
+                        <button class="btn btn-card-download" onclick="window.Logic.captureSecurityCard('${cardId}', '${m.name}')">Save Image</button>
+                        <button class="btn btn-primary" onclick="window.Logic.broadcastWhatsApp('${m.name}', ${net})">WhatsApp</button>
                     </div>
                 </div>`;
             }).join('');
@@ -382,7 +371,7 @@
             if (!DOM.grids.members) return;
             DOM.grids.members.innerHTML = state.members.map((m, i) => `
                 <div class="member-card animate-in" style="animation-delay: ${i * 0.05}s">
-                    <button class="btn-delete" onclick="Logic.removeParticipant(${i})"><i data-lucide="user-x"></i></button>
+                    <button class="btn-delete" onclick="window.Logic.removeParticipant(${i})"><i data-lucide="user-x"></i></button>
                     <div class="member-avatar primary-gradient">${m.name[0]}</div>
                     <b style="font-size:1rem;">${m.name}</b>
                     <p style="margin-top:5px; font-size:0.65rem; font-weight:800; opacity:0.4;">VERIFIED PARTICIPANT</p>
@@ -391,36 +380,23 @@
                     <div class="add-friend-icon"><i data-lucide="plus"></i></div>
                     <span>Register New</span>
                 </div>`;
-            if (typeof lucide !== 'undefined') lucide.createIcons();
         },
 
         drawSystemModule: () => {
             const container = document.querySelector('.profile-container');
             if (!container) return;
-            const isS = state.meta.isStandalone;
-            
             container.innerHTML = `
                 <div class="profile-hero animate-in">
                     <div class="logo-box primary-gradient" style="margin: 0 auto 1.5rem;"><i data-lucide="shield-check"></i></div>
                     <h2>${state.meta.tripName || 'Handshake Protocol Active'}</h2>
                     <p style="font-weight:800; opacity:0.6;">Firmware: v${CONFIG.VERSION}</p>
                 </div>
-
                 <div class="panel luxury-shadow animate-in" style="background:#fff !important; border-radius:24px; margin-top:20px;">
                     <div class="panel-title"><i data-lucide="file-text"></i> Expedition Archiving</div>
-                    <p style="font-size:0.85rem; margin-bottom:15px;">Compile and download the complete financial dossier for the trekking group.</p>
-                    <button class="btn btn-primary" style="width:100%; height:55px;" onclick="Logic.generateExpeditionDossier()">
+                    <button class="btn btn-primary" style="width:100%; height:55px;" onclick="window.Logic.generateExpeditionDossier()">
                         <i data-lucide="download"></i> Download Platinum PDF
                     </button>
                 </div>
-
-                <div class="panel luxury-shadow animate-in" style="background:#fff !important; border-radius:24px; margin-top:20px;">
-                    <div class="panel-title"><i data-lucide="hard-drive"></i> Hardware Diagnostics</div>
-                    <p style="font-size:0.85rem;"><strong>Status:</strong> <span style="color:var(--success);">CONNECTED</span></p>
-                    <p style="font-size:0.85rem;"><strong>Mode:</strong> ${isS ? 'Native (Standalone)' : 'Browser Interface'}</p>
-                    <p style="font-size:0.85rem;"><strong>Handshake Hash:</strong> ${state.meta.clientHash}</p>
-                </div>
-
                 <div class="panel luxury-shadow animate-in" style="background:var(--danger-soft) !important; border: 1px solid var(--danger); border-radius: 24px; margin-top:20px;">
                     <div class="panel-title" style="color:var(--danger-text);"><i data-lucide="alert-triangle"></i> System Hard Reset</div>
                     <p style="color:var(--danger-text); margin-bottom:15px; font-size:0.8rem;">Warning: This operation wipes all synchronized trip data and forces a return to the Orbit Planner.</p>
@@ -433,7 +409,7 @@
 
         formatTime: (ts) => {
             const diff = Math.floor((Date.now() - ts) / 1000);
-            if (diff < 60) return 'Seconds ago';
+            if (diff < 60) return 'Just now';
             if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
             if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
             return new Date(ts).toLocaleDateString();
@@ -449,17 +425,10 @@
             const category = DOM.forms.categoryInput.value;
             const payer = DOM.forms.payerSelect.value;
             const participants = Array.from(document.querySelectorAll('input[name="participants"]:checked')).map(cb => cb.value);
-
-            if (amount <= 0 || participants.length === 0) {
-                alert("Security Protocol: Bill value and Participant set must be defined.");
-                return;
-            }
-
+            if (amount <= 0 || participants.length === 0) { alert("Security Protocol: Bill value and Participants required."); return; }
             const bill = { id: Date.now(), title: title || `${category} Expenditure`, amount, paidBy: payer, category, participants, time: Date.now() };
-
             state.expenses.push(bill);
             DataStore.commit('expenses', state.expenses);
-            
             Logic.logInternal(`Sync Successful: ${bill.title}`, category.toLowerCase(), CONFIG.ICONS[category], Analytics.formatCurrency(amount));
             closeModal('expenseModal');
             e.target.reset();
@@ -499,9 +468,7 @@
             htmlToImage.toPng(node, { backgroundColor: '#f8fafc', pixelRatio: 3, style: { transform: 'scale(1)', borderRadius: '24px' } })
                 .then(url => {
                     const a = document.createElement('a');
-                    a.download = `Verification_${name}.png`;
-                    a.href = url;
-                    a.click();
+                    a.download = `Verification_${name}.png`; a.href = url; a.click();
                     Logic.logInternal(`Retina Capture: ${name}`, 'success', 'camera');
                 });
         },
@@ -517,30 +484,15 @@
             if (!window.jspdf) { alert("PDF Module missing."); return; }
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const tripName = state.meta.tripName || "Platinum Expedition";
-            
-            doc.setFontSize(26);
-            doc.setTextColor(37, 99, 235);
-            doc.text("EXPEDITION DOSSIER", 14, 25);
-            
-            doc.setFontSize(10);
-            doc.setTextColor(100, 116, 139);
-            doc.text(`TRIPSPLIT PLATINUM v${CONFIG.VERSION}`, 14, 32);
-            doc.text(`GENERATED: ${new Date().toLocaleString()}`, 14, 38);
-
-            // Member Table
+            doc.setFontSize(26); doc.setTextColor(37, 99, 235); doc.text("EXPEDITION DOSSIER", 14, 25);
+            doc.setFontSize(10); doc.setTextColor(100, 116, 139); doc.text(`TRIPSPLIT PLATINUM v${CONFIG.VERSION}`, 14, 32);
             const mData = state.members.map(m => [m.name, Analytics.formatCurrency(state.expenses.filter(e => e.paidBy === m.name).reduce((s, e) => s + e.amount, 0))]);
             doc.autoTable({ startY: 50, head: [['Expedition Member', 'Total Paid Out']], body: mData, headStyles: { fillColor: [37, 99, 235] } });
-
-            // Settlement Logic Table
             const plan = Analytics.solveSettlements();
             const pRows = plan.map(p => [p.from, p.to, Analytics.formatCurrency(p.amount)]);
-            doc.setFontSize(16);
-            doc.setTextColor(30, 41, 59);
-            doc.text("SETTLEMENT PROTOCOLS", 14, doc.lastAutoTable.finalY + 15);
-            doc.autoTable({ startY: doc.lastAutoTable.finalY + 22, head: [['Debtor (Sender)', 'Creditor (Receiver)', 'Settlement Value']], body: pRows.length ? pRows : [['-', '-', 'No Debt Found']], headStyles: { fillColor: [15, 23, 42] } });
-
-            doc.save(`Dossier_${tripName.replace(/\s+/g, '_')}.pdf`);
+            doc.setFontSize(16); doc.setTextColor(30, 41, 59); doc.text("SETTLEMENT PROTOCOLS", 14, doc.lastAutoTable.finalY + 15);
+            doc.autoTable({ startY: doc.lastAutoTable.finalY + 22, head: [['Debtor', 'Creditor', 'Value']], body: pRows.length ? pRows : [['-', '-', 'No Debt']], headStyles: { fillColor: [15, 23, 42] } });
+            doc.save(`Dossier_Platinum.pdf`);
             Logic.logInternal("PDF Dossier Compiled", "success", "file-text");
         }
     };
@@ -554,21 +506,14 @@
                     <input type="checkbox" name="participants" value="${m.name}" checked style="display:none">
                     <span>${m.name}</span>
                 </label>`).join('');
-
-            if (DOM.forms.payerSelect) {
-                DOM.forms.payerSelect.innerHTML = state.members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
-            }
+            if (DOM.forms.payerSelect) DOM.forms.payerSelect.innerHTML = state.members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
             UIInteractions.refreshLivePreview();
         },
-
         refreshLivePreview: () => {
             const val = parseFloat(DOM.forms.amountInput.value) || 0;
             const selected = document.querySelectorAll('input[name="participants"]:checked').length;
-            if (DOM.forms.liveSplit) {
-                DOM.forms.liveSplit.innerText = selected > 0 ? `₹${(val / selected).toFixed(2)} / Person` : "₹0.00 / Person";
-            }
+            if (DOM.forms.liveSplit) DOM.forms.liveSplit.innerText = selected > 0 ? `₹${(val / selected).toFixed(2)} / Person` : "₹0.00 / Person";
         },
-
         analyzeContextualIcon: () => {
             const text = DOM.forms.titleInput.value.toLowerCase();
             let finalIcon = 'tag';
@@ -588,33 +533,25 @@
 
     // --- 9. SECURITY HANDSHAKE & APPLICATION BOOTSTRAP ---
     const CoreBootstrap = () => {
-        console.log("🚀 Platinum Engine: Finalizing Perimeters...");
-        
-        // Check for Handshake data from Orbit
+        console.log("🚀 Platinum Engine: Validating Handshake...");
         const tripName = localStorage.getItem('tripcart_tripName');
         
         /**
          * REDIRECTION PROTOCOL
          * If the tracker is accessed directly without planning data, 
-         * redirect to the index.html page immediately.
+         * redirect to the index.html page immediately. No Auth Overlay.
          */
         if (!tripName && state.members.length === 0) {
-            console.warn("Unauthorized Handshake State. Redirecting to Planner...");
-            window.location.href = CONFIG.PLANNER_URL;
+            console.warn("Unauthorized Access. Force Redirecting to Orbit Planner...");
+            window.location.replace(CONFIG.PLANNER_URL);
             return;
         }
 
-        // Apply Trip Metadata
-        if (DOM.tripSubtitle) DOM.tripSubtitle.innerText = tripName || "Expedition v25";
-        
-        // Initialize Default View
+        if (DOM.tripSubtitle) DOM.tripSubtitle.innerText = tripName || "Expedition Active";
         ViewController.renderSection('dashboard');
-
-        // Global Event Attachments
         if (DOM.forms.expense) DOM.forms.expense.onsubmit = Logic.registerBill;
         if (DOM.forms.amountInput) DOM.forms.amountInput.oninput = UIInteractions.refreshLivePreview;
         if (DOM.forms.titleInput) DOM.forms.titleInput.oninput = UIInteractions.analyzeContextualIcon;
-
         Logic.logInternal("Handshake Secure: Expedition Ready", "system", "lock");
     };
 
@@ -622,57 +559,16 @@
     window.showSection = ViewController.renderSection;
     window.openModal = (id) => { 
         const m = DOM.modals[id === 'expenseModal' ? 'expense' : 'member'];
-        if(m) {
-            m.style.display = 'flex';
-            if(id === 'expenseModal') UIInteractions.setupExpensePerimeter();
-        }
+        if(m) { m.style.display = 'flex'; if(id === 'expenseModal') UIInteractions.setupExpensePerimeter(); }
     };
-    window.closeModal = (id) => {
-        const m = DOM.modals[id === 'expenseModal' ? 'expense' : 'member'];
-        if(m) m.style.display = 'none';
-    };
+    window.closeModal = (id) => { const m = DOM.modals[id === 'expenseModal' ? 'expense' : 'member']; if(m) m.style.display = 'none'; };
+    window.Logic = { ...Logic, toggleChip: (el) => { const cb = el.querySelector('input'); setTimeout(() => { el.classList.toggle('selected', cb.checked); UIInteractions.refreshLivePreview(); }, 10); }, selectAllSquad: () => { document.querySelectorAll('.squad-chip').forEach(c => { c.querySelector('input').checked = true; c.classList.add('selected'); }); UIInteractions.refreshLivePreview(); }, submitMember: () => { const el = document.getElementById('new-member-name'); const name = el.value.trim(); if (!name || state.members.find(m => m.name === name)) return; state.members.push({ name, id: Date.now() }); DataStore.commit('members', state.members); Logic.logInternal(`Participant Enrolled: ${name}`, 'success', 'user-plus'); closeModal('memberModal'); ViewController.runPageRenderer('members'); } };
+    window.selectCategory = (cat, btn) => { document.querySelectorAll('.cat-tab').forEach(p => p.classList.remove('active')); btn.classList.add('active'); if (DOM.forms.categoryInput) DOM.forms.categoryInput.value = cat; };
+    window.DataManager = DataStore;
 
-    // Global Namespace logic mapping
-    window.Logic = {
-        ...Logic,
-        toggleChip: (el) => {
-            const cb = el.querySelector('input');
-            setTimeout(() => {
-                el.classList.toggle('selected', cb.checked);
-                UIInteractions.refreshLivePreview();
-            }, 10);
-        },
-        selectAllSquad: () => {
-            document.querySelectorAll('.squad-chip').forEach(c => {
-                c.querySelector('input').checked = true;
-                c.classList.add('selected');
-            });
-            UIInteractions.refreshLivePreview();
-        },
-        submitMember: () => {
-            const name = document.getElementById('new-member-name').value.trim();
-            if (!name || state.members.find(m => m.name === name)) return;
-            state.members.push({ name, id: Date.now() });
-            DataStore.commit('members', state.members);
-            Logic.logInternal(`Registered Participant: ${name}`, 'success', 'user-plus');
-            closeModal('memberModal');
-            ViewController.runPageRenderer('members');
-        }
-    };
-
-    window.selectCategory = (cat, btn) => {
-        document.querySelectorAll('.cat-tab').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        if (DOM.forms.categoryInput) DOM.forms.categoryInput.value = cat;
-    };
-
-    // Execute Application Initializer
     document.addEventListener('DOMContentLoaded', CoreBootstrap);
 
+    // Advanced Firmware Utilities
+    const Firmware = { checkIntegrity: () => state.members.length > 0 && !!state.meta.tripName, checkSync: () => !!localStorage.getItem('tripcart_logs'), getHash: () => state.meta.clientHash };
+    window.PlatinumFirmware = Firmware;
 })();
-/**
- * ==============================================================================
- * END OF MONOLITHIC TRACKER CORE | TOTAL LOC: 800+
- * DATA SYNC SECURED | PERIMETER STABLE
- * ==============================================================================
- */
